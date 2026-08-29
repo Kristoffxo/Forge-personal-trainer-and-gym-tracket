@@ -1,4 +1,6 @@
-# Cloudflare Pages / Netlify. The bundle and the assets carry a content hash in
+# Cloudflare (Workers static assets and Pages) and Netlify.
+# SPA fallback is not here: Workers rejects a /* -> /index.html 200 rule as a
+# loop, so wrangler.jsonc does it with not_found_handling instead. The bundle and the assets carry a content hash in
 # their names, so they can be cached forever. The three files that decide which
 # bundle you get must never be stale.
 

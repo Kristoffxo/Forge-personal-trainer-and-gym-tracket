@@ -1,0 +1,26 @@
+{
+  // Deploys the exported web app to Cloudflare as a static-assets Worker.
+  //
+  //   npm run build:web    writes web-build/
+  //   npx wrangler deploy  uploads it
+  //
+  // The build below runs first, so a plain `npx wrangler deploy` is enough
+  // both here and on Cloudflare's own builder.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "forge-app",
+  "compatibility_date": "2026-08-29",
+
+  "build": {
+    "command": "npm run build:web"
+  },
+
+  "assets": {
+    "directory": "./web-build",
+    // One page, so anything that is not a real file falls back to it.
+    "not_found_handling": "single-page-application"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

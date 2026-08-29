@@ -50,10 +50,25 @@ npm run build:web    # exports to web-build/ and stamps the service worker
 npm run serve:web    # serve that folder locally at :8090
 ```
 
-Deploy the `web-build` folder anywhere that serves it over HTTPS from the root of
-a domain — `start_url` and `scope` are both `/`, so a subpath needs a base-path
-build. `public/_headers` and `public/_redirects` are picked up by Cloudflare
-Pages and Netlify.
+It is live at **https://forge-app.thearyanbasantani.workers.dev**.
+
+```bash
+npx wrangler deploy   # builds first, then uploads — see wrangler.jsonc
+```
+
+That is the whole deploy. `wrangler.jsonc` runs `npm run build:web` itself, so
+Cloudflare's own builder needs no build command configured — its deploy command
+`npx wrangler deploy` is enough.
+
+Host it anywhere else that serves the folder over HTTPS from the root of a
+domain — `start_url` and `scope` are both `/`, so a subpath needs a base-path
+build. `public/_headers` is picked up by Cloudflare and Netlify. There is no
+`_redirects`: Workers rejects a `/* -> /index.html 200` rule as a loop, so the
+single-page fallback lives in `wrangler.jsonc` as `not_found_handling` instead.
+
+Launch images avoid `@` in their filenames on purpose. Workers normalises `@` to
+`%40` and answers with a 307, which puts a redirect in front of the launch
+screen.
 
 To install it on an iPhone: open the URL in Safari, Share, **Add to Home
 Screen**, leave *Open as Web App* on.
