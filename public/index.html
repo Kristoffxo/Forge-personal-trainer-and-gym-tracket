@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <!-- viewport-fit=cover is what makes env(safe-area-inset-*) non-zero, which is
+         how react-native-safe-area-context learns about the notch and the home
+         indicator on the web. Without it the tab bar sits under the indicator. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, shrink-to-fit=no" />
+    <title>%WEB_TITLE%</title>
+    <meta name="description" content="Personal training with Coach Sid. Your weekly plan, today's workout, a calorie tracker with Indian foods, and a direct line to your trainer." />
+
+    <!-- installable -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0E0D0C" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- iOS home screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- "black" is deliberate. With "black-translucent" iOS 26 hands the web app a
+         viewport 62pt shorter than the screen but still pins it to the top, which
+         leaves a dead strip under the tab bar. With "black" iOS reserves the status
+         bar itself, safe-area-inset-top is 0, and the page fills everything below. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Mesamorfit" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
+
+    <!-- launch screens, one per iPhone. A device with no match just gets #12110F. -->
+    <link rel="apple-touch-startup-image" href="/splash/launch-375x667@2x.jpg" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-414x736@3x.jpg" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-375x812@3x.jpg" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-414x896@2x.jpg" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-414x896@3x.jpg" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-390x844@3x.jpg" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-393x852@3x.jpg" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-402x874@3x.jpg" media="(device-width:402px) and (device-height:874px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-428x926@3x.jpg" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-430x932@3x.jpg" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/launch-440x956@3x.jpg" media="(device-width:440px) and (device-height:956px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
+
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+
+    <!-- Makes the page behave like an app rather than a document: no tap flash,
+         no rubber-band, no long-press callout, no text selection outside inputs. -->
+    <style id="mesamorfit-shell">
+      * { -webkit-tap-highlight-color: transparent; }
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        background-color: #0E0D0C;
+      }
+      body {
+        margin: 0;
+        background-color: #0E0D0C;
+        overscroll-behavior: none;
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      input, textarea, [contenteditable] {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      /* Boot screen. Same artwork as the iOS launch image, so the hand-off from
+         the launch image to the page is invisible. Removed once React is up. */
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background-color: #12110F;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+        transition: opacity 260ms ease-out;
+      }
+      #boot.gone { opacity: 0; pointer-events: none; }
+      #boot .glow {
+        position: absolute;
+        left: 50%; top: 46%;
+        width: 118vw; height: 118vw;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, rgba(232,92,36,0.22) 0%, rgba(232,92,36,0.07) 40%, rgba(232,92,36,0) 66%);
+      }
+      #boot .mark {
+        position: relative;
+        font-family: Forum, Georgia, 'Times New Roman', serif;
+        font-size: 27vw;
+        line-height: 1;
+        margin-bottom: 1.2vh;
+        background: linear-gradient(170deg, #F5A623 0%, #E85C24 52%, #C7481A 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      #boot .rule {
+        position: relative;
+        width: 17vw; height: 2px;
+        border-radius: 99px;
+        margin-bottom: 2.6vh;
+        background: linear-gradient(90deg, rgba(232,92,36,0) 0%, #E85C24 50%, rgba(232,92,36,0) 100%);
+      }
+      #boot .word {
+        position: relative;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-weight: 500;
+        font-size: 3.5vw;
+        letter-spacing: 0.42em;
+        text-indent: 0.42em;
+        color: #A9A29A;
+        text-transform: uppercase;
+      }
+      @media (min-width: 620px) {
+        #boot .mark { font-size: 168px; }
+        #boot .rule { width: 106px; }
+        #boot .word { font-size: 22px; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+
+    <div id="boot">
+      <div class="glow"></div>
+      <div class="mark">M</div>
+      <div class="rule"></div>
+      <div class="word">Mesamorfit</div>
+    </div>
+
+    <script>
+      (function () {
+        /* ---- boot screen ---- */
+        var boot = document.getElementById('boot');
+        var hidden = false;
+        function hideBoot() {
+          if (hidden || !boot) return;
+          hidden = true;
+          boot.className = 'gone';
+          setTimeout(function () { if (boot && boot.parentNode) boot.parentNode.removeChild(boot); }, 320);
+        }
+        window.__mesamorfitReady = hideBoot;
+        /* App.js calls __mesamorfitReady once fonts and the session check are done.
+           These are the belts and braces in case it never gets that far. */
+        var obs = new MutationObserver(function () {
+          var root = document.getElementById('root');
+          if (root && root.firstChild) { obs.disconnect(); setTimeout(hideBoot, 900); }
+        });
+        obs.observe(document.getElementById('root'), { childList: true });
+        setTimeout(hideBoot, 12000);
+        window.addEventListener('error', function () { setTimeout(hideBoot, 400); });
+
+        /* ---- service worker: offline tolerance ---- */
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').catch(function (e) {
+              console.warn('service worker registration failed', e);
+            });
+            /* A new build took over. Reload once so the page and the bundle it
+               was served with stay in step. */
+            var reloading = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+              if (reloading || !navigator.serviceWorker.controller) return;
+              if (!window.__mesamorfitHadController) return;
+              reloading = true;
+              window.location.reload();
+            });
+            window.__mesamorfitHadController = !!navigator.serviceWorker.controller;
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

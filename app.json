@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Mesamorfit",
+    "slug": "mesamorfit-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#faf7f1",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#12110f"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mesamorfit.app"
+    },
+    "android": {
+      "package": "com.mesamorfit.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#12110f",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Mesamorfit",
+      "shortName": "Mesamorfit",
+      "lang": "en"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}

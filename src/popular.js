@@ -1,0 +1,46 @@
+/* ---------------------------------------------------------------
+   What people actually log. These are pinned to the top of search
+   and fill the list before anyone types, so 'egg' finds a boiled
+   egg rather than 'Egg, whole, raw, frozen, salted, pasteurized'.
+   Each entry points at a real USDA row by id.
+   --------------------------------------------------------------- */
+export const POPULAR = [
+  [2705964, "Chicken breast, rotisserie"],
+  [173424, "Boiled egg"],
+  [172187, "Scrambled egg"],
+  [173423, "Fried egg"],
+  [172185, "Omelette"],
+  [2707171, "Egg white"],
+  [171287, "Raw egg"],
+  [2705966, "Chicken breast, stewed"],
+  [2705740, "Paneer"],
+  [170903, "Greek yogurt"],
+  [172182, "Cottage cheese"],
+  [173177, "Whey protein powder"],
+  [334194, "Tuna, canned"],
+  [175168, "Salmon"],
+  [171265, "Milk, whole"],
+  [171284, "Curd / plain yogurt"],
+  [2708408, "White rice, cooked"],
+  [2708414, "Brown rice, cooked"],
+  [2707713, "Roti / chapati"],
+  [2708489, "Oats"],
+  [172688, "Whole wheat bread"],
+  [2709393, "Boiled potato"],
+  [2709700, "Sweet potato"],
+  [173944, "Banana"],
+  [2709215, "Apple"],
+  [172458, "Peanut butter"],
+  [170567, "Almonds"],
+  [2707427, "Dal"],
+  [2707380, "Rajma / kidney beans"],
+  [2707415, "Chole / chickpeas"],
+  [2709631, "Palak paneer"],
+  [2708346, "Idli"],
+  [2708347, "Dosa"],
+  [2706538, "Biryani, chicken"],
+  [2710792, "Broccoli"],
+  [2710791, "Spinach"],
+  [171413, "Olive oil"],
+  [2710168, "Ghee"],
+];
