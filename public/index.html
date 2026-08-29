@@ -8,7 +8,7 @@
          indicator on the web. Without it the tab bar sits under the indicator. -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, shrink-to-fit=no" />
     <title>%WEB_TITLE%</title>
-    <meta name="description" content="Personal training with Coach Sid. Your weekly plan, today's workout, a calorie tracker with Indian foods, and a direct line to your trainer." />
+    <meta name="description" content="Train, eat and track in one place. Pick a split and get a week you can tick off, count calories against 44,000 foods including Indian ones, and watch your streak build." />
 
     <!-- installable -->
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -23,7 +23,7 @@
          leaves a dead strip under the tab bar. With "black" iOS reserves the status
          bar itself, safe-area-inset-top is 0, and the page fills everything below. -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="Mesamorfit" />
+    <meta name="apple-mobile-web-app-title" content="Nemea" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
@@ -66,7 +66,7 @@
 
     <!-- Makes the page behave like an app rather than a document: no tap flash,
          no rubber-band, no long-press callout, no text selection outside inputs. -->
-    <style id="mesamorfit-shell">
+    <style id="nemea-shell">
       * { -webkit-tap-highlight-color: transparent; }
       html {
         -webkit-text-size-adjust: 100%;
@@ -157,7 +157,7 @@
       <div class="glow"></div>
       <div class="mark">M</div>
       <div class="rule"></div>
-      <div class="word">Mesamorfit</div>
+      <div class="word">Nemea</div>
     </div>
 
     <script>
@@ -171,8 +171,8 @@
           boot.className = 'gone';
           setTimeout(function () { if (boot && boot.parentNode) boot.parentNode.removeChild(boot); }, 320);
         }
-        window.__mesamorfitReady = hideBoot;
-        /* App.js calls __mesamorfitReady once fonts and the session check are done.
+        window.__nemeaReady = hideBoot;
+        /* App.js calls __nemeaReady once fonts and the session check are done.
            These are the belts and braces in case it never gets that far. */
         var obs = new MutationObserver(function () {
           var root = document.getElementById('root');
@@ -193,11 +193,11 @@
             var reloading = false;
             navigator.serviceWorker.addEventListener('controllerchange', function () {
               if (reloading || !navigator.serviceWorker.controller) return;
-              if (!window.__mesamorfitHadController) return;
+              if (!window.__nemeaHadController) return;
               reloading = true;
               window.location.reload();
             });
-            window.__mesamorfitHadController = !!navigator.serviceWorker.controller;
+            window.__nemeaHadController = !!navigator.serviceWorker.controller;
           });
         }
       })();

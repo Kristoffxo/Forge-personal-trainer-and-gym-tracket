@@ -1,26 +1,73 @@
 {
   "id": "/",
-  "name": "Mesamorfit",
-  "short_name": "Mesamorfit",
-  "description": "Personal training with Coach Sid. Your weekly plan, today's workout, a calorie tracker with Indian foods, and a direct line to your trainer.",
+  "name": "Nemea",
+  "short_name": "Nemea",
+  "description": "Train, eat and track in one place. Pick a split and get a week you can tick off, count calories against 44,000 foods including Indian ones, and watch your streak build.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait",
   "background_color": "#12110F",
   "theme_color": "#0E0D0C",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["health", "fitness", "lifestyle"],
+  "categories": [
+    "health",
+    "fitness",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "/icons/icon-96.png",      "sizes": "96x96",     "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-144.png",     "sizes": "144x144",   "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-192.png",     "sizes": "192x192",   "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-384.png",     "sizes": "384x384",   "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png",     "sizes": "512x512",   "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-1024.png",    "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/maskable-192.png", "sizes": "192x192",   "type": "image/png", "purpose": "maskable" },
-    { "src": "/icons/maskable-512.png", "sizes": "512x512",   "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

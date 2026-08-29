@@ -7,7 +7,7 @@
   // The build below runs first, so a plain `npx wrangler deploy` is enough
   // both here and on Cloudflare's own builder.
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "forge-app",
+  "name": "nemea",
   "compatibility_date": "2026-08-29",
 
   "build": {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, ImageBackground } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ImageBackground } from 'react-native';
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, Card, FadeIn, Label, Chip, Bar } from '../ui/kit';
 import { IMG } from '../images';
@@ -44,7 +44,7 @@ export default function Training({ user }) {
   if (plan === null || step > 0) {
     return (
       <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom:60 }}>
-        <CoachHeader
+        <PlanHeader
           line="I’ll manage your exercises."
           sub="Answer two questions and I’ll write your week." />
 
@@ -147,7 +147,7 @@ export default function Training({ user }) {
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom:60 }}>
-      <CoachHeader
+      <PlanHeader
         line="Here’s your week."
         sub={`${SPLITS.find((s) => s.id === plan.split)?.name || 'Custom'} · ${plan.per_session} exercises a session`} />
 
@@ -304,16 +304,17 @@ function Session({ day, done, setDone, onExit }) {
   );
 }
 
-function CoachHeader({ line, sub }) {
+/* The banner over the week. No coach behind it any more, so it speaks
+   as the app rather than as a person. */
+function PlanHeader({ line, sub }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
   return (
-    <ImageBackground source={IMG.s1} style={styles.header} resizeMode="cover">
+    <ImageBackground source={IMG.banner} style={styles.header} resizeMode="cover">
       <View style={styles.headerVeil} />
       <View style={styles.headerRow}>
-        <Image source={IMG.coach} style={styles.headerAvatar} />
-        <View style={{ flex:1, marginLeft:S.md }}>
-          <Label color={C.ember}>Siddhartha Gupta</Label>
+        <View style={{ flex:1 }}>
+          <Label color={C.ember}>Your plan</Label>
           <Text style={styles.headerLine}>{line}</Text>
           <Text style={[T.small, { marginTop:2 }]}>{sub}</Text>
         </View>
@@ -339,7 +340,6 @@ const makeStyles = (C, T) => StyleSheet.create({
            backgroundColor:C.surface, justifyContent:'center' },
   headerVeil:{ ...StyleSheet.absoluteFillObject, backgroundColor:'rgba(14,13,12,0.76)' },
   headerRow:{ flexDirection:'row', alignItems:'center', paddingHorizontal:S.lg },
-  headerAvatar:{ width:56, height:56, borderRadius:28, borderWidth:2, borderColor:C.ember },
   headerLine:{ fontFamily:'Forum_400Regular', fontSize:24, color:C.text, marginTop:2 },
 
   stepDot:{ width:26, height:26, borderRadius:13, backgroundColor:C.ember,

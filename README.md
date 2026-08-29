@@ -1,21 +1,25 @@
-# Mesamorfit
+# Nemea
 
-The personal-training app for [Mesamorfit](https://mesamorfit.com), the online
-coaching practice run by Siddhartha Gupta — Coach Sid. One Expo codebase that
-runs as an Android app, an iOS app, and an installable web app you can add to an
-iPhone home screen.
+A training and nutrition app. One Expo codebase that runs as an Android app, an
+iOS app, and an installable web app you can add to a phone home screen.
+
+Named for Nemea, which hosted one of the four Panhellenic games alongside
+Olympia, and for the lion Herakles fought there — the one whose hide no blade
+could cut, and which he wore afterwards as armour.
+
+Live at **https://nemea.thearyanbasantani.workers.dev**
 
 ## The four tabs
 
 | | |
 |---|---|
-| **Tools** | BMI with the WHO bands, a healthy-weight range, and a daily calorie target the Food tab then works from |
+| **Tools** | BMI with the WHO bands, a healthy-weight range, and a daily calorie target the Food tab works from |
 | **Food** | Calorie tracker with a ring and macro bars, over 44,000 foods bundled offline |
 | **Train** | Pick a split — PPL 6 or 3 day, Upper/Lower, Full Body, One Muscle a Day, or build your own — and get a week you can tick off |
-| **Trainer** | A real conversation with Coach Sid. No bot. |
+| **Progress** | Logging streak, a fortnight of calories against your target, and a weight log |
 
-Coaches sign in to a different app entirely: a client list, their threads, and
-what each client has been eating. The role comes from `profiles.role`.
+There is no coach and no human on the other end of anything. The app is the
+product.
 
 ## Food data
 
@@ -40,47 +44,51 @@ npx expo start
 
 ## The web app
 
-The web build is a real PWA: manifest, maskable icons, an apple-touch-icon, a
-launch screen for every iPhone size, safe-area insets so the tab bar clears the
-home indicator, and a service worker that keeps it working with no connection
-after the first visit.
+A real PWA: manifest, maskable icons, an apple-touch-icon, a launch screen for
+every iPhone size, safe-area insets so the tab bar clears the home indicator,
+and a service worker that keeps it working offline after the first visit.
 
 ```bash
 npm run build:web    # exports to web-build/ and stamps the service worker
 npm run serve:web    # serve that folder locally at :8090
+npx wrangler deploy  # builds first, then uploads — see wrangler.jsonc
 ```
 
-It is live at **https://forge-app.thearyanbasantani.workers.dev**.
+`wrangler.jsonc` runs the build itself, so Cloudflare's builder needs no build
+command configured — the deploy command alone is enough.
 
-```bash
-npx wrangler deploy   # builds first, then uploads — see wrangler.jsonc
-```
+Host it anywhere that serves the folder over HTTPS from the root of a domain.
+`start_url` and `scope` are both `/`, so a subpath needs a base-path build.
+There is no `_redirects`: Workers rejects a `/* -> /index.html 200` rule as a
+loop, so the single-page fallback lives in `wrangler.jsonc` as
+`not_found_handling`. Launch images avoid `@` in their filenames because
+Workers normalises it to `%40` behind a 307.
 
-That is the whole deploy. `wrangler.jsonc` runs `npm run build:web` itself, so
-Cloudflare's own builder needs no build command configured — its deploy command
-`npx wrangler deploy` is enough.
-
-Host it anywhere else that serves the folder over HTTPS from the root of a
-domain — `start_url` and `scope` are both `/`, so a subpath needs a base-path
-build. `public/_headers` is picked up by Cloudflare and Netlify. There is no
-`_redirects`: Workers rejects a `/* -> /index.html 200` rule as a loop, so the
-single-page fallback lives in `wrangler.jsonc` as `not_found_handling` instead.
-
-Launch images avoid `@` in their filenames on purpose. Workers normalises `@` to
-`%40` and answers with a 307, which puts a redirect in front of the launch
-screen.
-
-To install it on an iPhone: open the URL in Safari, Share, **Add to Home
-Screen**, leave *Open as Web App* on.
+To install on an iPhone: open the URL in Safari, Share, **Add to Home Screen**.
 
 ### How the web build works
 
 Anything in `public/` is copied into the export as-is, and `public/index.html`
 replaces Expo's default page template. After the export,
 `scripts/build-web.mjs` rewrites `web-build/sw.js` with the real content-hashed
-filenames to precache and a build id derived from them — so a new bundle always
-produces a new service worker, and the browser picks the update up. It throws
-rather than shipping a service worker whose placeholders were never filled in.
+filenames to precache and a build id derived from them, so a new bundle always
+produces a new service worker. It throws rather than shipping a service worker
+whose placeholders were never filled in.
+
+## Artwork
+
+`assets/img/` holds three files — `hero.jpg`, `banner.jpg`, `quote.jpg`. They
+are **designed placeholders**, gradient panels in the brand palette, not
+photographs.
+
+To use real photography, replace the file and keep the name. Each one sits
+behind a dark veil, so composition is forgiving; landscape at roughly 1200x800
+is right. No code changes.
+
+The icon and every launch screen are rendered from HTML rather than drawn by
+hand. The templates live outside the repo, but the recipe is simple: a Forum
+"N" in an ember-to-amber gradient on `#12110F`, screenshotted headless at
+1024x1024 and resized with `sips`.
 
 ## Things worth knowing before you edit
 
@@ -95,17 +103,37 @@ rather than shipping a service worker whose placeholders were never filled in.
 - `react-native-safe-area-context`'s web `SafeAreaView` treats any edge missing
   from an `edges` array as `'additive'`, while the native one treats it as
   `'off'`. Pass a full record — see `EDGES_TOP` in `App.js`.
-- `src/num.js` parses Devanagari digits. Hindi keyboards type १७८ and
-  `parseFloat` returns `NaN`. Use it for any new numeric input.
+- `src/num.js` parses Devanagari digits. Hindi keyboards type ७८ and
+  `parseFloat` returns `NaN`. Use it for any new numeric input, including the
+  weight box in Progress.
 
 ## Backend
 
-Supabase: `profiles`, `messages`, `diary`, `plans`, with row-level security on.
-A client sees only their own rows and cannot forge a message from their coach;
-a coach sees everyone. Schema in `supabase-setup.sql`.
+Supabase: `profiles`, `diary`, `plans`, with row-level security on — each
+person reads and writes only their own rows. Schema in `supabase-setup.sql`.
 
-The key in `src/supabase.js` is the publishable key. It is meant to be public —
+The key in `src/supabase.js` is the publishable key. It is meant to be public;
 RLS decides what each signed-in person may touch, not the key.
+
+The weight log in Progress is deliberately **not** in Supabase. It lives in
+`AsyncStorage` under `nemea:weights`, so it works offline and needed no
+migration. Moving it to a `weights` table later is a small job: add the table
+with the same RLS policy the `diary` table uses, then swap the two helpers at
+the top of `src/screens/Progress.js`.
+
+## Before the Play Store
+
+Not done yet, in rough order of importance:
+
+1. **Privacy policy.** Mandatory — you collect an email, body metrics and food
+   logs, and you intend to serve ads. Needs a public URL before you can fill in
+   the Data safety form.
+2. **Ads.** No ad SDK is integrated. `react-native-google-mobile-ads` plus an
+   AdMob account, and a config plugin, since this is a custom dev client rather
+   than Expo Go.
+3. **Account deletion.** Google requires an in-app route to delete an account
+   for any app that lets you create one.
+4. `com.nemea.app` is the package name and is permanent from the first upload.
 
 ## Licence
 

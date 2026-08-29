@@ -17,8 +17,7 @@ import Tools      from './src/screens/Tools';
 import Food       from './src/screens/Food';
 import AddFood    from './src/screens/AddFood';
 import Training   from './src/screens/Training';
-import Trainer    from './src/screens/Trainer';
-import CoachInbox from './src/screens/CoachInbox';
+import Progress   from './src/screens/Progress';
 
 const TABS = [
   { key:'tools',   label:'Tools',   icon:'\u25D0', colorKey:'teal',
@@ -27,8 +26,8 @@ const TABS = [
     title:'Calorie Tracker',  sub:'Add what you eat, see what is left' },
   { key:'train',   label:'Train',   icon:'\u25B2', colorKey:'ember',
     title:'Training',         sub:'Your weekly plan and today\u2019s workout' },
-  { key:'trainer', label:'Trainer', icon:'\u2726', colorKey:'violet',
-    title:'Personal Trainer', sub:'Message Coach Sid about anything' },
+  { key:'progress', label:'Progress', icon:'\u2726', colorKey:'violet',
+    title:'Progress',         sub:'Your streak, your history, your weight' },
 ];
 
 /* Spell every edge out. react-native-safe-area-context's web SafeAreaView falls
@@ -96,19 +95,6 @@ function Root() {
   }
 
   const user = session.user;
-  const isCoach = profile && profile.role === 'coach';
-
-  /* Sid gets the coach portal instead of the client tabs. */
-  if (isCoach) {
-    return (
-      <>
-        <StatusBar style={mode === "light" ? "dark" : "light"} />
-        <SafeAreaView style={styles.wrap} edges={EDGES_ALL}>
-          <CoachInbox />
-        </SafeAreaView>
-      </>
-    );
-  }
 
   const tabW = width / TABS.length;
 
@@ -133,7 +119,7 @@ function Root() {
               ) : tab === 'train' ? (
                 <Training user={user} />
               ) : (
-                <Trainer user={user} />
+                <Progress user={user} profile={profile} />
               )}
             </View>
 

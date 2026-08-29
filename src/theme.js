@@ -66,7 +66,7 @@ export const S = { xs:6, sm:10, md:16, lg:22, xl:32, xxl:44 };
 export const R = { sm:10, md:16, lg:22, pill:999 };
 
 /* ---------- the switch ---------- */
-const KEY = 'mf:theme';
+const KEY = 'nemea:theme';
 const Ctx = createContext(null);
 
 export function ThemeProvider({ children }) {

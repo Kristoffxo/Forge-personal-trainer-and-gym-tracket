@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------
-   Mesamorfit service worker.
+   Nemea service worker.
 
    The two placeholders below are filled in by scripts/build-web.mjs
    after `expo export` runs, so every build ships a service worker
@@ -12,7 +12,7 @@
    --------------------------------------------------------------- */
 
 const BUILD = '__BUILD_ID__';
-const CACHE = 'mesamorfit-' + BUILD;
+const CACHE = 'nemea-' + BUILD;
 
 /* Filled in at build time with the real, hashed filenames. */
 const PRECACHE = __PRECACHE__;
@@ -42,7 +42,7 @@ self.addEventListener('activate', (event) => {
     (async () => {
       const names = await caches.keys();
       await Promise.all(
-        names.filter((n) => n.startsWith('mesamorfit-') && n !== CACHE).map((n) => caches.delete(n))
+        names.filter((n) => n.startsWith('nemea-') && n !== CACHE).map((n) => caches.delete(n))
       );
       await self.clients.claim();
     })()
@@ -84,10 +84,10 @@ self.addEventListener('fetch', (event) => {
           const cached = (await caches.match(SHELL)) || (await caches.match('/'));
           if (cached) return cached;
           return new Response(
-            '<!doctype html><meta charset="utf-8"><title>Mesamorfit</title>' +
+            '<!doctype html><meta charset="utf-8"><title>Nemea</title>' +
               '<body style="margin:0;background:#12110F;color:#A9A29A;font:16px -apple-system,sans-serif;' +
               'display:flex;align-items:center;justify-content:center;height:100vh">' +
-              'Offline. Open Mesamorfit once with a connection and it will work without one.</body>',
+              'Offline. Open Nemea once with a connection and it will work without one.</body>',
             { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 503 }
           );
         }

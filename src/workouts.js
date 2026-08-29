@@ -1,4 +1,4 @@
-/* Workout programmes — plain data, so Coach Sid can edit these
+/* Workout programmes — plain data, so these can be edited
    without touching a screen file. Add an object, it appears. */
 export const WORKOUTS = [
   { id:'foundation', cat:'Strength', equip:'Dumbbells', name:'Foundation Strength', focus:'Full body', level:'Beginner',
@@ -34,7 +34,7 @@ export const WORKOUTS = [
     ] },
   { id:'mudgar', cat:'Ancient', equip:'Mudgar', name:'Ancient Methods — Mudgar', focus:'Shoulders, grip, rotational strength', level:'Intermediate',
     days:'2 days / week', minutes:30,
-    summary:'The Indian club work Mesamorfit was built on. Start with the lightest mudgar you own and earn the range before the weight.',
+    summary:'Indian club work, the oldest strength tool there is. Start with the lightest mudgar you own and earn the range before the weight.',
     blocks:[
       { name:'Prep', items:['Wrist circles — 30 s each','Shoulder dislocates with band — 2 × 10'] },
       { name:'Main', items:['Single-hand swing — 4 × 10 each','Double mudgar swing — 4 × 10','Shield cast — 3 × 8 each','Farmer carry — 3 × 40 m'] },

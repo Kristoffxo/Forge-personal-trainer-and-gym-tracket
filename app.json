@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Mesamorfit",
-    "slug": "mesamorfit-app",
+    "name": "Nemea",
+    "slug": "nemea",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,10 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mesamorfit.app"
+      "bundleIdentifier": "com.nemea.app"
     },
     "android": {
-      "package": "com.mesamorfit.app",
+      "package": "com.nemea.app",
       "adaptiveIcon": {
         "backgroundColor": "#12110f",
         "foregroundImage": "./assets/android-icon-foreground.png"
@@ -27,8 +27,8 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "single",
-      "name": "Mesamorfit",
-      "shortName": "Mesamorfit",
+      "name": "Nemea",
+      "shortName": "Nemea",
       "lang": "en"
     },
     "plugins": [

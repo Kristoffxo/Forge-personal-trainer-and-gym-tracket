@@ -9,7 +9,7 @@ import { quoteOfDay } from '../quotes';
 
 const BANDS = [
   { max:18.5, label:'Underweight', color:'#5C9BE8',
-    note:'Below the healthy range. Eating more is the priority — ask Sid.' },
+    note:'Below the healthy range. Eating more is the priority, not training harder.' },
   { max:25,   label:'Healthy', color:'#8BC34A',
     note:'Right where you want to be. Keep doing what you are doing.' },
   { max:30,   label:'Overweight', color:'#F5A623',
@@ -117,7 +117,7 @@ export default function Tools({ user, profile, onProfile }) {
 
       {/* ---- quote ---- */}
       <FadeIn delay={160} style={{ padding:S.lg }}>
-        <ImageBackground source={IMG.o6} style={styles.quote} imageStyle={{ borderRadius:R.md }}>
+        <ImageBackground source={IMG.quote} style={styles.quote} imageStyle={{ borderRadius:R.md }}>
           <View style={styles.quoteVeil} />
           <View style={{ padding:S.md }}>
             <Text style={styles.quoteTxt}>“{q[0]}”</Text>

@@ -37,8 +37,8 @@ export default function Auth({ onDone }) {
         <ImageBackground source={IMG.hero} style={styles.hero}>
           <View style={styles.heroVeil} />
           <FadeIn style={{ padding:S.lg }}>
-            <Text style={styles.brand}>MESAMORFIT</Text>
-            <Text style={styles.tagline}>Your personal trainer,{'\n'}in your pocket.</Text>
+            <Text style={styles.brand}>NEMEA</Text>
+            <Text style={styles.tagline}>Train like the{'\n'}lion was real.</Text>
           </FadeIn>
         </ImageBackground>
 

@@ -1,5 +1,5 @@
 -- ============================================================
---  MESAMORFIT — full setup with real email/password accounts
+--  NEMEA — full setup with real email/password accounts
 --  Supabase -> SQL Editor -> New query -> paste all -> Run
 --  Safe to run more than once.
 -- ============================================================
@@ -118,9 +118,9 @@ create policy plans_update    on public.plans for update
 alter publication supabase_realtime add table public.messages;
 
 -- ============================================================
---  AFTER Sid signs up in the app, run this ONE line to make him
+--  Kept for reference. Nemea has no coach role in the app any more,
 --  the coach (change the email to whichever he registered with):
 --
 --    update public.profiles set role = 'coach'
---    where id = (select id from auth.users where email = 'sid@mesamorfit.com');
+--    where id = (select id from auth.users where email = 'you@example.com');
 -- ============================================================
