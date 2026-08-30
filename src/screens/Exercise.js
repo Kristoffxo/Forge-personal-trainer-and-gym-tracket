@@ -20,11 +20,13 @@ import { Figure } from '../anim/figure';
 import { patternFor, cuesFor } from '../anim/patterns';
 import { historyFor, logSet, summarise, whenWas, setsWanted, repHint } from '../sets';
 import { num } from '../num';
+import { useLang } from '../lang';
 
 const REST_SECONDS = 90;
 
 export default function Exercise({ exercise, user, index, total, onDone, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const { width } = useWindowDimensions();
 
@@ -92,7 +94,7 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
         {/* ---- header ---- */}
         <View style={styles.head}>
           <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-            <Text style={[T.small, { color: tint }]}>{'←'} Back</Text>
+            <Text style={[T.small, { color: tint }]}>{'←'} {t('Back')}</Text>
           </Press>
           <Text style={styles.title}>{exercise.n}</Text>
           <View style={styles.metaRow}>
@@ -104,12 +106,12 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
               <Text style={[T.tiny, { color: C.text }]}>{exercise.e}</Text>
             </View>
             <View style={{ flex: 1 }} />
-            <Text style={T.tiny}>{index + 1} of {total}</Text>
+            <Text style={T.tiny}>{total} {t('mein se')} {index + 1}</Text>
           </View>
         </View>
 
         {/* ---- the movement ---- */}
-        <FadeIn delay={40}>
+        <FadeIn delay={20}>
           <View style={styles.stage}>
             <Figure pattern={pattern} scale={stage / 200} tint={tint} />
             <Text style={[T.tiny, styles.stageLabel]}>{pattern.name}</Text>
@@ -117,25 +119,25 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
         </FadeIn>
 
         {/* ---- form ---- */}
-        <FadeIn delay={90} style={{ paddingHorizontal: S.lg }}>
-          <Label style={{ marginBottom: S.sm }}>How to do it</Label>
+        <FadeIn delay={45} style={{ paddingHorizontal: S.lg }}>
+          <Label style={{ marginBottom: S.sm }}>{t('How to do it')}</Label>
           {cues.map((c, i) => (
             <View key={i} style={styles.cue}>
               <Text style={[styles.cueNum, { color: tint }]}>{i + 1}</Text>
-              <Text style={[T.bodyOn, { flex: 1 }]}>{c}</Text>
+              <Text style={[T.bodyOn, { flex: 1 }]}>{t(c)}</Text>
             </View>
           ))}
         </FadeIn>
 
         {/* ---- last time ---- */}
         {hist && hist.last ? (
-          <FadeIn delay={130} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+          <FadeIn delay={70} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
             <View style={styles.lastBox}>
-              <Label>Last time · {whenWas(hist.last.day)}</Label>
+              <Label>{t('Last time')} · {t(whenWas(hist.last.day))}</Label>
               <Text style={styles.lastTxt}>{summarise(hist.last)}</Text>
               {hist.best && hist.best.weight_kg ? (
                 <Text style={T.tiny}>
-                  Your best: {hist.best.weight_kg} kg × {hist.best.reps}
+                  {t('Your best')}: {hist.best.weight_kg} kg × {hist.best.reps}
                 </Text>
               ) : null}
             </View>
@@ -143,13 +145,13 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
         ) : null}
 
         {/* ---- the sets ---- */}
-        <FadeIn delay={170} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+        <FadeIn delay={95} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: S.sm }}>
-            <Label style={{ flex: 1 }}>Your sets · aiming for {exercise.s}</Label>
+            <Label style={{ flex: 1 }}>{t('Sets')} · {t('aim for')} {exercise.s}</Label>
             {rest > 0 ? (
               <Press onPress={() => setRest(0)} scaleTo={0.92} style={[styles.rest, { borderColor: tint }]}>
                 <Text style={[styles.restTxt, { color: tint }]}>
-                  Rest {Math.floor(rest / 60)}:{String(rest % 60).padStart(2, '0')}
+                  {t('Rest')} {Math.floor(rest / 60)}:{String(rest % 60).padStart(2, '0')}
                 </Text>
               </Press>
             ) : null}
@@ -168,7 +170,7 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
                   keyboardType="decimal-pad"
                   style={styles.input}
                 />
-                <Text style={T.tiny}>kg</Text>
+                <Text style={T.tiny}>{t('kg')}</Text>
               </View>
 
               <Text style={styles.times}>×</Text>
@@ -182,7 +184,7 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
                   keyboardType="number-pad"
                   style={styles.input}
                 />
-                <Text style={T.tiny}>reps</Text>
+                <Text style={T.tiny}>{t('reps')}</Text>
               </View>
 
               <Press onPress={() => tick(i)} scaleTo={0.9}
@@ -194,7 +196,7 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
           ))}
 
           <Text style={[T.tiny, { marginTop: 8 }]}>
-            Writing the numbers down is optional — tick the set either way.
+            {t('Numbers are optional. Tick the set either way.')}
           </Text>
 
           <Bar value={doneCount} max={want} color={tint} height={6} style={{ marginTop: S.md }} />
@@ -204,7 +206,7 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
       {/* ---- the one way out ---- */}
       <View style={styles.foot}>
         <Btn
-          label={index + 1 === total ? 'Done — finish workout' : 'Done — next exercise'}
+          label={index + 1 === total ? t('Done — finish workout') : t('Done — next exercise')}
           color={doneCount > 0 ? C.lime : tint}
           onPress={onDone}
         />

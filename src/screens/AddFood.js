@@ -6,9 +6,11 @@ import { Btn, Press, FadeIn, Label, useCountUp } from '../ui/kit';
 import { searchFoods, macrosFor, portionsFor } from '../foods';
 import { addEntry, todayKey } from '../diary';
 import { num } from '../num';
+import { useLang } from '../lang';
 
 export default function AddFood({ meal, onDone, onCancel, user }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const [q, setQ] = useState('');
   const [deferred, setDeferred] = useState('');
@@ -28,12 +30,12 @@ export default function AddFood({ meal, onDone, onCancel, user }) {
     <KeyboardAvoidingView style={styles.wrap} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.head}>
         <View style={styles.headRow}>
-          <Label style={{ color:C.text }}>Add to {meal}</Label>
+          <Label style={{ color:C.text }}>{t(meal)} {t('mein add karo')}</Label>
           <Pressable onPress={onCancel} hitSlop={12}>
-            <Text style={[T.small, { color:C.amber }]}>Cancel</Text>
+            <Text style={[T.small, { color:C.amber }]}>{t('Cancel')}</Text>
           </Pressable>
         </View>
-        <TextInput value={q} onChangeText={setQ} placeholder="Search foods"
+        <TextInput value={q} onChangeText={setQ} placeholder={t('Search foods')}
           placeholderTextColor={C.stone} autoCorrect={false} autoFocus style={styles.input} />
         <View style={{height:1,backgroundColor:C.line}} />
       </View>
@@ -43,10 +45,10 @@ export default function AddFood({ meal, onDone, onCancel, user }) {
         keyboardShouldPersistTaps="handled" initialNumToRender={14} windowSize={7}
         contentContainerStyle={{ paddingBottom:40 }}
         ListHeaderComponent={deferred.length < 2 ?
-          <Label style={{ paddingHorizontal:S.lg, paddingTop:S.md }}>Common foods</Label> : null}
+          <Label style={{ paddingHorizontal:S.lg, paddingTop:S.md }}>{t('Common foods')}</Label> : null}
         ListEmptyComponent={
           <Text style={[T.small, { padding:S.lg }]}>
-            Nothing matched. Try a simpler word — "chicken" rather than "grilled chicken breast".
+            {t('Nothing matched. Try a simpler word — "chicken", not "grilled chicken breast".')}
           </Text>}
         renderItem={({ item, index }) => (
           <FadeIn delay={Math.min(index, 10) * 28} from={8} duration={360}>
@@ -66,6 +68,7 @@ export default function AddFood({ meal, onDone, onCancel, user }) {
 
 function Portion({ food, meal, user, onBack, onDone }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const options = useMemo(() => portionsFor(food), [food]);
   const [idx, setIdx] = useState(0);
@@ -92,9 +95,9 @@ function Portion({ food, meal, user, onBack, onDone }) {
       <View style={styles.head}>
         <View style={styles.headRow}>
           <Pressable onPress={onBack} hitSlop={12}>
-            <Text style={[T.small, { color:C.amber }]}>Back</Text>
+            <Text style={[T.small, { color:C.amber }]}>{t('Back')}</Text>
           </Pressable>
-          <Label style={{ color:C.text }}>{meal}</Label>
+          <Label style={{ color:C.text }}>{t(meal)}</Label>
         </View>
         <Text style={[T.h2, { marginTop:S.sm }]} numberOfLines={3}>{food.name}</Text>
         <Text style={T.tiny}>{food.cat}</Text>
@@ -112,10 +115,10 @@ function Portion({ food, meal, user, onBack, onDone }) {
             <Mini label="F" v={m.fat} />
           </View>
         </View>
-        <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>Quantity</Label>
+        <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>{t('Quantity')}</Label>
         <TextInput value={qty} onChangeText={setQty} keyboardType="decimal-pad" style={styles.qty} />
         <View style={{height:1,backgroundColor:C.line}} />
-        <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>Serving</Label>
+        <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>{t('Serving')}</Label>
       </View>
 
       <FlatList
@@ -134,7 +137,7 @@ function Portion({ food, meal, user, onBack, onDone }) {
       />
 
       <View style={styles.foot}>
-        <Btn label="Add to diary" color={C.amber} onPress={save} disabled={count <= 0} />
+        <Btn label={t('Add to diary')} color={C.amber} onPress={save} disabled={count <= 0} />
       </View>
     </KeyboardAvoidingView>
   );

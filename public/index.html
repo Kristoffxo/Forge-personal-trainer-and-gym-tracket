@@ -12,7 +12,7 @@
 
     <!-- installable -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#0E0D0C" />
+    <meta name="theme-color" content="#F9F4EF" />
     <meta name="color-scheme" content="dark light" />
     <meta name="mobile-web-app-capable" content="yes" />
 
@@ -89,60 +89,80 @@
 
       /* Boot screen. Same artwork as the iOS launch image, so the hand-off from
          the launch image to the page is invisible. Removed once React is up. */
+      /* The boot screen. It is the first thing anyone sees, so it shows the
+         logo itself rather than a letter standing in for it, on the cream
+         the mark was drawn on. */
       #boot {
         position: fixed;
         inset: 0;
         z-index: 9999;
-        background-color: #12110F;
+        background-color: #F9F4EF;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding: 0 9vw;
         opacity: 1;
-        transition: opacity 260ms ease-out;
+        transition: opacity 320ms ease-out;
       }
       #boot.gone { opacity: 0; pointer-events: none; }
       #boot .glow {
         position: absolute;
-        left: 50%; top: 46%;
-        width: 118vw; height: 118vw;
+        left: 50%; top: 44%;
+        width: 128vw; height: 128vw;
         transform: translate(-50%, -50%);
-        background: radial-gradient(circle, rgba(232,92,36,0.22) 0%, rgba(232,92,36,0.07) 40%, rgba(232,92,36,0) 66%);
+        background: radial-gradient(circle, rgba(201,154,62,0.14) 0%, rgba(201,154,62,0.05) 42%, rgba(201,154,62,0) 68%);
       }
       #boot .mark {
         position: relative;
-        font-family: Forum, Georgia, 'Times New Roman', serif;
-        font-size: 27vw;
-        line-height: 1;
-        margin-bottom: 1.2vh;
-        background: linear-gradient(170deg, #F5A623 0%, #E85C24 52%, #C7481A 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-      }
-      #boot .rule {
-        position: relative;
-        width: 17vw; height: 2px;
-        border-radius: 99px;
-        margin-bottom: 2.6vh;
-        background: linear-gradient(90deg, rgba(232,92,36,0) 0%, #E85C24 50%, rgba(232,92,36,0) 100%);
+        display: block;
+        width: 44vw; max-width: 200px; height: auto;
+        opacity: 0;
+        animation: bootIn 900ms cubic-bezier(0.22,1,0.36,1) 60ms forwards;
       }
       #boot .word {
         position: relative;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        font-weight: 500;
-        font-size: 3.5vw;
-        letter-spacing: 0.42em;
-        text-indent: 0.42em;
-        color: #A9A29A;
+        margin-top: 3.6vh;
+        font-family: Forum, Georgia, 'Times New Roman', serif;
+        font-size: 10.5vw;
+        line-height: 1;
+        letter-spacing: 0.30em;
+        text-indent: 0.30em;
+        color: #2A2724;
         text-transform: uppercase;
+        opacity: 0;
+        animation: bootIn 900ms cubic-bezier(0.22,1,0.36,1) 220ms forwards;
+      }
+      #boot .rule {
+        position: relative;
+        width: 26vw; max-width: 128px; height: 1px;
+        margin: 2.6vh 0 2.4vh;
+        background: linear-gradient(90deg, rgba(201,154,62,0) 0%, #C99A3E 50%, rgba(201,154,62,0) 100%);
+        opacity: 0;
+        animation: bootIn 900ms cubic-bezier(0.22,1,0.36,1) 360ms forwards;
+      }
+      #boot .meaning {
+        position: relative;
+        margin: 0;
+        max-width: 26em;
+        font-family: Forum, Georgia, 'Times New Roman', serif;
+        font-size: 4.1vw;
+        line-height: 1.66;
+        text-align: center;
+        color: #6B655C;
+        opacity: 0;
+        animation: bootIn 1000ms cubic-bezier(0.22,1,0.36,1) 460ms forwards;
+      }
+      #boot .meaning em { color: #A8801F; font-style: normal; }
+      @keyframes bootIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
       @media (min-width: 620px) {
-        #boot .mark { font-size: 168px; }
-        #boot .rule { width: 106px; }
-        #boot .word { font-size: 22px; }
+        #boot .word { font-size: 46px; }
+        #boot .meaning { font-size: 17px; }
       }
-    </style>
+</style>
   </head>
 
   <body>
@@ -155,9 +175,14 @@
 
     <div id="boot">
       <div class="glow"></div>
-      <div class="mark">M</div>
-      <div class="rule"></div>
+      <img class="mark" src="/icons/mark.png" alt="" width="512" height="512" />
       <div class="word">Nemea</div>
+      <div class="rule"></div>
+      <p class="meaning">
+        A valley in Greece that held one of the four great games — and the lion
+        whose hide no blade could cut. <em>Herakles killed it with his bare
+        hands, and wore the hide as armour ever after.</em>
+      </p>
     </div>
 
     <script>

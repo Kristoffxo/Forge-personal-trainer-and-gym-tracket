@@ -1,24 +1,14 @@
 {
-  // Deploys the exported web app to Cloudflare, with a small Worker in
-  // front of it for the food camera.
+  // Deploys the exported web app to Cloudflare as a static-assets Worker.
   //
   //   npm run build:web    writes web-build/
   //   npx wrangler deploy  uploads it
   //
   // The build below runs first, so a plain `npx wrangler deploy` is enough
   // both here and on Cloudflare's own builder.
-  //
-  // Before the camera will answer, set the key it needs:
-  //
-  //   npx wrangler secret put ANTHROPIC_API_KEY
-  //
-  // Until then /api/vision returns 503 and the app falls back to letting
-  // people pick the food by hand — nothing else is affected.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nemea",
-  "main": "worker/index.js",
   "compatibility_date": "2026-08-29",
-  "compatibility_flags": ["nodejs_compat"],
 
   "build": {
     "command": "npm run build:web"
@@ -26,21 +16,8 @@
 
   "assets": {
     "directory": "./web-build",
-    // The Worker needs to serve these itself for anything it does not handle.
-    "binding": "ASSETS",
     // One page, so anything that is not a real file falls back to it.
-    "not_found_handling": "single-page-application",
-    // Without this the asset router answers /api/vision with index.html
-    // and the Worker never runs.
-    "run_worker_first": ["/api/*"]
-  },
-
-  "vars": {
-    // Not secrets. The publishable key is already in the client bundle;
-    // the Worker uses them only to ask Supabase whether a caller's token
-    // is real, so that /api/vision is not an open endpoint.
-    "SUPABASE_URL": "https://emzuykgqysezhlscmlhv.supabase.co",
-    "SUPABASE_ANON_KEY": "sb_publishable_8RBXWNO2KpLR5jHcZfWmFQ_N9cZ266R"
+    "not_found_handling": "single-page-application"
   },
 
   "observability": {

@@ -6,9 +6,11 @@ import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { Mark } from '../ui/logo';
 import { IMG } from '../images';
 import { signIn, signUp } from '../auth';
+import { useLang } from '../lang';
 
 export default function Auth({ onDone }) {
   const { C, T } = useTheme();
+  const { t, lang, toggle: toggleLang } = useLang();
   const styles = makeStyles(C, T);
   const [mode, setMode] = useState('in');        // 'in' | 'up'
   const [name, setName] = useState('');
@@ -37,10 +39,13 @@ export default function Auth({ onDone }) {
 
         <ImageBackground source={IMG.hero} style={styles.hero}>
           <View style={styles.heroVeil} />
+          <Press onPress={toggleLang} scaleTo={0.9} style={styles.langBtn}>
+            <Text style={styles.langTxt}>{lang === 'hi' ? 'ENGLISH' : 'HINGLISH'}</Text>
+          </Press>
           <FadeIn style={{ padding:S.lg }}>
             <Mark size={56} style={{ marginBottom:S.sm }} />
             <Text style={styles.brand}>NEMEA</Text>
-            <Text style={styles.tagline}>Train like the{'\n'}lion was real.</Text>
+            <Text style={styles.tagline}>{t('Train like the')}{'\n'}{t('lion was real.')}</Text>
           </FadeIn>
         </ImageBackground>
 
@@ -49,41 +54,41 @@ export default function Auth({ onDone }) {
             <View style={styles.toggle}>
               <Press onPress={() => { setMode('in'); setErr(''); }} scaleTo={0.97}
                 style={[styles.tab, !isUp && styles.tabOn]}>
-                <Text style={[styles.tabTxt, !isUp && { color:C.onAccent }]}>Sign in</Text>
+                <Text style={[styles.tabTxt, !isUp && { color:C.onAccent }]}>{t('Sign in')}</Text>
               </Press>
               <Press onPress={() => { setMode('up'); setErr(''); }} scaleTo={0.97}
                 style={[styles.tab, isUp && styles.tabOn]}>
-                <Text style={[styles.tabTxt, isUp && { color:C.onAccent }]}>Create account</Text>
+                <Text style={[styles.tabTxt, isUp && { color:C.onAccent }]}>{t('Create account')}</Text>
               </Press>
             </View>
           </FadeIn>
 
           {isUp ? (
             <FadeIn delay={120}>
-              <Field label="Your name" value={name} onChange={setName}
+              <Field label={t('Your name')} value={name} onChange={setName}
                 placeholder="Aryan" autoCap="words" />
             </FadeIn>
           ) : null}
 
           <FadeIn delay={160}>
-            <Field label="Email" value={email} onChange={setEmail}
-              placeholder="you@email.com" keyboard="email-address" />
+            <Field label={t('Email')} value={email} onChange={setEmail}
+              placeholder={t('you@email.com')} keyboard="email-address" />
           </FadeIn>
           <FadeIn delay={200}>
-            <Field label="Password" value={pw} onChange={setPw}
-              placeholder="at least 6 characters" secure />
+            <Field label={t('Password')} value={pw} onChange={setPw}
+              placeholder={t('at least 6 characters')} secure />
           </FadeIn>
 
-          {err ? <Text style={styles.err}>{err}</Text> : null}
+          {err ? <Text style={styles.err}>{t(err)}</Text> : null}
           {note ? <Text style={styles.note}>{note}</Text> : null}
 
           <FadeIn delay={240}>
-            <Btn label={isUp ? 'Create my account' : 'Sign in'}
+            <Btn label={isUp ? t('Create my account') : t('Sign in')}
               onPress={go} disabled={!ready} busy={busy} style={{ marginTop:S.lg }} />
           </FadeIn>
 
           <Text style={styles.fine}>
-            Your password is handled by Supabase and never stored by this app.
+            {t('Your password is never stored by this app.')}
           </Text>
         </View>
       </ScrollView>
@@ -115,6 +120,10 @@ const makeStyles = (C, T) => StyleSheet.create({
          justifyContent:'flex-end', backgroundColor:C.surface },
   heroVeil:{ ...StyleSheet.absoluteFillObject, backgroundColor:'rgba(14,13,12,0.55)' },
   brand:{ fontFamily:'WorkSans_500Medium', fontSize:12, letterSpacing:3.4, color:C.ember },
+  langBtn:{ position:'absolute', top:S.md, right:S.md,
+            paddingHorizontal:12, paddingVertical:7, borderRadius:R.pill,
+            borderWidth:1.5, borderColor:C.gold, backgroundColor:'rgba(0,0,0,0.35)' },
+  langTxt:{ fontFamily:'WorkSans_500Medium', fontSize:10.5, letterSpacing:1, color:C.gold },
   tagline:{ fontFamily:'Forum_400Regular', fontSize:34, lineHeight:38, color:C.text, marginTop:6 },
   toggle:{ flexDirection:'row', backgroundColor:C.surface, borderRadius:R.pill,
            padding:4, marginBottom:S.lg },

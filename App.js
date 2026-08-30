@@ -8,6 +8,7 @@ import { Forum_400Regular } from '@expo-google-fonts/forum';
 import { WorkSans_400Regular, WorkSans_500Medium } from '@expo-google-fonts/work-sans';
 
 import { useTheme, ThemeProvider } from './src/theme';
+import { LangProvider, useLang } from './src/lang';
 import { Press } from './src/ui/kit';
 import { SheetProvider } from './src/ui/sheet';
 import { Mark } from './src/ui/logo';
@@ -17,7 +18,6 @@ import { useWebChrome } from './src/webChrome';
 import Auth     from './src/screens/Auth';
 import Food     from './src/screens/Food';
 import AddFood  from './src/screens/AddFood';
-import Camera   from './src/screens/Camera';
 import Training from './src/screens/Training';
 import Feed     from './src/screens/Feed';
 import You      from './src/screens/You';
@@ -27,13 +27,13 @@ import You      from './src/screens/You';
    once and check weekly. */
 const TABS = [
   { key:'train', label:'Train', icon:'▲', colorKey:'ember',
-    title:'Training',        sub:'Today’s workout and your week' },
+    title:'Train',           sub:'Today’s workout' },
   { key:'food',  label:'Food',  icon:'◍', colorKey:'amber',
-    title:'Food',            sub:'Snap a meal or search 44,000 foods' },
+    title:'Food',            sub:'What you ate today' },
   { key:'feed',  label:'Feed',  icon:'◈', colorKey:'gold',
-    title:'Feed',            sub:'What everyone is doing today' },
+    title:'Feed',            sub:'See how everyone is doing' },
   { key:'you',   label:'You',   icon:'✦', colorKey:'violet',
-    title:'You',             sub:'Your streak, your weight, your numbers' },
+    title:'You',             sub:'Your streak and your numbers' },
 ];
 
 /* Spell every edge out. react-native-safe-area-context's web SafeAreaView falls
@@ -46,17 +46,20 @@ const EDGES_TOP = { top:'additive', bottom:'off', left:'off', right:'off' };
 export default function App() {
   return (
     <ThemeProvider>
-      <SafeAreaProvider>
-        <SheetProvider>
-          <Root />
-        </SheetProvider>
-      </SafeAreaProvider>
+      <LangProvider>
+        <SafeAreaProvider>
+          <SheetProvider>
+            <Root />
+          </SheetProvider>
+        </SafeAreaProvider>
+      </LangProvider>
     </ThemeProvider>
   );
 }
 
 function Root() {
   const { C, T, mode, toggle } = useTheme();
+  const { t: tr } = useLang();
   const styles = makeStyles(C, T);
   const insets = useSafeAreaInsets();
   const [fontsLoaded] = useFonts({ Forum_400Regular, WorkSans_400Regular, WorkSans_500Medium });
@@ -64,7 +67,6 @@ function Root() {
   const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState('train');
   const [adding, setAdding] = useState(null);      // meal name, for the food search
-  const [snapping, setSnapping] = useState(null);  // meal name, for the camera
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { width } = useWindowDimensions();
@@ -81,7 +83,7 @@ function Root() {
 
   useEffect(() => {
     const i = Math.max(0, TABS.findIndex((t) => t.key === tab));
-    Animated.timing(slide, { toValue:i, duration:320,
+    Animated.timing(slide, { toValue:i, duration:170,
       easing:Easing.bezier(0.22,1,0.36,1), useNativeDriver:true }).start();
   }, [tab, slide]);
 
@@ -104,7 +106,7 @@ function Root() {
 
   const user = session.user;
   const tabW = width / TABS.length;
-  const current = TABS.find((t) => t.key === tab) || TABS[0];
+  const current = TABS.find((x) => x.key === tab) || TABS[0];
   const accent = C[current.colorKey] || C.ember;
 
   /* Full-screen flows sit above the tabs — logging food is a task you
@@ -113,10 +115,6 @@ function Root() {
     <AddFood meal={adding} user={user}
       onCancel={() => setAdding(null)}
       onDone={() => { setAdding(null); setRefreshKey((k) => k + 1); }} />
-  ) : snapping ? (
-    <Camera meal={snapping} user={user}
-      onCancel={() => setSnapping(null)}
-      onDone={() => { setSnapping(null); setRefreshKey((k) => k + 1); }} />
   ) : null;
 
   return (
@@ -132,8 +130,7 @@ function Root() {
                 <Training user={user} />
               ) : tab === 'food' ? (
                 <Food user={user} profile={profile} refreshKey={refreshKey}
-                      onAdd={(meal) => setAdding(meal)}
-                      onSnap={(meal) => setSnapping(meal)} />
+                      onAdd={(meal) => setAdding(meal)} />
               ) : tab === 'feed' ? (
                 <Feed user={user} profile={profile} />
               ) : (
@@ -162,7 +159,7 @@ function Root() {
                     <Text style={[styles.tabLabel,
                       { color: on ? c : C.faint,
                         fontFamily: on ? 'WorkSans_500Medium' : 'WorkSans_400Regular' }]}>
-                      {t.label}
+                      {tr(t.label)}
                     </Text>
                   </Press>
                 );
@@ -178,15 +175,25 @@ function Root() {
 /* Says where you are and what this tab is for, with the mark on the left. */
 function TitleBar({ tab, accent, mode, onToggle }) {
   const { C, T } = useTheme();
+  const { t, lang, toggle: toggleLang } = useLang();
   const styles = makeStyles(C, T);
   if (!tab) return null;
   return (
     <View style={[styles.titleBar, { borderBottomColor: accent }]}>
       <Mark size={30} style={{ marginRight: 11 }} />
       <View style={{ flex:1 }}>
-        <Text style={styles.titleTxt}>{tab.title}</Text>
-        <Text style={styles.subTxt}>{tab.sub}</Text>
+        <Text style={styles.titleTxt}>{t(tab.title)}</Text>
+        <Text style={styles.subTxt}>{t(tab.sub)}</Text>
       </View>
+
+      {/* Language before theme: which words you read matters more
+          than whether the screen is dark. */}
+      <Press onPress={toggleLang} scaleTo={0.9} style={[styles.langBtn, { borderColor: accent }]}>
+        <Text style={[styles.langTxt, { color: accent }]}>
+          {lang === 'hi' ? 'ENG' : 'HIN'}
+        </Text>
+      </Press>
+
       <Press onPress={onToggle} scaleTo={0.88} style={styles.themeBtn}>
         <Text style={styles.themeIcon}>{mode === 'light' ? '☽' : '☀'}</Text>
       </Press>
@@ -204,6 +211,9 @@ const makeStyles = (C, T) => StyleSheet.create({
              backgroundColor:C.surface, borderBottomWidth:2 },
   themeBtn:{ width:38, height:38, borderRadius:19, alignItems:'center',
              justifyContent:'center', backgroundColor:C.raised },
+  langBtn:{ height:30, minWidth:46, paddingHorizontal:9, borderRadius:15, borderWidth:1.5,
+            alignItems:'center', justifyContent:'center', marginRight:8 },
+  langTxt:{ fontFamily:'WorkSans_500Medium', fontSize:11, letterSpacing:0.8 },
   themeIcon:{ fontSize:17, color:C.dim },
   titleTxt:{ fontFamily:'Forum_400Regular', fontSize:21, color:C.text },
   subTxt:{ fontFamily:'WorkSans_400Regular', fontSize:12, color:C.dim, marginTop:1 },

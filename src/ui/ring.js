@@ -43,7 +43,7 @@ export function Ring({
 
   useEffect(() => {
     Animated.timing(a, {
-      toValue: clamped, duration: 1000, easing: EASE, useNativeDriver: true,
+      toValue: clamped, duration: 520, easing: EASE, useNativeDriver: true,
     }).start();
   }, [clamped, a]);
 

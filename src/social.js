@@ -36,6 +36,23 @@ export function imageUrl(path) {
    which is what makes "load more" work without offsets drifting as
    people post.
    --------------------------------------------------------------- */
+/* The start of today, UTC — the same day boundary the unique index uses. */
+export function utcDayStart(d) {
+  const t = d || new Date();
+  return new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate())).toISOString();
+}
+
+/* Has this person already posted today? */
+export async function postedToday(userId) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id, created_at')
+    .eq('user_id', userId)
+    .gte('created_at', utcDayStart())
+    .limit(1);
+  return !error && !!(data && data.length);
+}
+
 export async function loadFeed({ before } = {}) {
   let q = supabase
     .from('posts')
@@ -157,6 +174,37 @@ export async function blockUser({ blockerId, blockedId }) {
   return {};
 }
 
+/* ---------------------------------------------------------------
+   Moderation, for whoever runs the app.
+
+   `is_admin` on the profile is what unlocks this; the database
+   enforces it, so a forged flag in the client buys nothing.
+   --------------------------------------------------------------- */
+export async function loadAllPosts({ limit = 60 } = {}) {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id, user_id, name, image_path, caption, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  return error ? [] : (data || []);
+}
+
+export async function loadReports() {
+  const { data, error } = await supabase
+    .from('reports')
+    .select('id, reporter, post_id, comment_id, reason, created_at')
+    .order('created_at', { ascending: false })
+    .limit(60);
+  return error ? [] : (data || []);
+}
+
+/* How many days a post has left before the nightly job removes it. */
+export function daysLeft(iso) {
+  const gone = new Date(iso).getTime() + 7 * 86400000;
+  const days = Math.ceil((gone - Date.now()) / 86400000);
+  return Math.max(0, days);
+}
+
 function friendly(message) {
   const m = String(message || '').toLowerCase();
   // Every "the database has not been migrated yet" shape, in one place.
@@ -165,6 +213,9 @@ function friendly(message) {
       || m.includes('policy') || m.includes('bucket')) {
     return 'The feed tables are not in the database yet — run supabase-upgrade.sql '
       + 'in the Supabase SQL editor and this page will work.';
+  }
+  if (m.includes('posts_one_a_day') || (m.includes('duplicate key') && m.includes('posts'))) {
+    return 'You have already posted today. One a day — come back tomorrow.';
   }
   if (m.includes('exceeded') || m.includes('too large')) return 'That photo is too big.';
   if (m.includes('network') || m.includes('fetch')) return 'No connection.';

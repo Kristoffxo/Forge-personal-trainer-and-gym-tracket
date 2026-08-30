@@ -21,6 +21,7 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 import { View, Text, Modal, Pressable, StyleSheet, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { S, R, useTheme } from '../theme';
+import { useLang } from '../lang';
 
 const Ctx = createContext(null);
 const EASE = Easing.bezier(0.22, 1, 0.36, 1);
@@ -71,6 +72,7 @@ export function useSheet() {
 
 function SheetHost({ req, settle }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const insets = useSafeAreaInsets();
   const slide = useRef(new Animated.Value(0)).current;
@@ -90,11 +92,11 @@ function SheetHost({ req, settle }) {
     ? (req.options || [])
     : req.kind === 'confirm'
       ? [{
-        label: req.confirmLabel || 'Yes',
+        label: req.confirmLabel || t('Yes'),
         value: true,
         destructive: !!req.destructive,
       }]
-      : [{ label: req.confirmLabel || 'OK', value: true }];
+      : [{ label: req.confirmLabel || t('OK'), value: true }];
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={() => settle(null)}>
@@ -139,7 +141,7 @@ function SheetHost({ req, settle }) {
             onPress={() => settle(null)}
             style={({ pressed }) => [styles.cancel, pressed && { backgroundColor: C.raised }]}
           >
-            <Text style={[styles.rowTxt, { color: C.dim }]}>{req.cancelLabel || 'Cancel'}</Text>
+            <Text style={[styles.rowTxt, { color: C.dim }]}>{req.cancelLabel || t('Cancel')}</Text>
           </Pressable>
         )}
       </Animated.View>

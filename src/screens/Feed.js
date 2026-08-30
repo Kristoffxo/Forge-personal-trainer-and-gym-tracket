@@ -18,14 +18,16 @@ import {
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
+import { useLang } from '../lang';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import {
   loadFeed, createPost, deletePost, loadComments, addComment, deleteComment,
-  report, blockUser, imageUrl, firstNameOf, ago,
+  report, blockUser, imageUrl, firstNameOf, ago, postedToday,
 } from '../social';
 
 export default function Feed({ user, profile }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
 
   const [view, setView] = useState('list');       // list | compose | post
@@ -34,6 +36,7 @@ export default function Feed({ user, profile }) {
   const [error, setError] = useState('');
   const [more, setMore] = useState(false);
   const [open, setOpen] = useState(null);          // the post being read
+  const [posted, setPosted] = useState(false);     // already posted today
 
   const load = useCallback(async () => {
     const r = await loadFeed();
@@ -42,7 +45,8 @@ export default function Feed({ user, profile }) {
     setPosts(r.posts);
     setCounts(r.counts);
     setMore(r.posts.length >= 12);
-  }, []);
+    setPosted(await postedToday(user.id));
+  }, [user.id]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -58,7 +62,7 @@ export default function Feed({ user, profile }) {
   if (view === 'compose') {
     return (
       <Compose
-        user={user} profile={profile}
+        user={user} profile={profile} alreadyPosted={posted}
         onCancel={() => setView('list')}
         onDone={() => { setView('list'); load(); }}
       />
@@ -80,8 +84,12 @@ export default function Feed({ user, profile }) {
         <Press onPress={() => setView('compose')} scaleTo={0.98} style={styles.share}>
           <Text style={styles.shareIcon}>{'◎'}</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.shareTxt}>Share a photo</Text>
-            <Text style={T.tiny}>Your first name only. No location, no username.</Text>
+            <Text style={styles.shareTxt}>
+              {posted ? t('Posted today') : t('Post today\u2019s photo')}
+            </Text>
+            <Text style={T.tiny}>
+              {posted ? t('Come back tomorrow.') : t('One a day. Your first name only.')}
+            </Text>
           </View>
           <Text style={[styles.shareIcon, { fontSize: 20 }]}>+</Text>
         </Press>
@@ -90,7 +98,7 @@ export default function Feed({ user, profile }) {
       {error ? (
         <FadeIn style={{ padding: S.lg }}>
           <View style={styles.problem}>
-            <Text style={[T.bodyOn, { marginBottom: 4 }]}>The feed cannot load</Text>
+            <Text style={[T.bodyOn, { marginBottom: 4 }]}>{t('The feed is not ready')}</Text>
             <Text style={T.small}>{error}</Text>
           </View>
         </FadeIn>
@@ -100,9 +108,9 @@ export default function Feed({ user, profile }) {
         <ActivityIndicator color={C.gold} style={{ marginTop: S.xxl }} />
       ) : posts.length === 0 && !error ? (
         <FadeIn style={styles.empty}>
-          <Text style={styles.emptyBig}>Nothing here yet</Text>
+          <Text style={styles.emptyBig}>{t('Nobody has posted yet')}</Text>
           <Text style={[T.small, { textAlign: 'center', marginTop: 6 }]}>
-            Be the first. A meal, a lift, a walk{'’'}s worth of view.
+            {t('See how everyone is doing, and let them see you. Post first.')}
           </Text>
         </FadeIn>
       ) : (
@@ -118,7 +126,7 @@ export default function Feed({ user, profile }) {
 
       {more ? (
         <Press onPress={loadMore} scaleTo={0.97} style={styles.moreBtn}>
-          <Text style={[T.small, { color: C.gold }]}>Load more</Text>
+          <Text style={[T.small, { color: C.gold }]}>{t('Load more')}</Text>
         </Press>
       ) : null}
     </ScrollView>
@@ -130,6 +138,7 @@ export default function Feed({ user, profile }) {
    --------------------------------------------------------------- */
 function PostCard({ post, index, user, comments, onOpen, onChanged }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const sheet = useSheet();
   const { width } = useWindowDimensions();
@@ -137,7 +146,7 @@ function PostCard({ post, index, user, comments, onOpen, onChanged }) {
   const side = Math.min(width, 620) - S.lg * 2;
 
   return (
-    <FadeIn delay={Math.min(index, 6) * 60} from={10} style={styles.card}>
+    <FadeIn delay={Math.min(index, 6) * 26} from={8} style={styles.card}>
       <View style={styles.cardHead}>
         <View style={styles.avatar}>
           <Text style={styles.avatarTxt}>{firstNameOf(post.name).charAt(0).toUpperCase()}</Text>
@@ -170,9 +179,8 @@ function PostCard({ post, index, user, comments, onOpen, onChanged }) {
 
       <Press onPress={onOpen} scaleTo={0.98} style={styles.commentBar}>
         <Text style={[T.small, { color: C.gold }]}>
-          {comments === 0 ? 'Add a comment'
-            : comments === 1 ? '1 comment'
-              : comments + ' comments'}
+          {comments === 0 ? t('Add a comment')
+            : comments + ' ' + t('comments')}
         </Text>
       </Press>
     </FadeIn>
@@ -219,8 +227,9 @@ async function menuFor({ sheet, post, mine, user, onChanged }) {
 /* ---------------------------------------------------------------
    Composing
    --------------------------------------------------------------- */
-function Compose({ user, profile, onCancel, onDone }) {
+function Compose({ user, profile, alreadyPosted, onCancel, onDone }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const { width } = useWindowDimensions();
 
@@ -260,13 +269,22 @@ function Compose({ user, profile, onCancel, onDone }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
         <View style={styles.composeHead}>
           <Press onPress={onCancel} hitSlop={12} scaleTo={0.94}>
-            <Text style={[T.small, { color: C.gold }]}>Cancel</Text>
+            <Text style={[T.small, { color: C.gold }]}>{t('Cancel')}</Text>
           </Press>
-          <Label style={{ color: C.text }}>New post</Label>
+          <Label style={{ color: C.text }}>{t('Today’s photo')}</Label>
         </View>
 
         <View style={{ padding: S.lg }}>
-          {photo ? (
+          {alreadyPosted ? (
+            <View style={styles.oneADay}>
+              <Text style={[T.h3, { marginBottom: 4 }]}>{t('Already posted today')}</Text>
+              <Text style={T.small}>
+                {t('One a day. It keeps the feed worth scrolling.')}
+              </Text>
+              <Btn label={t('Back to the feed')} dark color={C.dim} onPress={onCancel}
+                style={{ marginTop: S.md }} />
+            </View>
+          ) : photo ? (
             <Press onPress={() => choose(false)} scaleTo={0.99}>
               <Image
                 source={{ uri: photo.uri }}
@@ -274,17 +292,17 @@ function Compose({ user, profile, onCancel, onDone }) {
                 resizeMode="cover"
               />
               <Text style={[T.tiny, { textAlign: 'center', marginTop: 8 }]}>
-                Tap the photo to change it
+                {t('Tap to change')}
               </Text>
             </Press>
           ) : (
             <View>
               <Press onPress={() => choose(true)} scaleTo={0.98} style={styles.bigPick}>
                 <Text style={styles.bigPickIcon}>{'◎'}</Text>
-                <Text style={styles.bigPickTxt}>Take a photo</Text>
+                <Text style={styles.bigPickTxt}>{t('Take a photo')}</Text>
               </Press>
               <Press onPress={() => choose(false)} scaleTo={0.98} style={styles.smallPick}>
-                <Text style={[T.small, { color: C.gold }]}>Choose from your phone</Text>
+                <Text style={[T.small, { color: C.gold }]}>{t('Pick one instead')}</Text>
               </Press>
               {!CAN_TAKE_PHOTOS ? (
                 <Text style={[T.tiny, { marginTop: S.md, textAlign: 'center' }]}>
@@ -294,7 +312,7 @@ function Compose({ user, profile, onCancel, onDone }) {
             </View>
           )}
 
-          <Label style={{ marginTop: S.xl, marginBottom: 8 }}>Your name</Label>
+          <Label style={{ marginTop: S.xl, marginBottom: 8 }}>{t('Your name')}</Label>
           <TextInput
             value={name} onChangeText={setName}
             placeholder="Aryan" placeholderTextColor={C.faint}
@@ -302,13 +320,13 @@ function Compose({ user, profile, onCancel, onDone }) {
             style={styles.input}
           />
           <Text style={[T.tiny, { marginTop: 6 }]}>
-            This is all anyone sees. No username, no location.
+            {t('All anyone sees. No username, no location.')}
           </Text>
 
-          <Label style={{ marginTop: S.lg, marginBottom: 8 }}>Say something (optional)</Label>
+          <Label style={{ marginTop: S.lg, marginBottom: 8 }}>{t('Caption')}</Label>
           <TextInput
             value={caption} onChangeText={setCaption}
-            placeholder="Leg day. Finally hit depth."
+            placeholder={t('Say something (optional)')}
             placeholderTextColor={C.faint}
             multiline maxLength={300}
             style={[styles.input, { minHeight: 84, textAlignVertical: 'top' }]}
@@ -316,11 +334,13 @@ function Compose({ user, profile, onCancel, onDone }) {
 
           {err ? <Text style={styles.err}>{err}</Text> : null}
 
-          <Btn
-            label="Post" color={C.gold} busy={busy}
-            disabled={!photo || !name.trim()}
-            onPress={post} style={{ marginTop: S.lg }}
-          />
+          {alreadyPosted ? null : (
+            <Btn
+              label={t('Post today\u2019s photo')} color={C.gold} busy={busy}
+              disabled={!photo || !name.trim()}
+              onPress={post} style={{ marginTop: S.lg }}
+            />
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -332,6 +352,7 @@ function Compose({ user, profile, onCancel, onDone }) {
    --------------------------------------------------------------- */
 function PostView({ post, user, profile, onBack }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const { width } = useWindowDimensions();
 
@@ -396,7 +417,7 @@ function PostView({ post, user, profile, onBack }) {
     >
       <View style={styles.composeHead}>
         <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
-          <Text style={[T.small, { color: C.gold }]}>{'←'} Feed</Text>
+          <Text style={[T.small, { color: C.gold }]}>{'←'} {t('Feed')}</Text>
         </Press>
         <Label style={{ color: C.text }}>{firstNameOf(post.name)}</Label>
       </View>
@@ -424,7 +445,7 @@ function PostView({ post, user, profile, onBack }) {
         {list === null ? (
           <ActivityIndicator color={C.gold} />
         ) : list.length === 0 ? (
-          <Text style={T.small}>No comments yet. Say something kind.</Text>
+          <Text style={T.small}>{t('No comments yet.')}</Text>
         ) : (
           list.map((c) => (
             <Press key={c.id} onPress={() => tapComment(c)} scaleTo={0.995} style={styles.comment}>
@@ -446,7 +467,7 @@ function PostView({ post, user, profile, onBack }) {
       <View style={styles.composer}>
         <TextInput
           value={body} onChangeText={setBody}
-          placeholder={'Comment as ' + myName}
+          placeholder={t('Comment as') + ' ' + myName}
           placeholderTextColor={C.faint}
           style={styles.commentInput}
           maxLength={400}
@@ -457,7 +478,7 @@ function PostView({ post, user, profile, onBack }) {
           onPress={send} scaleTo={0.92} disabled={!body.trim() || busy}
           style={[styles.send, (!body.trim() || busy) && { opacity: 0.35 }]}
         >
-          <Text style={styles.sendTxt}>Post</Text>
+          <Text style={styles.sendTxt}>{t('Post')}</Text>
         </Press>
       </View>
     </KeyboardAvoidingView>
@@ -505,6 +526,10 @@ const makeStyles = (C, T) => StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: S.lg, paddingVertical: S.md, backgroundColor: C.surface,
     borderBottomWidth: 1, borderBottomColor: C.line,
+  },
+  oneADay: {
+    backgroundColor: C.surface, borderRadius: R.md, padding: S.lg,
+    borderLeftWidth: 4, borderLeftColor: C.gold,
   },
   bigPick: {
     alignItems: 'center', justifyContent: 'center', paddingVertical: S.xxl,

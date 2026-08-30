@@ -31,7 +31,7 @@ const QUALITY = 0.82;
    Resolves { uri, blob, width, height } where uri is a data URL —
    usable straight away as an <Image source={{ uri }}> preview.
    --------------------------------------------------------------- */
-export function pickPhoto({ camera = false } = {}) {
+export function pickPhoto({ camera = false, maxEdge = MAX_EDGE } = {}) {
   if (!CAN_TAKE_PHOTOS) {
     return Promise.reject(new Error('Photos need the web app for now.'));
   }
@@ -56,7 +56,7 @@ export function pickPhoto({ camera = false } = {}) {
     input.onchange = () => {
       const file = input.files && input.files[0];
       if (!file) return done(null);
-      shrink(file).then(done, (e) => { input.remove(); reject(e); });
+      shrink(file, maxEdge).then(done, (e) => { input.remove(); reject(e); });
     };
 
     /* There is no cancel event on a file input. Focus returning to the
@@ -75,7 +75,7 @@ export function pickPhoto({ camera = false } = {}) {
 /* Draw the file into a canvas at a sane size and re-encode it. Also
    quietly strips EXIF, which is worth having on a public feed — phone
    photos carry GPS coordinates and this app promises no location. */
-function shrink(file) {
+function shrink(file, maxEdge) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -83,7 +83,7 @@ function shrink(file) {
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That file is not an image.')); };
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+      const scale = Math.min(1, (maxEdge || MAX_EDGE) / Math.max(img.width, img.height));
       const w = Math.max(1, Math.round(img.width * scale));
       const h = Math.max(1, Math.round(img.height * scale));
 

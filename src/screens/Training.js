@@ -17,6 +17,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, Card, FadeIn, Label, Chip, Bar } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
+import { useLang } from '../lang';
 import { SPLITS, DAY_NAMES, buildWeek, todayIndex, dayTitle } from '../planner';
 import { MUSCLES } from '../exercises';
 import { supabase } from '../supabase';
@@ -27,6 +28,7 @@ const KITS = ['Full gym', 'None'];
 
 export default function Training({ user }) {
   const { C, T, MUSCLE_C } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const sheet = useSheet();
 
@@ -108,9 +110,9 @@ export default function Training({ user }) {
           const ticked = Object.keys(done).filter((k) => done[k]).length;
           if (ticked < day.exercises.length) {
             const stop = await sheet.confirm({
-              title: 'Finish early?',
-              message: `${day.exercises.length - ticked} moves still to go.`,
-              confirmLabel: 'Finish anyway',
+              title: t('Finish early?'),
+              message: `${day.exercises.length - ticked} ${t('moves still to go.')}`,
+              confirmLabel: t('Finish anyway'),
             });
             if (!stop) return;
           }
@@ -128,7 +130,7 @@ export default function Training({ user }) {
       {/* today, front and centre */}
       <FadeIn style={{ padding: S.lg, paddingBottom: 0 }}>
         <View style={styles.todayCard}>
-          <Label color={C.ember}>Today · {DAY_NAMES[todayIndex()]}</Label>
+          <Label color={C.ember}>{t('Today')} · {DAY_NAMES[todayIndex()]}</Label>
           <Text style={styles.todayTitle}>{todayPlan.title}</Text>
 
           {todayPlan.exercises.length ? (
@@ -142,10 +144,10 @@ export default function Training({ user }) {
                 ))}
               </View>
               <Text style={[T.small, { marginTop: 4 }]}>
-                {todayPlan.exercises.length} moves · about {12 + todayPlan.exercises.length * 6} minutes
+                {todayPlan.exercises.length} {t('moves')} · {12 + todayPlan.exercises.length * 6} {t('minutes')}
               </Text>
               <Btn
-                label="Start today’s workout"
+                label={t('Start today’s workout')}
                 onPress={() => {
                   setViewDay(todayIndex());
                   setDone({}); setOpenIdx(0); setRunning(true);
@@ -156,10 +158,10 @@ export default function Training({ user }) {
           ) : (
             <>
               <Text style={[T.small, { marginTop: 6 }]}>
-                Rest day. Muscle is built while you recover — walk, sleep, eat well.
+                {t('Rest day. Walk, sleep, eat well.')}
               </Text>
               <Btn
-                label="Train anyway"
+                label={t('Train anyway')}
                 dark color={C.dim}
                 onPress={() => { setViewDay((todayIndex() + 1) % 7); }}
                 style={{ marginTop: S.md }}
@@ -172,7 +174,7 @@ export default function Training({ user }) {
       {/* the rest of the week */}
       <FadeIn delay={70}>
         <Label style={{ paddingHorizontal: S.lg, marginTop: S.xl, marginBottom: S.sm }}>
-          Your week
+          {t('Your week')}
         </Label>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: S.lg, paddingBottom: S.sm }}>
@@ -186,7 +188,7 @@ export default function Training({ user }) {
                   !on && rest && { opacity: 0.45 }]}>
                 <Text style={[styles.dayName, on && { color: C.onAccent }]}>{d.day}</Text>
                 <Text style={[styles.dayKind, on && { color: C.onAccent }]} numberOfLines={1}>
-                  {rest ? 'Rest' : d.title}
+                  {rest ? t('Rest') : t(d.title)}
                 </Text>
                 {i === todayIndex() && !on ? <View style={styles.todayDot} /> : null}
               </Press>
@@ -209,7 +211,7 @@ export default function Training({ user }) {
         {day.exercises.length === 0 ? (
           !isToday ? (
             <Card style={{ alignItems: 'center', paddingVertical: S.xl }}>
-              <Text style={styles.restBig}>Rest</Text>
+              <Text style={styles.restBig}>{t('Rest')}</Text>
             </Card>
           ) : null
         ) : (
@@ -230,7 +232,7 @@ export default function Training({ user }) {
             ))}
 
             {!isToday ? (
-              <Btn label="Start this workout"
+              <Btn label={t('Start this workout')}
                 onPress={() => { setDone({}); setOpenIdx(0); setRunning(true); }}
                 style={{ marginTop: S.md }} />
             ) : null}
@@ -248,7 +250,7 @@ export default function Training({ user }) {
         >
           <Text style={[T.small, { color: C.dim }]}>
             {SPLITS.find((s) => s.id === plan.split)?.name || 'Custom'} ·{' '}
-            {plan.per_session} a session · change
+            {plan.per_session} {t('a session')} · {t('change')}
           </Text>
         </Press>
       </FadeIn>
@@ -261,6 +263,7 @@ export default function Training({ user }) {
    --------------------------------------------------------------- */
 function Workout({ day, done, onOpen, onFinish }) {
   const { C, T, MUSCLE_C } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
 
   const total = day.exercises.length;
@@ -271,8 +274,8 @@ function Workout({ day, done, onOpen, onFinish }) {
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
       <View style={styles.workTop}>
-        <Text style={styles.workBig}>{day.title}</Text>
-        <Text style={[T.small, { marginTop: 2 }]}>{ticked} of {total} done</Text>
+        <Text style={styles.workBig}>{t(day.title)}</Text>
+        <Text style={[T.small, { marginTop: 2 }]}>{total} {t('mein se')} {ticked} {t('done')}</Text>
         <Bar value={ticked} max={total} color={allDone ? C.lime : C.ember}
           height={7} style={{ marginTop: S.md }} />
       </View>
@@ -282,7 +285,7 @@ function Workout({ day, done, onOpen, onFinish }) {
           const on = !!done[i];
           const isNext = i === nextIdx;
           return (
-            <FadeIn key={x.n + i} delay={i * 40} from={8}>
+            <FadeIn key={x.n + i} delay={i * 18} from={6}>
               <Press
                 scaleTo={0.985}
                 onPress={() => onOpen(i)}
@@ -315,12 +318,12 @@ function Workout({ day, done, onOpen, onFinish }) {
         })}
 
         <Btn
-          label={allDone ? 'Finish — well done' : 'Finish workout'}
+          label={allDone ? t('Finish — well done') : t('Finish workout')}
           color={allDone ? C.lime : C.ember} dark={!allDone}
           onPress={onFinish} style={{ marginTop: S.xl }}
         />
         <Text style={[T.tiny, { textAlign: 'center', marginTop: S.sm }]}>
-          Tap a move to see how it is done
+          {t('Tap a move to see how it is done')}
         </Text>
       </View>
     </ScrollView>
@@ -333,6 +336,7 @@ function Workout({ day, done, onOpen, onFinish }) {
 function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
   custom, setCustom, onSave, onCancel }) {
   const { C, T, MUSCLE_C } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
 
   const ready = splitId && (splitId !== 'custom' || custom.some((d) => d.length));
@@ -341,15 +345,15 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
       <View style={styles.wizHead}>
         <Text style={styles.wizTitle}>
-          {firstTime ? 'Let’s build your week' : 'Change your plan'}
+          {firstTime ? t('Let’s build your week') : t('Change your plan')}
         </Text>
         <Text style={[T.small, { marginTop: 4 }]}>
-          Two questions. You can change it any time.
+          {t('Two questions. Change it any time.')}
         </Text>
       </View>
 
       <FadeIn delay={50} style={{ padding: S.lg, paddingBottom: 0 }}>
-        <StepDot n={1} label="How often can you train?" />
+        <StepDot n={1} label={t('How often can you train?')} />
         {SPLITS.map((s) => {
           const on = splitId === s.id;
           return (
@@ -362,7 +366,7 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
                     <Text style={[styles.tagTxt, on && { color: C.onAccent }]}>{s.tag}</Text>
                   </View>
                 </View>
-                <Text style={[T.small, { marginTop: 4 }]}>{s.blurb}</Text>
+                <Text style={[T.small, { marginTop: 4 }]}>{t(s.blurb)}</Text>
               </View>
               <View style={[styles.radio, on && { borderColor: C.ember, backgroundColor: C.ember }]} />
             </Press>
@@ -372,7 +376,7 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
 
       {splitId === 'custom' ? (
         <FadeIn style={{ paddingHorizontal: S.lg, marginTop: S.md }}>
-          <Label style={{ marginBottom: S.sm }}>Tap the muscles for each day</Label>
+          <Label style={{ marginBottom: S.sm }}>{t('Tap the muscles for each day')}</Label>
           {DAY_NAMES.map((d, i) => (
             <View key={d} style={styles.customDay}>
               <Text style={styles.customDayName}>{d}</Text>
@@ -389,17 +393,17 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
                   );
                 })}
               </View>
-              <Text style={T.tiny}>{custom[i].length ? dayTitle(custom[i]) : 'Rest day'}</Text>
+              <Text style={T.tiny}>{custom[i].length ? t(dayTitle(custom[i])) : t('Rest day')}</Text>
             </View>
           ))}
         </FadeIn>
       ) : null}
 
       <FadeIn delay={100} style={{ padding: S.lg }}>
-        <StepDot n={2} label="What have you got to train with?" />
+        <StepDot n={2} label={t('What do you train with?')} />
         <View style={styles.wrapRow}>
           {KITS.map((k) => (
-            <Chip key={k} label={k === 'None' ? 'Just my body' : 'A gym'}
+            <Chip key={k} label={k === 'None' ? t('Just my body') : t('A gym')}
               on={kit === k} color={C.teal} onPress={() => setKit(k)} />
           ))}
         </View>
@@ -410,20 +414,20 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
           style={styles.perRow}
         >
           <View style={{ flex: 1 }}>
-            <Text style={[T.bodyOn]}>{per} exercises a session</Text>
+            <Text style={[T.bodyOn]}>{per} {t('exercises a session')}</Text>
             <Text style={T.tiny}>
-              {per <= 4 ? 'Short and sharp — good for busy weeks.'
-                : per <= 6 ? 'The sweet spot for most people.'
-                  : 'High volume. Only if you recover well.'}
+              {per <= 4 ? t('Short. Good for a busy week.')
+                : per <= 6 ? t('About right for most people.')
+                  : t('A lot. Only if you recover well.')}
             </Text>
           </View>
-          <Text style={[styles.perTap, { color: C.ember }]}>tap</Text>
+          <Text style={[styles.perTap, { color: C.ember }]}>{t('tap')}</Text>
         </Press>
 
-        <Btn label={firstTime ? 'Build my week' : 'Save'} onPress={onSave}
+        <Btn label={firstTime ? t('Build my week') : t('Save')} onPress={onSave}
           disabled={!ready} style={{ marginTop: S.xl }} />
         {onCancel ? (
-          <Btn label="Cancel" dark color={C.dim} onPress={onCancel} style={{ marginTop: S.sm }} />
+          <Btn label={t('Cancel')} dark color={C.dim} onPress={onCancel} style={{ marginTop: S.sm }} />
         ) : null}
       </FadeIn>
     </ScrollView>

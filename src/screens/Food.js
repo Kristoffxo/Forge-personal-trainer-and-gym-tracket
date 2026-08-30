@@ -3,10 +3,9 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-nat
 import { S, R, useTheme } from '../theme';
 import { Card, Press, FadeIn, Label, Bar, useCountUp } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
-import { CAN_TAKE_PHOTOS } from '../photo';
+import { useLang } from '../lang';
 import { Ring } from '../ui/ring';
 import { todayKey, loadDay, removeEntry, totals } from '../diary';
-import { mealForNow } from '../vision';
 
 const MEALS = [
   { name:'Breakfast', icon:'☀' },
@@ -15,8 +14,9 @@ const MEALS = [
   { name:'Snacks',    icon:'✦' },
 ];
 
-export default function Food({ user, profile, refreshKey, onAdd, onSnap }) {
+export default function Food({ user, profile, refreshKey, onAdd }) {
   const { C, T } = useTheme();
+  const { t: tr } = useLang();
   const styles = makeStyles(C, T);
   const sheet = useSheet();
   const [rows, setRows] = useState(null);
@@ -35,10 +35,10 @@ export default function Food({ user, profile, refreshKey, onAdd, onSnap }) {
 
   async function confirmRemove(e) {
     const yes = await sheet.confirm({
-      title: 'Remove this?',
+      title: tr('Remove this?'),
       message: e.name,
-      confirmLabel: 'Remove',
-      cancelLabel: 'Keep it',
+      confirmLabel: tr('Remove'),
+      cancelLabel: tr('Keep it'),
       destructive: true,
     });
     if (yes) { await removeEntry(e.id); load(); }
@@ -55,45 +55,31 @@ export default function Food({ user, profile, refreshKey, onAdd, onSnap }) {
           <Ring size={196} stroke={10} progress={goal > 0 ? t.kcal / goal : 0}
                 color={left >= 0 ? C.amber : C.danger} track={C.line}>
             <Text style={styles.ringNum}>{kcal}</Text>
-            <Text style={T.tiny}>of {goal} kcal</Text>
+            <Text style={T.tiny}>{goal} kcal {tr('mein se')}</Text>
             <View style={[styles.leftPill, left < 0 && { backgroundColor:'rgba(228,69,58,0.18)' }]}>
               <Text style={[styles.leftTxt, { color: left >= 0 ? C.amber : C.danger }]}>
-                {left >= 0 ? left + ' left' : Math.abs(left) + ' over'}
+                {left >= 0 ? left + ' ' + tr('left') : Math.abs(left) + ' ' + tr('over')}
               </Text>
             </View>
           </Ring>
         </FadeIn>
 
         <View style={styles.macros}>
-          <Macro label="Protein" v={p} goal={Math.round(goal * 0.3 / 4)} color={C.protein} d={210} />
-          <Macro label="Carbs"   v={c} goal={Math.round(goal * 0.45 / 4)} color={C.carbs} d={250} />
-          <Macro label="Fat"     v={f} goal={Math.round(goal * 0.25 / 9)} color={C.fat} d={290} />
+          <Macro label={tr('Protein')} v={p} goal={Math.round(goal * 0.3 / 4)} color={C.protein} d={90} />
+          <Macro label={tr('Carbs')}   v={c} goal={Math.round(goal * 0.45 / 4)} color={C.carbs} d={115} />
+          <Macro label={tr('Fat')}     v={f} goal={Math.round(goal * 0.25 / 9)} color={C.fat} d={140} />
         </View>
       </View>
-
-      <FadeIn delay={300} style={{ paddingHorizontal:S.lg, marginTop:S.lg }}>
-        <Press onPress={() => onSnap && onSnap(mealForNow())} scaleTo={0.98} style={styles.snap}>
-          <Text style={styles.snapIcon}>{'\u25CE'}</Text>
-          <View style={{ flex:1 }}>
-            <Text style={styles.snapTxt}>Snap a meal</Text>
-            <Text style={T.tiny}>
-              {CAN_TAKE_PHOTOS
-                ? 'Point the camera at your plate and it counts the calories'
-                : 'Open the web app to use the camera'}
-            </Text>
-          </View>
-        </Press>
-      </FadeIn>
 
       {rows === null ? <ActivityIndicator color={C.amber} style={{ marginTop:S.xl }} /> :
         MEALS.map((meal, mi) => {
           const list = (rows || []).filter((e) => e.meal === meal.name);
           const mt = totals(list);
           return (
-            <FadeIn key={meal.name} delay={330 + mi * 60} style={{ paddingHorizontal:S.lg, marginTop:S.lg }}>
+            <FadeIn key={meal.name} delay={140 + mi * 26} style={{ paddingHorizontal:S.lg, marginTop:S.lg }}>
               <View style={styles.mealHead}>
                 <Text style={styles.mealIcon}>{meal.icon}</Text>
-                <Text style={styles.mealName}>{meal.name}</Text>
+                <Text style={styles.mealName}>{tr(meal.name)}</Text>
                 <Text style={[T.small, { color:C.amber }]}>{mt.kcal} kcal</Text>
               </View>
 
@@ -109,7 +95,7 @@ export default function Food({ user, profile, refreshKey, onAdd, onSnap }) {
 
               <Press onPress={() => onAdd(meal.name)} scaleTo={0.97} style={styles.addBtn}>
                 <Text style={styles.addPlus}>+</Text>
-                <Text style={styles.addTxt}>Add food to {meal.name.toLowerCase()}</Text>
+                <Text style={styles.addTxt}>{tr(meal.name)} {tr('mein add karo')}</Text>
               </Press>
             </FadeIn>
           );
@@ -117,7 +103,7 @@ export default function Food({ user, profile, refreshKey, onAdd, onSnap }) {
 
       {rows && rows.length > 0 ? (
         <Text style={[T.tiny, { textAlign:'center', marginTop:S.lg }]}>
-          Hold an item to remove it
+          {tr('Hold an item to remove it')}
         </Text>
       ) : null}
     </ScrollView>
@@ -155,9 +141,5 @@ const makeStyles = (C, T) => StyleSheet.create({
   addBtn:{ flexDirection:'row', alignItems:'center', paddingVertical:13, paddingHorizontal:13,
            borderRadius:R.sm, borderWidth:1.5, borderColor:C.line, borderStyle:'dashed' },
   addPlus:{ fontFamily:'WorkSans_500Medium', fontSize:18, color:C.amber, marginRight:10 },
-  snap:{ flexDirection:'row', alignItems:'center', backgroundColor:C.surface,
-         borderRadius:R.md, padding:S.md, borderWidth:1.5, borderColor:C.amber },
-  snapIcon:{ fontSize:22, color:C.amber, marginRight:12 },
-  snapTxt:{ fontFamily:'WorkSans_500Medium', fontSize:16, color:C.text },
   addTxt:{ fontFamily:'WorkSans_400Regular', fontSize:14, color:C.dim },
 });

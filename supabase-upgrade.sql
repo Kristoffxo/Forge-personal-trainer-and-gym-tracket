@@ -35,6 +35,13 @@ create table if not exists public.posts (
 );
 create index if not exists posts_recent_idx on public.posts (created_at desc);
 
+--  One photo a day, each. The feed is meant to be a record you can look
+--  back on rather than a stream, and a unique index is the only place
+--  this can be enforced honestly — a check in the app is a suggestion.
+--  The day is UTC so the client and the database always agree on it.
+create unique index if not exists posts_one_a_day
+  on public.posts (user_id, ((created_at at time zone 'utc')::date));
+
 create table if not exists public.comments (
   id         bigint generated always as identity primary key,
   post_id    bigint not null references public.posts on delete cascade,

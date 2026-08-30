@@ -193,6 +193,10 @@ fs.copyFileSync(LOCKUP_T, note(A('splash-icon.png')));
 //  the mark the app renders in its own chrome
 fs.mkdirSync(A('brand'), { recursive: true });
 fs.copyFileSync(MARK_T, note(A('brand/mark.png')));
+
+//  and again at a stable, unhashed path, because the boot screen in
+//  public/index.html is plain HTML and cannot reach Expo's asset map
+fs.copyFileSync(MARK_T, note(I('mark.png')));
 fs.copyFileSync(LOCKUP_T, note(A('brand/lockup.png')));
 
 /* =================================================================

@@ -13,6 +13,7 @@
 import GENERIC from '../data/foods.json';
 import BRANDED from '../data/foods_branded.json';
 import INDIAN from '../data/foods_indian.json';
+import EXTRA from '../data/foods_extra.json';
 import { POPULAR } from './popular';
 
 /* USDA writes brands in caps ("TACO BELL, ..."). Soften them. */
@@ -34,13 +35,14 @@ function shape(f) {
 }
 
 export const FOODS = GENERIC.map(shape)
+  .concat(EXTRA.map(shape))
   .concat(INDIAN.map(shape))
   .concat(BRANDED.map(shape));
 export const COUNT = FOODS.length;
 
 /* Generic foods outrank packaged ones when scores tie — logging "chicken
    breast" should not surface forty frozen ready-meals first. */
-const SRC_WEIGHT = { indb: 0, ifct: 0, fndds: 1, sr: 1, fnd: 2, br: 3 };
+const SRC_WEIGHT = { nem: 0, indb: 0, ifct: 0, fndds: 1, sr: 1, fnd: 2, br: 3 };
 
 /* ---------------------------------------------------------------
    The staples people actually log, pinned by id. Each gets a plain

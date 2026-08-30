@@ -6,6 +6,7 @@ import { IMG } from '../images';
 import { getProfile, saveProfile, signOut } from '../auth';
 import { num, int } from '../num';
 import { quoteOfDay } from '../quotes';
+import { useLang } from '../lang';
 
 const BANDS = [
   { max:18.5, label:'Underweight', color:'#5C9BE8',
@@ -20,6 +21,7 @@ const BANDS = [
 
 export default function Tools({ user, profile, onProfile }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const [cm, setCm] = useState(profile?.height_cm ? String(profile.height_cm) : '');
   const [kg, setKg] = useState(profile?.weight_kg ? String(profile.weight_kg) : '');
@@ -51,19 +53,19 @@ export default function Tools({ user, profile, onProfile }) {
       <ImageBackground source={IMG.hero} style={styles.head}>
         <View style={styles.headVeil} />
         <View style={{ padding:S.lg }}>
-          <Label color={C.teal}>Tools</Label>
-          <Text style={styles.title}>Know your numbers</Text>
+          <Label color={C.teal}>{t('Tools')}</Label>
+          <Text style={styles.title}>{t('Know your numbers')}</Text>
         </View>
       </ImageBackground>
 
       {/* ---- BMI ---- */}
       <FadeIn delay={60} style={{ padding:S.lg }}>
         <Card color={C.teal}>
-          <Label>Body Mass Index</Label>
+          <Label>{t('Body Mass Index')}</Label>
           <View style={{ flexDirection:'row', marginTop:S.md }}>
-            <Num label="Height (cm)" value={cm} onChange={setCm} />
+            <Num label={t('Height (cm)')} value={cm} onChange={setCm} />
             <View style={{ width:S.md }} />
-            <Num label="Weight (kg)" value={kg} onChange={setKg} />
+            <Num label={t('Weight (kg)')} value={kg} onChange={setKg} />
           </View>
 
           <View style={{ marginTop:S.lg, alignItems:'center' }}>
@@ -71,7 +73,7 @@ export default function Tools({ user, profile, onProfile }) {
               {ok ? shown.toFixed(1) : '—'}
             </Text>
             <Text style={[styles.bandTxt, { color: band ? band.color : C.faint }]}>
-              {band ? band.label.toUpperCase() : 'ENTER YOUR NUMBERS'}
+              {band ? t(band.label).toUpperCase() : t('ENTER YOUR NUMBERS')}
             </Text>
           </View>
 
@@ -89,12 +91,12 @@ export default function Tools({ user, profile, onProfile }) {
               <View style={styles.scaleNums}>
                 {['14','18.5','25','30','40'].map((n) => <Text key={n} style={T.tiny}>{n}</Text>)}
               </View>
-              <Text style={[T.body, { marginTop:S.md }]}>{band.note}</Text>
+              <Text style={[T.body, { marginTop:S.md }]}>{t(band.note)}</Text>
               <Text style={[T.small, { marginTop:6, color:C.text }]}>
                 Healthy weight for your height: {lo.toFixed(0)}–{hi.toFixed(0)} kg
               </Text>
               <Text style={[T.tiny, { marginTop:S.sm }]}>
-                BMI does not know muscle from fat, so it reads high for trained people.
+                BMI cannot tell muscle from fat, so it reads high if you train.
                 One number, not a verdict.
               </Text>
             </>
@@ -105,12 +107,12 @@ export default function Tools({ user, profile, onProfile }) {
       {/* ---- daily target ---- */}
       <FadeIn delay={110} style={{ paddingHorizontal:S.lg }}>
         <Card color={C.amber}>
-          <Label>Daily calorie target</Label>
+          <Label>{t('Daily calorie target')}</Label>
           <Text style={[T.small, { marginTop:4, marginBottom:S.md }]}>
-            Used by the Food tab to work out what you have left.
+            {t('The Food tab counts down from this.')}
           </Text>
-          <Num label="kcal a day" value={goal} onChange={setGoal} wide />
-          <Btn label={saved ? 'Saved ✓' : 'Save my numbers'} color={saved ? C.lime : C.amber}
+          <Num label={t('kcal a day')} value={goal} onChange={setGoal} wide />
+          <Btn label={saved ? t('Saved') + ' ✓' : t('Save my numbers')} color={saved ? C.lime : C.amber}
             onPress={save} style={{ marginTop:S.md }} />
         </Card>
       </FadeIn>
@@ -129,10 +131,10 @@ export default function Tools({ user, profile, onProfile }) {
       {/* ---- account ---- */}
       <FadeIn delay={200} style={{ paddingHorizontal:S.lg }}>
         <Card>
-          <Label>Account</Label>
+          <Label>{t('Account')}</Label>
           <Text style={[T.bodyOn, { marginTop:6 }]}>{profile?.full_name || 'Client'}</Text>
           <Text style={T.small}>{user.email}</Text>
-          <Btn label="Sign out" dark color={C.dim} onPress={signOut} style={{ marginTop:S.md }} />
+          <Btn label={t('Sign out')} dark color={C.dim} onPress={signOut} style={{ marginTop:S.md }} />
         </Card>
       </FadeIn>
     </ScrollView>

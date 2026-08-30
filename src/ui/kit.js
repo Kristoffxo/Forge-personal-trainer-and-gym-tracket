@@ -16,7 +16,7 @@ export function Btn({ label, onPress, color, dark, disabled, busy, style, full =
   const styles = makeStyles(C, T);
   color = color || C.ember;
   const s = useRef(new Animated.Value(1)).current;
-  const to = (v) => Animated.spring(s, { toValue:v, useNativeDriver:true, speed:40, bounciness:5 }).start();
+  const to = (v) => Animated.spring(s, { toValue:v, useNativeDriver:true, speed:60, bounciness:4 }).start();
   return (
     <Pressable onPress={onPress} disabled={disabled || busy}
       onPressIn={() => to(0.97)} onPressOut={() => to(1)}>
@@ -68,7 +68,7 @@ export function FadeIn({ children, delay = 0, from = 14, style }) {
   const styles = makeStyles(C, T);
   const a = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.timing(a, { toValue:1, duration:520, delay, easing:EASE, useNativeDriver:true }).start();
+    Animated.timing(a, { toValue:1, duration:260, delay, easing:EASE, useNativeDriver:true }).start();
   }, [a, delay]);
   return (
     <Animated.View style={[style, { opacity:a,
@@ -84,7 +84,7 @@ export function Bar({ value, max, color, height = 6, style }) {
   const a = useRef(new Animated.Value(0)).current;
   const pct = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
   useEffect(() => {
-    Animated.timing(a, { toValue:pct, duration:750, easing:EASE, useNativeDriver:false }).start();
+    Animated.timing(a, { toValue:pct, duration:420, easing:EASE, useNativeDriver:false }).start();
   }, [pct, a]);
   return (
     <View style={[{ height, backgroundColor:C.line, borderRadius:height/2, overflow:'hidden' }, style]}>
@@ -107,7 +107,7 @@ export function Chip({ label, on, color, onPress }) {
   );
 }
 
-export function useCountUp(target, duration = 650) {
+export function useCountUp(target, duration = 360) {
   const a = useRef(new Animated.Value(0)).current;
   const [n, setN] = React.useState(0);
   useEffect(() => {

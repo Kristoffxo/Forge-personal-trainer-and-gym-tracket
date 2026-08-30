@@ -19,6 +19,7 @@ import { S, R, useTheme } from '../theme';
 import { Card, Label, Btn, FadeIn, useCountUp } from '../ui/kit';
 import { loadRange, totals, todayKey } from '../diary';
 import { num } from '../num';
+import { useLang } from '../lang';
 
 const WKEY = 'nemea:weights';
 const DAYS = 14;
@@ -78,6 +79,7 @@ function streakOf(map) {
 
 export default function Progress({ user, profile }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
 
   const [rows, setRows] = useState(null);
@@ -135,7 +137,7 @@ export default function Progress({ user, profile }) {
 
       <FadeIn delay={70}>
         <Card style={{ marginTop: S.md }}>
-          <Label color={C.amber}>Last {DAYS} days</Label>
+          <Label color={C.amber}>{t('Last')} {DAYS} {t('days')}</Label>
           <Text style={[T.body, { marginTop: 4 }]}>
             {eaten.length
               ? `Averaging ${avg} kcal and ${proteinAvg} g of protein on the days you logged.`
@@ -147,7 +149,7 @@ export default function Progress({ user, profile }) {
 
       <FadeIn delay={140}>
         <Card style={{ marginTop: S.md }} color={C.teal}>
-          <Label color={C.teal}>Weight</Label>
+          <Label color={C.teal}>{t('Weight')}</Label>
           {latest ? (
             <View style={styles.weightRow}>
               <Text style={styles.big}>{latest.kg}</Text>
@@ -166,8 +168,8 @@ export default function Progress({ user, profile }) {
             </View>
           ) : (
             <Text style={[T.body, { marginTop: 4 }]}>
-              Put today's weight in and check back in a fortnight. One number a
-              week is enough — daily weight is mostly water.
+              Add today's weight. Once a week is enough — daily weight is
+              mostly water.
             </Text>
           )}
 
@@ -177,10 +179,10 @@ export default function Progress({ user, profile }) {
               value={entry}
               onChangeText={setEntry}
               keyboardType="numeric"
-              placeholder="kg today"
+              placeholder={t('kg today')}
               placeholderTextColor={C.faint}
             />
-            <Btn label={saved ? 'Saved' : 'Log'} onPress={saveWeight} color={C.teal} full={false} />
+            <Btn label={saved ? t('Saved') : t('Log')} onPress={saveWeight} color={C.teal} full={false} />
           </View>
 
           {weights.length > 1 ? <Spark weights={weights} /> : null}
@@ -189,7 +191,7 @@ export default function Progress({ user, profile }) {
 
       <FadeIn delay={210}>
         <Text style={[T.tiny, { marginTop: S.lg, textAlign: 'center' }]}>
-          Your weight log stays on this device.
+          {t('Your weight stays on this device.')}
         </Text>
       </FadeIn>
     </ScrollView>
@@ -198,18 +200,19 @@ export default function Progress({ user, profile }) {
 
 function StreakCard({ streak, logged, days }) {
   const { C, T } = useTheme();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   const n = useCountUp(streak);
   return (
     <View style={[styles.streak, { borderColor: streak > 0 ? C.ember : C.line }]}>
       <Text style={[styles.big, { color: streak > 0 ? C.ember : C.faint }]}>{n}</Text>
       <Text style={[T.h3, { marginTop: -4 }]}>
-        {streak === 1 ? 'day in a row' : 'days in a row'}
+        {streak === 1 ? t('day in a row') : t('days in a row')}
       </Text>
       <Text style={[T.small, { marginTop: 6, textAlign: 'center' }]}>
         {streak === 0
-          ? 'Log anything today and the count starts.'
-          : `${logged} of the last ${days} days logged.`}
+          ? t('Log anything today to start.')
+          : `${days} ${t('mein se')} ${logged} ${t('din log kiye.')}`}
       </Text>
     </View>
   );
