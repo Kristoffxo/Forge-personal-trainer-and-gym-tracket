@@ -1,0 +1,176 @@
+/* ---------------------------------------------------------------
+   Confirmations and little menus.
+
+   React Native's Alert.alert takes a list of buttons, but
+   react-native-web ignores them — it forwards the title to
+   window.alert and drops every callback on the floor. The app ships
+   as a web app first, so anything built on Alert silently does
+   nothing: "hold to remove" in the food diary has never worked in a
+   browser.
+
+   This is the replacement. One provider near the root, then
+
+     const sheet = useSheet();
+     const yes = await sheet.confirm({ title:'Remove this?', destructive:true });
+     const pick = await sheet.choose({ title:'Post', options:[...] });
+
+   Both resolve — null or false when it is dismissed — so callers
+   read as straight-line code instead of nested callbacks.
+   --------------------------------------------------------------- */
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import { View, Text, Modal, Pressable, StyleSheet, Animated, Easing } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { S, R, useTheme } from '../theme';
+
+const Ctx = createContext(null);
+const EASE = Easing.bezier(0.22, 1, 0.36, 1);
+
+export function SheetProvider({ children }) {
+  const [req, setReq] = useState(null);
+  const resolver = useRef(null);
+
+  const ask = useCallback((next) => new Promise((resolve) => {
+    resolver.current = resolve;
+    setReq(next);
+  }), []);
+
+  const settle = useCallback((value) => {
+    setReq(null);
+    const r = resolver.current;
+    resolver.current = null;
+    if (r) r(value);
+  }, []);
+
+  const api = useRef({
+    /* options: [{ label, value, destructive, quiet }] */
+    choose: (o) => ask({ kind: 'choose', ...o }),
+    confirm: (o) => ask({ kind: 'confirm', ...o }).then((v) => v === true),
+    /* a message with a single way out */
+    tell: (o) => ask({ kind: 'tell', ...o }).then(() => undefined),
+  }).current;
+
+  return (
+    <Ctx.Provider value={api}>
+      {children}
+      <SheetHost req={req} settle={settle} />
+    </Ctx.Provider>
+  );
+}
+
+export function useSheet() {
+  const v = useContext(Ctx);
+  if (v) return v;
+  // Outside the provider nothing should silently succeed — that is the
+  // exact bug this file exists to fix.
+  return {
+    choose: () => Promise.resolve(null),
+    confirm: () => Promise.resolve(false),
+    tell: () => Promise.resolve(),
+  };
+}
+
+function SheetHost({ req, settle }) {
+  const { C, T } = useTheme();
+  const styles = makeStyles(C, T);
+  const insets = useSafeAreaInsets();
+  const slide = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(slide, {
+      toValue: req ? 1 : 0,
+      duration: req ? 240 : 140,
+      easing: EASE,
+      useNativeDriver: true,
+    }).start();
+  }, [req, slide]);
+
+  if (!req) return null;
+
+  const options = req.kind === 'choose'
+    ? (req.options || [])
+    : req.kind === 'confirm'
+      ? [{
+        label: req.confirmLabel || 'Yes',
+        value: true,
+        destructive: !!req.destructive,
+      }]
+      : [{ label: req.confirmLabel || 'OK', value: true }];
+
+  return (
+    <Modal transparent visible animationType="fade" onRequestClose={() => settle(null)}>
+      <Pressable style={styles.scrim} onPress={() => settle(null)} />
+      <Animated.View
+        style={[
+          styles.sheet,
+          {
+            paddingBottom: Math.max(insets.bottom, S.md),
+            transform: [{
+              translateY: slide.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }),
+            }],
+            opacity: slide,
+          },
+        ]}
+      >
+        <View style={styles.grab} />
+
+        {req.title ? <Text style={styles.title}>{req.title}</Text> : null}
+        {req.message ? <Text style={[T.small, styles.msg]}>{req.message}</Text> : null}
+
+        <View style={{ marginTop: S.md }}>
+          {options.map((o, i) => (
+            <Pressable
+              key={i}
+              onPress={() => settle(o.value === undefined ? i : o.value)}
+              style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.raised }]}
+            >
+              <Text style={[
+                styles.rowTxt,
+                o.destructive && { color: C.danger },
+                o.quiet && { color: C.dim },
+              ]}>
+                {o.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {req.kind === 'tell' ? null : (
+          <Pressable
+            onPress={() => settle(null)}
+            style={({ pressed }) => [styles.cancel, pressed && { backgroundColor: C.raised }]}
+          >
+            <Text style={[styles.rowTxt, { color: C.dim }]}>{req.cancelLabel || 'Cancel'}</Text>
+          </Pressable>
+        )}
+      </Animated.View>
+    </Modal>
+  );
+}
+
+const makeStyles = (C, T) => StyleSheet.create({
+  scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  sheet: {
+    position: 'absolute', left: 0, right: 0, bottom: 0,
+    backgroundColor: C.surface,
+    borderTopLeftRadius: R.lg, borderTopRightRadius: R.lg,
+    paddingHorizontal: S.md, paddingTop: S.sm,
+    borderTopWidth: 1, borderTopColor: C.line,
+    // wide screens get a centred card rather than a full-width bar
+    maxWidth: 520, alignSelf: 'center', width: '100%',
+  },
+  grab: {
+    width: 38, height: 4, borderRadius: 2, backgroundColor: C.line,
+    alignSelf: 'center', marginBottom: S.md,
+  },
+  title: {
+    fontFamily: 'Forum_400Regular', fontSize: 21, color: C.text,
+    textAlign: 'center', paddingHorizontal: S.sm,
+  },
+  msg: { textAlign: 'center', marginTop: 6, paddingHorizontal: S.sm },
+  row: { paddingVertical: 15, borderRadius: R.sm, alignItems: 'center' },
+  rowTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 15.5, color: C.text },
+  cancel: {
+    paddingVertical: 15, borderRadius: R.sm, alignItems: 'center',
+    marginTop: S.xs, borderTopWidth: 1, borderTopColor: C.line,
+  },
+});

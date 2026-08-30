@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "@expo-google-fonts/forum": "^0.4.1",
     "@expo-google-fonts/work-sans": "^0.4.2",
     "@expo/metro-runtime": "~6.1.2",
@@ -24,7 +25,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build:web": "node scripts/build-web.mjs",
-    "serve:web": "npx serve web-build -l 8090 -s"
+    "serve:web": "npx serve web-build -l 8090 -s",
+    "brand": "node brand/render.mjs"
   },
   "private": true
 }

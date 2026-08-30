@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { S, R, useTheme } from '../theme';
 import { Card, Press, FadeIn, Label, Bar, useCountUp } from '../ui/kit';
+import { useSheet } from '../ui/sheet';
+import { CAN_TAKE_PHOTOS } from '../photo';
 import { Ring } from '../ui/ring';
 import { todayKey, loadDay, removeEntry, totals } from '../diary';
+import { mealForNow } from '../vision';
 
 const MEALS = [
   { name:'Breakfast', icon:'☀' },
@@ -12,9 +15,10 @@ const MEALS = [
   { name:'Snacks',    icon:'✦' },
 ];
 
-export default function Food({ user, profile, refreshKey, onAdd }) {
+export default function Food({ user, profile, refreshKey, onAdd, onSnap }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
+  const sheet = useSheet();
   const [rows, setRows] = useState(null);
   const goal = profile?.goal_kcal || 2200;
   const day = todayKey();
@@ -29,12 +33,15 @@ export default function Food({ user, profile, refreshKey, onAdd }) {
   const c = useCountUp(t.carbs, 550);
   const f = useCountUp(t.fat, 550);
 
-  function confirmRemove(e) {
-    Alert.alert('Remove this?', e.name, [
-      { text:'Keep it', style:'cancel' },
-      { text:'Remove', style:'destructive',
-        onPress: async () => { await removeEntry(e.id); load(); } },
-    ]);
+  async function confirmRemove(e) {
+    const yes = await sheet.confirm({
+      title: 'Remove this?',
+      message: e.name,
+      confirmLabel: 'Remove',
+      cancelLabel: 'Keep it',
+      destructive: true,
+    });
+    if (yes) { await removeEntry(e.id); load(); }
   }
 
   const dateLabel = new Date().toLocaleDateString(undefined,
@@ -63,6 +70,20 @@ export default function Food({ user, profile, refreshKey, onAdd }) {
           <Macro label="Fat"     v={f} goal={Math.round(goal * 0.25 / 9)} color={C.fat} d={290} />
         </View>
       </View>
+
+      <FadeIn delay={300} style={{ paddingHorizontal:S.lg, marginTop:S.lg }}>
+        <Press onPress={() => onSnap && onSnap(mealForNow())} scaleTo={0.98} style={styles.snap}>
+          <Text style={styles.snapIcon}>{'\u25CE'}</Text>
+          <View style={{ flex:1 }}>
+            <Text style={styles.snapTxt}>Snap a meal</Text>
+            <Text style={T.tiny}>
+              {CAN_TAKE_PHOTOS
+                ? 'Point the camera at your plate and it counts the calories'
+                : 'Open the web app to use the camera'}
+            </Text>
+          </View>
+        </Press>
+      </FadeIn>
 
       {rows === null ? <ActivityIndicator color={C.amber} style={{ marginTop:S.xl }} /> :
         MEALS.map((meal, mi) => {
@@ -134,5 +155,9 @@ const makeStyles = (C, T) => StyleSheet.create({
   addBtn:{ flexDirection:'row', alignItems:'center', paddingVertical:13, paddingHorizontal:13,
            borderRadius:R.sm, borderWidth:1.5, borderColor:C.line, borderStyle:'dashed' },
   addPlus:{ fontFamily:'WorkSans_500Medium', fontSize:18, color:C.amber, marginRight:10 },
+  snap:{ flexDirection:'row', alignItems:'center', backgroundColor:C.surface,
+         borderRadius:R.md, padding:S.md, borderWidth:1.5, borderColor:C.amber },
+  snapIcon:{ fontSize:22, color:C.amber, marginRight:12 },
+  snapTxt:{ fontFamily:'WorkSans_500Medium', fontSize:16, color:C.text },
   addTxt:{ fontFamily:'WorkSans_400Regular', fontSize:14, color:C.dim },
 });

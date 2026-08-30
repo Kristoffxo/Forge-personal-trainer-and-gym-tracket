@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, ScrollView, ImageBackground,
          KeyboardAvoidingView, Platform } from 'react-native';
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
+import { Mark } from '../ui/logo';
 import { IMG } from '../images';
 import { signIn, signUp } from '../auth';
 
@@ -37,6 +38,7 @@ export default function Auth({ onDone }) {
         <ImageBackground source={IMG.hero} style={styles.hero}>
           <View style={styles.heroVeil} />
           <FadeIn style={{ padding:S.lg }}>
+            <Mark size={56} style={{ marginBottom:S.sm }} />
             <Text style={styles.brand}>NEMEA</Text>
             <Text style={styles.tagline}>Train like the{'\n'}lion was real.</Text>
           </FadeIn>

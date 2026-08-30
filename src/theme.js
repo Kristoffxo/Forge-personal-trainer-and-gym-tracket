@@ -10,6 +10,7 @@ export const DARK = {
   bg:'#0E0D0C', surface:'#1A1817', raised:'#242120', line:'#332F2D',
   text:'#F6F2EC', dim:'#A9A29A', faint:'#6E6862', onAccent:'#120F0D',
   ember:'#E85C24', amber:'#F5A623', teal:'#2EC4B6', violet:'#8B6DFF', lime:'#8BC34A',
+  gold:'#C99A3E', taupe:'#CFC1AA',   // straight off the logo
   protein:'#E8543F', carbs:'#F2A93B', fat:'#2EC4B6',
   danger:'#E4453A', white:'#FFFFFF',
   veil:'rgba(14,13,12,0.62)',      // over photographs
@@ -21,6 +22,7 @@ export const LIGHT = {
   bg:'#FAF7F1', surface:'#FFFFFF', raised:'#F1ECE3', line:'#DED8CE',
   text:'#17150F', dim:'#6B655C', faint:'#9C958B', onAccent:'#FFFFFF',
   ember:'#C7481A', amber:'#B9761A', teal:'#12867C', violet:'#6244D8', lime:'#4E7C1F',
+  gold:'#B0801F', taupe:'#B9A88C',
   protein:'#C63D2C', carbs:'#B9761A', fat:'#12867C',
   danger:'#C0392B', white:'#FFFFFF',
   veil:'rgba(14,13,12,0.44)',
