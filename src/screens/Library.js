@@ -17,7 +17,8 @@ import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useLang } from '../lang';
 import { artForTarget } from '../muscleArt';
-import { photoForTarget, photoForMuscle, PHOTO } from '../photos';
+import { photoForTarget, photoForMuscle, groupPhoto, PHOTO } from '../photos';
+import { framesFor } from '../exercisePhotos';
 import { SPLIT_TARGETS, TARGETS, buildRoutine, minutesFor } from '../routines';
 import Session from './Session';
 
@@ -72,7 +73,7 @@ export default function Library({ place, user, profile, onBack }) {
                 <View style={[styles.exNum, { backgroundColor: MUSCLE_C[x.m] }]}>
                   <Text style={styles.exNumTxt}>{i + 1}</Text>
                 </View>
-                <Image source={photoForMuscle(x.m)} style={styles.exThumb} />
+                <Image source={(framesFor(x) || [photoForMuscle(x.m)])[0]} style={styles.exThumb} />
                 <View style={{ flex: 1, marginHorizontal: 10 }}>
                   <Text style={styles.exName} numberOfLines={1}>{x.n}</Text>
                   <Text style={T.tiny}>{x.m} · {x.e}</Text>
@@ -114,10 +115,7 @@ export default function Library({ place, user, profile, onBack }) {
           const c = MUSCLE_C[tg.muscles[0]] || accent;
           return (
             <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.985} style={styles.planRow}>
-              <View style={[styles.chip, { backgroundColor: c + '1F' }]}>
-                <Image source={artForTarget(tg.key)}
-                  style={[styles.chipArt, { tintColor: c }]} resizeMode="contain" />
-              </View>
+              <Image source={groupPhoto(tg.key)} style={styles.chip} />
               <View style={{ flex: 1, marginLeft: 14 }}>
                 <Text style={styles.planName}>{tg.name}</Text>
                 <Text style={T.tiny}>{t(tg.sub)}</Text>
@@ -139,11 +137,13 @@ export default function Library({ place, user, profile, onBack }) {
             const c = MUSCLE_C[tg.muscles[0]] || accent;
             return (
               <View key={tg.key} style={styles.tileWrap}>
-                <Press onPress={() => open(tg)} scaleTo={0.96}
-                  style={[styles.tile, { borderColor: c, backgroundColor: c + '1A' }]}>
-                  <Image source={artForTarget(tg.key)}
-                    style={[styles.tileArt, { tintColor: c }]} resizeMode="contain" />
-                  <Text style={styles.tileName}>{tg.name}</Text>
+                <Press onPress={() => open(tg)} scaleTo={0.96}>
+                  <ImageBackground source={groupPhoto(tg.key)}
+                    style={[styles.tile, { borderColor: c }]}
+                    imageStyle={{ borderRadius: R.md - 2 }}>
+                    <View style={styles.tileVeil} />
+                    <Text style={styles.tileName}>{tg.name}</Text>
+                  </ImageBackground>
                 </Press>
               </View>
             );
@@ -171,8 +171,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
     borderRadius: R.md, padding: 12, marginBottom: 10,
   },
-  chip: { width: 46, height: 46, borderRadius: R.sm, alignItems: 'center', justifyContent: 'center' },
-  chipArt: { width: 30, height: 30 },
+  chip: { width: 46, height: 46, borderRadius: R.sm, backgroundColor: C.raised },
   planName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: C.text, letterSpacing: -0.2 },
   go: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   goTxt: { color: '#0B0B0E', fontSize: 15, fontFamily: 'WorkSans_600SemiBold' },
@@ -186,19 +185,22 @@ const makeStyles = (C, T) => StyleSheet.create({
   tileWrap: { width: '33.333%', paddingHorizontal: 5, paddingBottom: 10 },
   tile: {
     height: 118, borderRadius: R.md, borderWidth: 1.5,
-    alignItems: 'center', justifyContent: 'center', paddingBottom: 4,
+    overflow: 'hidden', justifyContent: 'flex-end', backgroundColor: C.raised,
   },
-  tileArt: { width: 56, height: 56, marginBottom: 4 },
+  tileVeil: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(6,6,9,0.34)',
+  },
   tileName: {
-    fontFamily: 'WorkSans_600SemiBold', fontSize: 13.5, color: C.text,
-    textAlign: 'center',
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 13.5, color: '#FFFFFF',
+    textAlign: 'center', paddingBottom: 9,
   },
 
   hero: { width: '100%', height: 190, overflow: 'hidden', justifyContent: 'flex-end',
           backgroundColor: C.raised },
   heroVeil: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(6,6,9,0.5)' },
   heroBody: { padding: S.lg },
-  heroTitle: { fontFamily: 'WorkSans_700Bold', fontSize: 32, letterSpacing: -0.6,
+  heroTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 32, letterSpacing: -0.6,
                color: '#fff', marginTop: S.sm },
 
   exRow: {

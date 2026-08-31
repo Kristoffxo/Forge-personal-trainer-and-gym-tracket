@@ -55,7 +55,7 @@ export default function Food({ user, profile, refreshKey, onAdd }) {
           <Ring size={196} stroke={10} progress={goal > 0 ? t.kcal / goal : 0}
                 color={left >= 0 ? C.amber : C.danger} track={C.line}>
             <Text style={styles.ringNum}>{kcal}</Text>
-            <Text style={T.tiny}>{goal} kcal {tr('mein se')}</Text>
+            <Text style={T.tiny}>{tr('of')} {goal} kcal</Text>
             <View style={[styles.leftPill, left < 0 && { backgroundColor:'rgba(228,69,58,0.18)' }]}>
               <Text style={[styles.leftTxt, { color: left >= 0 ? C.amber : C.danger }]}>
                 {left >= 0 ? left + ' ' + tr('left') : Math.abs(left) + ' ' + tr('over')}
@@ -95,7 +95,7 @@ export default function Food({ user, profile, refreshKey, onAdd }) {
 
               <Press onPress={() => onAdd(meal.name)} scaleTo={0.97} style={styles.addBtn}>
                 <Text style={styles.addPlus}>+</Text>
-                <Text style={styles.addTxt}>{tr(meal.name)} {tr('mein add karo')}</Text>
+                <Text style={styles.addTxt}>{tr('Add to')} {tr(meal.name).toLowerCase()}</Text>
               </Press>
             </FadeIn>
           );

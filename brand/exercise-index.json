@@ -1,0 +1,274 @@
+{
+ "Barbell Bench Press": [
+  "barbell-bench-press-0.jpg",
+  "barbell-bench-press-1.jpg"
+ ],
+ "Incline Dumbbell Press": [
+  "incline-dumbbell-press-0.jpg",
+  "incline-dumbbell-press-1.jpg"
+ ],
+ "Flat Dumbbell Press": [
+  "flat-dumbbell-press-0.jpg",
+  "flat-dumbbell-press-1.jpg"
+ ],
+ "Machine Chest Press": [
+  "machine-chest-press-0.jpg",
+  "machine-chest-press-1.jpg"
+ ],
+ "Push-up": [
+  "push-up-0.jpg",
+  "push-up-1.jpg"
+ ],
+ "Dips (chest lean)": [
+  "dips-chest-lean-0.jpg",
+  "dips-chest-lean-1.jpg"
+ ],
+ "Cable Fly": [
+  "cable-fly-0.jpg",
+  "cable-fly-1.jpg"
+ ],
+ "Dumbbell Fly": [
+  "dumbbell-fly-0.jpg",
+  "dumbbell-fly-1.jpg"
+ ],
+ "Pec Deck": [
+  "pec-deck-0.jpg",
+  "pec-deck-1.jpg"
+ ],
+ "Deadlift": [
+  "deadlift-0.jpg",
+  "deadlift-1.jpg"
+ ],
+ "Pull-up": [
+  "pull-up-0.jpg",
+  "pull-up-1.jpg"
+ ],
+ "Lat Pulldown": [
+  "lat-pulldown-0.jpg",
+  "lat-pulldown-1.jpg"
+ ],
+ "Barbell Row": [
+  "barbell-row-0.jpg",
+  "barbell-row-1.jpg"
+ ],
+ "Chest-Supported Row": [
+  "chest-supported-row-0.jpg",
+  "chest-supported-row-1.jpg"
+ ],
+ "Single-Arm Dumbbell Row": [
+  "single-arm-dumbbell-row-0.jpg",
+  "single-arm-dumbbell-row-1.jpg"
+ ],
+ "Seated Cable Row": [
+  "seated-cable-row-0.jpg",
+  "seated-cable-row-1.jpg"
+ ],
+ "Straight-Arm Pulldown": [
+  "straight-arm-pulldown-0.jpg",
+  "straight-arm-pulldown-1.jpg"
+ ],
+ "Face Pull": [
+  "face-pull-0.jpg",
+  "face-pull-1.jpg"
+ ],
+ "Inverted Row": [
+  "inverted-row-0.jpg",
+  "inverted-row-1.jpg"
+ ],
+ "Overhead Press": [
+  "overhead-press-0.jpg",
+  "overhead-press-1.jpg"
+ ],
+ "Seated Dumbbell Press": [
+  "seated-dumbbell-press-0.jpg",
+  "seated-dumbbell-press-1.jpg"
+ ],
+ "Arnold Press": [
+  "arnold-press-0.jpg",
+  "arnold-press-1.jpg"
+ ],
+ "Machine Shoulder Press": [
+  "machine-shoulder-press-0.jpg",
+  "machine-shoulder-press-1.jpg"
+ ],
+ "Lateral Raise": [
+  "lateral-raise-0.jpg",
+  "lateral-raise-1.jpg"
+ ],
+ "Cable Lateral Raise": [
+  "cable-lateral-raise-0.jpg",
+  "cable-lateral-raise-1.jpg"
+ ],
+ "Rear Delt Fly": [
+  "rear-delt-fly-0.jpg",
+  "rear-delt-fly-1.jpg"
+ ],
+ "Pike Push-up": [
+  "pike-push-up-0.jpg",
+  "pike-push-up-1.jpg"
+ ],
+ "Barbell Curl": [
+  "barbell-curl-0.jpg",
+  "barbell-curl-1.jpg"
+ ],
+ "Dumbbell Curl": [
+  "dumbbell-curl-0.jpg",
+  "dumbbell-curl-1.jpg"
+ ],
+ "Hammer Curl": [
+  "hammer-curl-0.jpg",
+  "hammer-curl-1.jpg"
+ ],
+ "Incline Dumbbell Curl": [
+  "incline-dumbbell-curl-0.jpg",
+  "incline-dumbbell-curl-1.jpg"
+ ],
+ "Cable Curl": [
+  "cable-curl-0.jpg",
+  "cable-curl-1.jpg"
+ ],
+ "Chin-up": [
+  "chin-up-0.jpg",
+  "chin-up-1.jpg"
+ ],
+ "Close-Grip Bench Press": [
+  "close-grip-bench-press-0.jpg",
+  "close-grip-bench-press-1.jpg"
+ ],
+ "Triceps Rope Pushdown": [
+  "triceps-rope-pushdown-0.jpg",
+  "triceps-rope-pushdown-1.jpg"
+ ],
+ "Overhead Cable Extension": [
+  "overhead-cable-extension-0.jpg",
+  "overhead-cable-extension-1.jpg"
+ ],
+ "Skull Crusher": [
+  "skull-crusher-0.jpg",
+  "skull-crusher-1.jpg"
+ ],
+ "Dumbbell Kickback": [
+  "dumbbell-kickback-0.jpg",
+  "dumbbell-kickback-1.jpg"
+ ],
+ "Bench Dip": [
+  "bench-dip-0.jpg",
+  "bench-dip-1.jpg"
+ ],
+ "Back Squat": [
+  "back-squat-0.jpg",
+  "back-squat-1.jpg"
+ ],
+ "Front Squat": [
+  "front-squat-0.jpg",
+  "front-squat-1.jpg"
+ ],
+ "Leg Press": [
+  "leg-press-0.jpg",
+  "leg-press-1.jpg"
+ ],
+ "Goblet Squat": [
+  "goblet-squat-0.jpg",
+  "goblet-squat-1.jpg"
+ ],
+ "Bulgarian Split Squat": [
+  "bulgarian-split-squat-0.jpg",
+  "bulgarian-split-squat-1.jpg"
+ ],
+ "Walking Lunge": [
+  "walking-lunge-0.jpg",
+  "walking-lunge-1.jpg"
+ ],
+ "Leg Extension": [
+  "leg-extension-0.jpg",
+  "leg-extension-1.jpg"
+ ],
+ "Bodyweight Squat": [
+  "bodyweight-squat-0.jpg",
+  "bodyweight-squat-1.jpg"
+ ],
+ "Romanian Deadlift": [
+  "romanian-deadlift-0.jpg",
+  "romanian-deadlift-1.jpg"
+ ],
+ "Dumbbell RDL": [
+  "dumbbell-rdl-0.jpg",
+  "dumbbell-rdl-1.jpg"
+ ],
+ "Lying Leg Curl": [
+  "lying-leg-curl-0.jpg",
+  "lying-leg-curl-1.jpg"
+ ],
+ "Seated Leg Curl": [
+  "seated-leg-curl-0.jpg",
+  "seated-leg-curl-1.jpg"
+ ],
+ "Good Morning": [
+  "good-morning-0.jpg",
+  "good-morning-1.jpg"
+ ],
+ "Nordic Curl": [
+  "nordic-curl-0.jpg",
+  "nordic-curl-1.jpg"
+ ],
+ "Hip Thrust": [
+  "hip-thrust-0.jpg",
+  "hip-thrust-1.jpg"
+ ],
+ "Glute Bridge": [
+  "glute-bridge-0.jpg",
+  "glute-bridge-1.jpg"
+ ],
+ "Cable Kickback": [
+  "cable-kickback-0.jpg",
+  "cable-kickback-1.jpg"
+ ],
+ "Sumo Deadlift": [
+  "sumo-deadlift-0.jpg",
+  "sumo-deadlift-1.jpg"
+ ],
+ "Step-up": [
+  "step-up-0.jpg",
+  "step-up-1.jpg"
+ ],
+ "Standing Calf Raise": [
+  "standing-calf-raise-0.jpg",
+  "standing-calf-raise-1.jpg"
+ ],
+ "Seated Calf Raise": [
+  "seated-calf-raise-0.jpg",
+  "seated-calf-raise-1.jpg"
+ ],
+ "Dumbbell Calf Raise": [
+  "dumbbell-calf-raise-0.jpg",
+  "dumbbell-calf-raise-1.jpg"
+ ],
+ "Hanging Knee Raise": [
+  "hanging-knee-raise-0.jpg",
+  "hanging-knee-raise-1.jpg"
+ ],
+ "Plank": [
+  "plank-0.jpg",
+  "plank-1.jpg"
+ ],
+ "Cable Crunch": [
+  "cable-crunch-0.jpg",
+  "cable-crunch-1.jpg"
+ ],
+ "Dead Bug": [
+  "dead-bug-0.jpg",
+  "dead-bug-1.jpg"
+ ],
+ "Russian Twist": [
+  "russian-twist-0.jpg",
+  "russian-twist-1.jpg"
+ ],
+ "Ab Wheel Rollout": [
+  "ab-wheel-rollout-0.jpg",
+  "ab-wheel-rollout-1.jpg"
+ ],
+ "Side Plank": [
+  "side-plank-0.jpg",
+  "side-plank-1.jpg"
+ ]
+}

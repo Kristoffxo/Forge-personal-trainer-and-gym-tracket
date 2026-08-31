@@ -12,13 +12,14 @@
    screen behind it knows how to get back here.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ImageBackground } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
 import { Press, FadeIn } from '../ui/kit';
 import { useLang } from '../lang';
 import { myStanding } from '../challenge';
 import { GRADE_COLOUR } from '../rank';
+import { PHOTO } from '../photos';
 
 import Planner from './Training';
 import Library from './Library';
@@ -26,24 +27,24 @@ import Challenges from './Challenges';
 
 const BOXES = [
   {
-    key: 'planner', icon: '▦', colorKey: 'ember',
+    key: 'planner', photo: 'gym', colorKey: 'ember',
     name: '7 Day Workout Planner',
-    sub: 'A week built around your days, ticked off as you go',
+    sub: 'A week built around your days',
   },
   {
-    key: 'gym', icon: '▲', colorKey: 'amber',
+    key: 'gym', photo: 'hero', colorKey: 'amber',
     name: 'Gym Workouts',
-    sub: 'Push, pull, legs — or pick one muscle',
+    sub: 'Push, pull, legs — or one muscle',
   },
   {
-    key: 'home', icon: '◆', colorKey: 'teal',
+    key: 'home', photo: 'kit', colorKey: 'teal',
     name: 'Home Workouts',
     sub: 'Bodyweight, or one dumbbell',
   },
   {
-    key: 'challenges', icon: '✦', colorKey: 'violet',
+    key: 'challenges', photo: 'rest', colorKey: 'violet',
     name: 'Challenges',
-    sub: '7, 15, 30 or 90 days without missing',
+    sub: 'Medals for every streak you keep',
   },
 ];
 
@@ -111,16 +112,17 @@ export default function Train({ user, profile }) {
         const c = C[b.colorKey];
         return (
           <FadeIn key={b.key} delay={i * 40} from={8}>
-            <Press onPress={() => setOpen(b.key)} scaleTo={0.98}
-              style={[styles.box, { borderColor: c }]}>
-              <View style={[styles.iconWrap, { backgroundColor: c + '22' }]}>
-                <Text style={[styles.icon, { color: c }]}>{b.icon}</Text>
-              </View>
-              <View style={{ flex: 1, marginLeft: 14 }}>
-                <Text style={styles.boxName}>{t(b.name)}</Text>
-                <Text style={[T.small, { marginTop: 2 }]}>{t(b.sub)}</Text>
-              </View>
-              <Text style={styles.chev}>{'›'}</Text>
+            <Press onPress={() => setOpen(b.key)} scaleTo={0.98} style={styles.box}>
+              <ImageBackground source={PHOTO[b.photo]} style={styles.boxImg}
+                imageStyle={{ borderRadius: R.lg }}>
+                <View style={styles.boxInk} />
+                <View style={[styles.boxVeil, { backgroundColor: c + '22' }]} />
+                <View style={styles.boxBody}>
+                  <View style={[styles.rule, { backgroundColor: c }]} />
+                  <Text style={styles.boxName}>{t(b.name)}</Text>
+                  <Text style={styles.boxSub}>{t(b.sub)}</Text>
+                </View>
+              </ImageBackground>
             </Press>
           </FadeIn>
         );
@@ -144,16 +146,13 @@ const makeStyles = (C, T) => StyleSheet.create({
   },
   streakNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20, lineHeight: 24 },
 
-  box: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
-    borderRadius: R.lg, padding: S.lg, marginBottom: S.md,
-    borderWidth: 1.5,
-  },
-  iconWrap: {
-    width: 52, height: 52, borderRadius: R.md,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  icon: { fontSize: 24 },
-  boxName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 23, lineHeight: 27, color: C.text },
-  chev: { fontSize: 24, color: C.faint, paddingLeft: 6 },
+  box: { marginBottom: S.md, borderRadius: R.lg, overflow: 'hidden' },
+  boxImg: { height: 134, justifyContent: 'flex-end', backgroundColor: C.raised },
+  boxInk: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(6,6,9,0.5)' },
+  boxVeil: { ...StyleSheet.absoluteFillObject },
+  boxBody: { padding: S.lg },
+  rule: { width: 30, height: 3, borderRadius: 2, marginBottom: 8 },
+  boxName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 22, lineHeight: 26, color: '#fff' },
+  boxSub: { fontFamily: 'WorkSans_400Regular', fontSize: 13,
+            color: 'rgba(255,255,255,0.82)', marginTop: 2 },
 });

@@ -30,7 +30,7 @@ export default function AddFood({ meal, onDone, onCancel, user }) {
     <KeyboardAvoidingView style={styles.wrap} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.head}>
         <View style={styles.headRow}>
-          <Label style={{ color:C.text }}>{t(meal)} {t('mein add karo')}</Label>
+          <Label style={{ color:C.text }}>{t('Add to')} {t(meal).toLowerCase()}</Label>
           <Pressable onPress={onCancel} hitSlop={12}>
             <Text style={[T.small, { color:C.amber }]}>{t('Cancel')}</Text>
           </Pressable>

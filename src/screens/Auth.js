@@ -40,7 +40,7 @@ export default function Auth({ onDone }) {
         <ImageBackground source={IMG.hero} style={styles.hero}>
           <View style={styles.heroVeil} />
           <Press onPress={toggleLang} scaleTo={0.9} style={styles.langBtn}>
-            <Text style={styles.langTxt}>{lang === 'hi' ? 'ENGLISH' : 'HINGLISH'}</Text>
+            <Text style={styles.langTxt}>{lang === 'hi' ? 'HINGLISH' : 'ENGLISH'}</Text>
           </Press>
           <FadeIn style={{ padding:S.lg }}>
             <Mark size={56} style={{ marginBottom:S.sm }} />

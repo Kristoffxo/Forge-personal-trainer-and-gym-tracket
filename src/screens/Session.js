@@ -10,13 +10,15 @@
    came from.
    --------------------------------------------------------------- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Bar } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { markWorkout } from '../challenge';
+import { framesFor } from '../exercisePhotos';
+import { photoForMuscle } from '../photos';
 import Exercise from './Exercise';
 
 export default function Session({ title, exercises, user, kind, name, onExit }) {
@@ -75,7 +77,7 @@ export default function Session({ title, exercises, user, kind, name, onExit }) 
         </Press>
         <Text style={styles.big}>{t(title)}</Text>
         <Text style={[T.small, { marginTop: 2 }]}>
-          {total} {t('mein se')} {ticked} {t('done')}
+          {ticked} {t('of')} {total} {t('done')}
         </Text>
         <Bar value={ticked} max={total} color={allDone ? C.lime : C.ember}
           height={7} style={{ marginTop: S.md }} />
@@ -102,6 +104,7 @@ export default function Session({ title, exercises, user, kind, name, onExit }) 
                   {on ? <Text style={styles.checkMark}>{'✓'}</Text>
                     : <Text style={[styles.num, { color: MUSCLE_C[x.m] }]}>{i + 1}</Text>}
                 </View>
+                <Image source={(framesFor(x) || [photoForMuscle(x.m)])[0]} style={styles.thumb} />
 
                 <View style={{ flex: 1, marginHorizontal: 12 }}>
                   <Text style={[styles.exName, on && { textDecorationLine: 'line-through' }]}>
@@ -147,5 +150,6 @@ const makeStyles = (C, T) => StyleSheet.create({
   checkMark: { color: C.onAccent, fontSize: 15, fontFamily: 'WorkSans_500Medium' },
   num: { fontFamily: 'WorkSans_500Medium', fontSize: 13 },
   exName: { fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.text },
+  thumb: { width: 44, height: 44, borderRadius: R.sm, marginLeft: 10, backgroundColor: C.raised },
   chev: { fontSize: 22, color: C.faint, paddingHorizontal: 4 },
 });

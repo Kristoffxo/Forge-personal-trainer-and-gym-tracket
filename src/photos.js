@@ -42,3 +42,24 @@ const FOR_MUSCLE = {
 export function photoForMuscle(m) {
   return PHOTO[FOR_MUSCLE[m] || 'gym'];
 }
+
+/* ---------------------------------------------------------------
+   The muscle-group cards.
+
+   A real photograph of the lift that muscle is known for, from
+   free-exercise-db. They are studio-lit against a plain wall, which
+   is why they still read at 110px where a gym snapshot turns to mud.
+   --------------------------------------------------------------- */
+export const GROUP_PHOTO = {
+  chest: require('../assets/groups/chest.jpg'),
+  back: require('../assets/groups/back.jpg'),
+  shoulders: require('../assets/groups/shoulders.jpg'),
+  arms: require('../assets/groups/arms.jpg'),
+  legs: require('../assets/groups/legs.jpg'),
+  core: require('../assets/groups/core.jpg'),
+};
+
+export function groupPhoto(key) {
+  const byTarget = { push: 'chest', pull: 'back', legday: 'legs', corework: 'core' };
+  return GROUP_PHOTO[GROUP_PHOTO[key] ? key : (byTarget[key] || key)] || GROUP_PHOTO.chest;
+}

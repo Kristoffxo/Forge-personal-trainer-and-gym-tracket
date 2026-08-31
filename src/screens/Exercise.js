@@ -16,13 +16,31 @@ import {
 
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label, Bar } from '../ui/kit';
-import { Figure } from '../anim/figure';
-import { patternFor, cuesFor } from '../anim/patterns';
+import { Demo } from '../ui/demo';
+import { NumberPicker, WEIGHTS, REPS } from '../ui/picker';
+import { cuesFor } from '../anim/patterns';
 import { historyFor, logSet, summarise, whenWas, setsWanted, repHint } from '../sets';
 import { num } from '../num';
 import { useLang } from '../lang';
 
 const REST_SECONDS = 90;
+
+/* The middle of the prescribed range, so the picker opens somewhere
+   sensible instead of at five. */
+function defaultReps(scheme) {
+  const m = /(\d+)\s*[–-]\s*(\d+)/.exec(String(scheme || ''));
+  if (m) return nearest(REPS, (Number(m[1]) + Number(m[2])) / 2) || 8;
+  const one = /×\s*(\d+)/.exec(String(scheme || ''));
+  return (one && nearest(REPS, Number(one[1]))) || 8;
+}
+
+/* The closest value the picker actually offers. */
+function nearest(values, n) {
+  if (n == null || !isFinite(Number(n))) return null;
+  const x = Number(n);
+  return values.reduce((best, v) =>
+    Math.abs(v - x) < Math.abs(best - x) ? v : best, values[0]);
+}
 
 export default function Exercise({ exercise, user, index, total, onDone, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
@@ -30,26 +48,31 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
   const styles = makeStyles(C, T);
   const { width } = useWindowDimensions();
 
-  const pattern = patternFor(exercise);
   const cues = cuesFor(exercise);
-  const want = setsWanted(exercise.s);
+  const want = Math.min(3, setsWanted(exercise.s));   // three sets is the working default
   const hint = repHint(exercise.s);
   const tint = MUSCLE_C[exercise.m] || C.ember;
 
   const [hist, setHist] = useState(null);
   const [rows, setRows] = useState(() =>
-    Array.from({ length: want }, () => ({ weight: '', reps: '', done: false })));
+    Array.from({ length: want }, () => ({ weight: 0, reps: defaultReps(exercise.s), done: false })));
   const [rest, setRest] = useState(0);
 
   const load = useCallback(() => {
     historyFor(user.id, exercise.n).then((h) => {
       setHist(h);
       // carry last session's numbers forward as the placeholder to beat
+      /* Start on what you did last time — the number you have to beat
+         should already be under the marker. */
       if (h.last && h.last.sets.length) {
         setRows((prev) => prev.map((r, i) => {
           const was = h.last.sets[i];
-          if (r.weight || r.reps || !was) return r;
-          return { ...r, hintW: was.weight_kg, hintR: was.reps };
+          if (!was || r.done) return r;
+          return {
+            ...r,
+            weight: nearest(WEIGHTS, was.weight_kg) ?? r.weight,
+            reps: nearest(REPS, was.reps) ?? r.reps,
+          };
         }));
       }
     });
@@ -77,8 +100,8 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
         userId: user.id,
         exercise: exercise.n,
         setNo: i + 1,
-        weight: row.weight === '' ? row.hintW ?? '' : num(row.weight),
-        reps: row.reps === '' ? row.hintR ?? '' : num(row.reps),
+        weight: row.weight || '',
+        reps: row.reps || '',
       });
     }
   }
@@ -106,16 +129,13 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
               <Text style={[T.tiny, { color: C.text }]}>{exercise.e}</Text>
             </View>
             <View style={{ flex: 1 }} />
-            <Text style={T.tiny}>{total} {t('mein se')} {index + 1}</Text>
+            <Text style={T.tiny}>{index + 1} {t('of')} {total}</Text>
           </View>
         </View>
 
         {/* ---- the movement ---- */}
         <FadeIn delay={20}>
-          <View style={styles.stage}>
-            <Figure pattern={pattern} scale={stage / 200} tint={tint} />
-            <Text style={[T.tiny, styles.stageLabel]}>{pattern.name}</Text>
-          </View>
+          <Demo exercise={exercise} height={230} style={{ borderRadius: 0 }} />
         </FadeIn>
 
         {/* ---- form ---- */}
@@ -158,45 +178,40 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
           </View>
 
           {rows.map((r, i) => (
-            <View key={i} style={[styles.setRow, r.done && { borderColor: C.lime, opacity: 0.7 }]}>
-              <Text style={styles.setNo}>{i + 1}</Text>
-
-              <View style={styles.field}>
-                <TextInput
-                  value={r.weight}
-                  onChangeText={(v) => setRows(rows.map((x, j) => (j === i ? { ...x, weight: v } : x)))}
-                  placeholder={r.hintW != null ? String(r.hintW) : '—'}
-                  placeholderTextColor={C.faint}
-                  keyboardType="decimal-pad"
-                  style={styles.input}
-                />
-                <Text style={T.tiny}>{t('kg')}</Text>
+            <View key={i} style={[styles.setRow, r.done && { borderColor: C.lime, opacity: 0.6 }]}>
+              <View style={styles.setHead}>
+                <Text style={styles.setNo}>{t('Set')} {i + 1}</Text>
+                <Press onPress={() => tick(i)} scaleTo={0.9}
+                  style={[styles.check, { borderColor: r.done ? C.lime : C.line },
+                    r.done && { backgroundColor: C.lime }]}>
+                  {r.done ? <Text style={styles.checkTxt}>{'✓'}</Text> : null}
+                </Press>
               </View>
 
-              <Text style={styles.times}>×</Text>
-
-              <View style={styles.field}>
-                <TextInput
-                  value={r.reps}
-                  onChangeText={(v) => setRows(rows.map((x, j) => (j === i ? { ...x, reps: v } : x)))}
-                  placeholder={r.hintR != null ? String(r.hintR) : hint || '—'}
-                  placeholderTextColor={C.faint}
-                  keyboardType="number-pad"
-                  style={styles.input}
-                />
-                <Text style={T.tiny}>{t('reps')}</Text>
+              <View style={styles.pickRow}>
+                <Text style={styles.unit}>{t('kg')}</Text>
+                <View style={{ flex: 1 }}>
+                  <NumberPicker
+                    values={WEIGHTS} value={r.weight} colour={tint}
+                    onChange={(v) => setRows(rows.map((x, j) => (j === i ? { ...x, weight: v } : x)))}
+                  />
+                </View>
               </View>
 
-              <Press onPress={() => tick(i)} scaleTo={0.9}
-                style={[styles.check, { borderColor: r.done ? C.lime : C.line },
-                  r.done && { backgroundColor: C.lime }]}>
-                {r.done ? <Text style={styles.checkTxt}>{'✓'}</Text> : null}
-              </Press>
+              <View style={styles.pickRow}>
+                <Text style={styles.unit}>{t('reps')}</Text>
+                <View style={{ flex: 1 }}>
+                  <NumberPicker
+                    values={REPS} value={r.reps} colour={C.lime}
+                    onChange={(v) => setRows(rows.map((x, j) => (j === i ? { ...x, reps: v } : x)))}
+                  />
+                </View>
+              </View>
             </View>
           ))}
 
           <Text style={[T.tiny, { marginTop: 8 }]}>
-            {t('Numbers are optional. Tick the set either way.')}
+            {t('Scroll to the weight and reps, then tick the set.')}
           </Text>
 
           <Bar value={doneCount} max={want} color={tint} height={6} style={{ marginTop: S.md }} />
@@ -241,18 +256,23 @@ const makeStyles = (C, T) => StyleSheet.create({
   restTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 12.5 },
 
   setRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
-    borderRadius: R.md, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 8,
+    backgroundColor: C.surface, borderRadius: R.md,
+    paddingHorizontal: 10, paddingTop: 8, paddingBottom: 10, marginBottom: 10,
     borderWidth: 1.5, borderColor: 'transparent',
   },
-  setNo: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, color: C.dim, width: 20 },
-  field: { flex: 1, flexDirection: 'row', alignItems: 'baseline', marginLeft: 8 },
-  input: {
-    fontFamily: 'WorkSans_500Medium', fontSize: 19, color: C.text,
-    paddingVertical: 6, paddingHorizontal: 6, minWidth: 52,
-    backgroundColor: C.raised, borderRadius: R.sm, marginRight: 5, textAlign: 'center',
+  pickRow: { flexDirection: 'row', alignItems: 'center' },
+  unit: {
+    width: 42, fontFamily: 'WorkSans_500Medium', fontSize: 11,
+    letterSpacing: 0.6, color: C.faint, textTransform: 'uppercase',
   },
-  times: { color: C.faint, fontSize: 14, marginHorizontal: 2 },
+  setHead: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 4, marginBottom: 4,
+  },
+  setNo: {
+    fontFamily: 'WorkSans_500Medium', fontSize: 12, letterSpacing: 1,
+    textTransform: 'uppercase', color: C.dim,
+  },
   check: {
     width: 34, height: 34, borderRadius: 17, borderWidth: 2,
     alignItems: 'center', justifyContent: 'center', marginLeft: 6,

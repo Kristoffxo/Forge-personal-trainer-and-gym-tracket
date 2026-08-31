@@ -226,7 +226,7 @@ function StreakCard({ streak, logged, days }) {
       <Text style={[T.small, { marginTop: 6, textAlign: 'center' }]}>
         {streak === 0
           ? t('Log anything today to start.')
-          : `${days} ${t('mein se')} ${logged} ${t('din log kiye.')}`}
+          : `${logged} ${t('of the last')} ${days} ${t('days logged.')}`}
       </Text>
     </View>
   );
