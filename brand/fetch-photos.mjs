@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+/* Downloads the photographs listed in brand/photos.mjs.
+     node brand/fetch-photos.mjs
+   Unsplash's licence allows free use, commercial included, with no
+   attribution required. Re-run to rebuild the set from scratch. */
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { PHOTOS } from './photos.mjs';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const OUT = path.join(ROOT, 'assets', 'photos');
+fs.mkdirSync(OUT, { recursive: true });
+
+let total = 0;
+for (const [name, [id, aspect]] of Object.entries(PHOTOS)) {
+  const w = aspect > 1.5 ? 900 : 560;
+  const h = Math.round(w / aspect);
+  const url = `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=68`;
+  const file = path.join(OUT, name + '.jpg');
+
+  execFileSync('curl', ['-sS', '-m', '30', '-A', 'Mozilla/5.0', '-o', file, url]);
+  const size = fs.statSync(file).size;
+  if (size < 6000) throw new Error(`${name} came back too small (${size}B) — is the id still right?`);
+
+  // strip metadata and re-compress; these ship inside the bundle
+  execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '62', file, '--out', file],
+    { stdio: 'ignore' });
+
+  const kb = Math.round(fs.statSync(file).size / 1024);
+  total += kb;
+  console.log(`  ${name.padEnd(10)} ${String(kb).padStart(4)} kB  ${w}x${h}`);
+}
+console.log(`\n${Object.keys(PHOTOS).length} photographs, ${total} kB total`);

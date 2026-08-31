@@ -7,33 +7,33 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const DARK = {
   mode:'dark',
-  bg:'#100E0D', surface:'#1D1A18', raised:'#292523', line:'#3A3532',
-  text:'#F8F4EE', dim:'#B4ADA4', faint:'#7C756E', onAccent:'#120F0D',
-  ember:'#FF6B2C', amber:'#FFB43A', teal:'#2FD9C8', violet:'#9B7BFF', lime:'#9BD84F',
-  gold:'#C99A3E', taupe:'#CFC1AA',   // straight off the logo
-  protein:'#E8543F', carbs:'#F2A93B', fat:'#2EC4B6',
-  danger:'#E4453A', white:'#FFFFFF',
+  bg:'#0B0B0E', surface:'#16161B', raised:'#1F1F26', line:'#2A2A32',
+  text:'#FFFFFF', dim:'#9CA3AF', faint:'#6B7280', onAccent:'#0B0B0E',
+  ember:'#FF6B1A', amber:'#FBBF24', teal:'#22D3EE', violet:'#8B5CF6', lime:'#4ADE80',
+  gold:'#C99A3E', taupe:'#CFC1AA',   // the logo's own two
+  protein:'#EF4444', carbs:'#FBBF24', fat:'#22D3EE',
+  danger:'#EF4444', white:'#FFFFFF',
   veil:'rgba(14,13,12,0.62)',      // over photographs
   heroVeil:'rgba(14,13,12,0.55)',
 };
 
 export const LIGHT = {
   mode:'light',
-  bg:'#FAF7F1', surface:'#FFFFFF', raised:'#F1ECE3', line:'#DED8CE',
-  text:'#17150F', dim:'#6B655C', faint:'#9C958B', onAccent:'#FFFFFF',
-  ember:'#E0521C', amber:'#C9821B', teal:'#12968A', violet:'#6B4CE0', lime:'#5A8F22',
+  bg:'#F6F6F8', surface:'#FFFFFF', raised:'#EFEFF3', line:'#E1E1E8',
+  text:'#0B0B0E', dim:'#5B6270', faint:'#8A90A0', onAccent:'#FFFFFF',
+  ember:'#EA5A0B', amber:'#C98A0A', teal:'#0E9BB5', violet:'#6D40E0', lime:'#2FA45C',
   gold:'#B0801F', taupe:'#B9A88C',
-  protein:'#C63D2C', carbs:'#B9761A', fat:'#12867C',
-  danger:'#C0392B', white:'#FFFFFF',
+  protein:'#D32F2F', carbs:'#C98A0A', fat:'#0E9BB5',
+  danger:'#D32F2F', white:'#FFFFFF',
   veil:'rgba(14,13,12,0.44)',
   heroVeil:'rgba(14,13,12,0.46)',
 };
 
 /* muscle colours are readable on both, nudged darker for light mode */
 export const MUSCLE_DARK = {
-  Chest:'#FF6B2C', Back:'#2FD9C8', Shoulders:'#FFB43A', Biceps:'#9B7BFF',
-  Triceps:'#FF6A55', Quads:'#9BD84F', Hamstrings:'#31C4B4', Glutes:'#FF8FB4',
-  Calves:'#69A9FF', Core:'#FFD84D',
+  Chest:'#FF5A3C', Back:'#38BDF8', Shoulders:'#FBBF24', Biceps:'#A78BFA',
+  Triceps:'#A78BFA', Quads:'#4ADE80', Hamstrings:'#34D399', Glutes:'#F472B6',
+  Calves:'#60A5FA', Core:'#FACC15',
 };
 export const MUSCLE_LIGHT = {
   Chest:'#C7481A', Back:'#12867C', Shoulders:'#B9761A', Biceps:'#6244D8',
@@ -65,7 +65,7 @@ export function makeT(C) {
 }
 
 export const S = { xs:6, sm:10, md:16, lg:22, xl:32, xxl:44 };
-export const R = { sm:10, md:16, lg:22, pill:999 };
+export const R = { sm:12, md:18, lg:24, pill:999 };
 
 /* ---------- the switch ---------- */
 const KEY = 'nemea:theme';

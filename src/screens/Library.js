@@ -11,13 +11,13 @@
    muscles underneath for when they do not.
    --------------------------------------------------------------- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image, ImageBackground } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useLang } from '../lang';
-import { Orb } from '../ui/orb';
 import { artForTarget } from '../muscleArt';
+import { photoForTarget, photoForMuscle, PHOTO } from '../photos';
 import { SPLIT_TARGETS, TARGETS, buildRoutine, minutesFor } from '../routines';
 import Session from './Session';
 
@@ -49,17 +49,21 @@ export default function Library({ place, user, profile, onBack }) {
   if (picked) {
     return (
       <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
-        <View style={styles.head}>
-          <Press onPress={() => setPicked(null)} hitSlop={12} scaleTo={0.94}
-            style={{ alignSelf: 'flex-start' }}>
-            <Text style={[T.small, { color: accent }]}>{'←'} {t('Back')}</Text>
-          </Press>
-          <Text style={styles.title}>{picked.name}</Text>
-          <Text style={[T.small, { marginTop: 2 }]}>
-            {picked.exercises.length} {t('moves')} · {minutesFor(picked.exercises.length)} {t('minutes')}
-            {place === 'home' ? ' · ' + t('at home') : ''}
-          </Text>
-        </View>
+        <ImageBackground source={photoForTarget(picked.key)} style={styles.hero}
+          imageStyle={{ opacity: 0.55 }}>
+          <View style={styles.heroVeil} />
+          <View style={styles.heroBody}>
+            <Press onPress={() => setPicked(null)} hitSlop={12} scaleTo={0.94}
+              style={{ alignSelf: 'flex-start' }}>
+              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Back')}</Text>
+            </Press>
+            <Text style={styles.heroTitle}>{picked.name}</Text>
+            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
+              {picked.exercises.length} {t('exercises')} · {minutesFor(picked.exercises.length)} {t('minutes')}
+              {place === 'home' ? ' · ' + t('at home') : ''}
+            </Text>
+          </View>
+        </ImageBackground>
 
         <View style={{ paddingHorizontal: S.lg, marginTop: S.md }}>
           {picked.exercises.map((x, i) => (
@@ -68,13 +72,12 @@ export default function Library({ place, user, profile, onBack }) {
                 <View style={[styles.exNum, { backgroundColor: MUSCLE_C[x.m] }]}>
                   <Text style={styles.exNumTxt}>{i + 1}</Text>
                 </View>
-                <View style={{ flex: 1, marginHorizontal: 12 }}>
-                  <Text style={styles.exName}>{x.n}</Text>
+                <Image source={photoForMuscle(x.m)} style={styles.exThumb} />
+                <View style={{ flex: 1, marginHorizontal: 10 }}>
+                  <Text style={styles.exName} numberOfLines={1}>{x.n}</Text>
                   <Text style={T.tiny}>{x.m} · {x.e}</Text>
                 </View>
-                <View style={styles.setsBox}>
-                  <Text style={[styles.setsTxt, { color: accent }]}>{x.s}</Text>
-                </View>
+                <Text style={[styles.setsTxt, { color: accent }]}>{x.s}</Text>
               </View>
             </FadeIn>
           ))}
@@ -110,11 +113,17 @@ export default function Library({ place, user, profile, onBack }) {
         {SPLIT_TARGETS.map((tg) => {
           const c = MUSCLE_C[tg.muscles[0]] || accent;
           return (
-            <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.98} style={styles.planRow}>
-              <Orb colour={c} size={70} source={artForTarget(tg.key)} />
-              <View style={{ flex: 1, marginLeft: 16 }}>
+            <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.985} style={styles.planRow}>
+              <View style={[styles.chip, { backgroundColor: c + '1F' }]}>
+                <Image source={artForTarget(tg.key)}
+                  style={[styles.chipArt, { tintColor: c }]} resizeMode="contain" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 14 }}>
                 <Text style={styles.planName}>{tg.name}</Text>
                 <Text style={T.tiny}>{t(tg.sub)}</Text>
+              </View>
+              <View style={[styles.go, { backgroundColor: c }]}>
+                <Text style={styles.goTxt}>{'→'}</Text>
               </View>
             </Press>
           );
@@ -130,9 +139,10 @@ export default function Library({ place, user, profile, onBack }) {
             const c = MUSCLE_C[tg.muscles[0]] || accent;
             return (
               <View key={tg.key} style={styles.tileWrap}>
-                <Press onPress={() => open(tg)} scaleTo={0.94}
-                  style={{ alignItems: 'center' }}>
-                  <Orb colour={c} size={92} source={artForTarget(tg.key)} />
+                <Press onPress={() => open(tg)} scaleTo={0.96}
+                  style={[styles.tile, { borderColor: c, backgroundColor: c + '1A' }]}>
+                  <Image source={artForTarget(tg.key)}
+                    style={[styles.tileArt, { tintColor: c }]} resizeMode="contain" />
                   <Text style={styles.tileName}>{tg.name}</Text>
                 </Press>
               </View>
@@ -157,28 +167,47 @@ const makeStyles = (C, T) => StyleSheet.create({
     fontFamily: 'WorkSans_500Medium', fontSize: 12, letterSpacing: 2,
     color: C.dim, textTransform: 'uppercase', marginBottom: S.md,
   },
-  planRow: { flexDirection: 'row', alignItems: 'center', marginBottom: S.md },
-  planName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 24, color: C.text, letterSpacing: -0.3 },
+  planRow: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.md, padding: 12, marginBottom: 10,
+  },
+  chip: { width: 46, height: 46, borderRadius: R.sm, alignItems: 'center', justifyContent: 'center' },
+  chipArt: { width: 30, height: 30 },
+  planName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: C.text, letterSpacing: -0.2 },
+  go: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  goTxt: { color: '#0B0B0E', fontSize: 15, fontFamily: 'WorkSans_600SemiBold' },
   divider: { height: 1, backgroundColor: C.line, marginVertical: S.lg, marginHorizontal: S.lg },
 
   /* Two across, square-ish, with real room. The old three-across
      grid squeezed "Shoulders" into a column narrower than the word. */
   /* three across, like the mockup — the discs carry the meaning so
      the tiles need no border or background of their own */
-  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 },
-  tileWrap: { width: '33.333%', paddingHorizontal: 6, paddingBottom: S.lg, alignItems: 'center' },
-  tileName: {
-    fontFamily: 'WorkSans_600SemiBold', fontSize: 16, color: C.text,
-    textAlign: 'center', marginTop: 10,
+  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -5 },
+  tileWrap: { width: '33.333%', paddingHorizontal: 5, paddingBottom: 10 },
+  tile: {
+    height: 118, borderRadius: R.md, borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center', paddingBottom: 4,
   },
+  tileArt: { width: 56, height: 56, marginBottom: 4 },
+  tileName: {
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 13.5, color: C.text,
+    textAlign: 'center',
+  },
+
+  hero: { width: '100%', height: 190, overflow: 'hidden', justifyContent: 'flex-end',
+          backgroundColor: C.raised },
+  heroVeil: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(6,6,9,0.5)' },
+  heroBody: { padding: S.lg },
+  heroTitle: { fontFamily: 'WorkSans_700Bold', fontSize: 32, letterSpacing: -0.6,
+               color: '#fff', marginTop: S.sm },
 
   exRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
-    borderRadius: R.md, padding: 12, marginBottom: 9,
+    borderRadius: R.md, padding: 10, marginBottom: 9,
   },
-  exNum: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  exNumTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 13, color: C.onAccent },
-  exName: { fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.text },
-  setsBox: { backgroundColor: C.raised, borderRadius: R.sm, paddingHorizontal: 10, paddingVertical: 6 },
-  setsTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 12.5 },
+  exNum: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  exNumTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 11, color: '#0B0B0E' },
+  exThumb: { width: 46, height: 46, borderRadius: R.sm, marginLeft: 10, backgroundColor: C.raised },
+  exName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14.5, color: C.text },
+  setsTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13 },
 });
