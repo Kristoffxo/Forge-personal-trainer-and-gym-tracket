@@ -16,13 +16,14 @@
 
 /* name -> [unsplash id, crop aspect, what it is] */
 export const PHOTOS = {
-  /* The muscle groups. Each has to read at 110px, so the subject
-     fills the frame and is doing the movement that names it. */
-  chest: ['1534368959876-26bf04f2c947', 1.0, 'bench press'],
+  /* The muscle groups. Chosen by looking at them at 110x118 —
+     the size they are actually shown — because a photograph that
+     works full-bleed is often an unreadable smudge on a card. */
+  chest: ['1598971639058-fab3c3109a00', 1.0, 'press-up'],
   back: ['1532029837206-abbe2b7620e3', 1.0, 'pull-up'],
-  shoulders: ['1571731956672-f2b94d7dd0cb', 1.0, 'bar across the shoulders'],
-  arms: ['1530822847156-5df684ec5ee1', 1.0, 'arm under load'],
-  legs: ['1605296867304-46d5465a13f1', 1.0, 'squat, silhouetted'],
+  shoulders: ['1584464491033-06628f3a6b7b', 1.0, 'dumbbell press'],
+  arms: ['1581009146145-b5ef050c2e1e', 1.0, 'barbell curl'],
+  legs: ['1517838277536-f5f99be501cd', 1.0, 'legs under a bar'],
   core: ['1594381898411-846e7d193883', 1.0, 'sit-ups'],
 
   /* the wide ones */

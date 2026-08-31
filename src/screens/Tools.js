@@ -144,26 +144,6 @@ export default function Tools({ user, profile, onProfile }) {
         </ImageBackground>
       </FadeIn>
 
-      {/* ---- the six o'clock line ---- */}
-      <FadeIn delay={180} style={{ paddingHorizontal:S.lg, marginBottom:S.lg }}>
-        <Card color={C.gold}>
-          <Label>{t('Daily reminder')}</Label>
-          <Text style={[T.small, { marginTop:4 }]}>
-            {t('One line from a philosopher, every evening at six.')}
-          </Text>
-          <Btn
-            label={notifOn ? t('Turn off the 6pm reminder') : t('Send me the 6pm reminder')}
-            color={notifOn ? C.dim : C.gold} dark={notifOn}
-            busy={notifBusy} onPress={toggleNotif}
-            style={{ marginTop:S.md }} />
-          {notifOn ? (
-            <Text style={[T.tiny, { marginTop:S.sm }]}>
-              {t('Tonight')}: “{quoteForDate()[0]}” — {quoteForDate()[1]}
-            </Text>
-          ) : null}
-        </Card>
-      </FadeIn>
-
       {/* ---- account ---- */}
       <FadeIn delay={200} style={{ paddingHorizontal:S.lg }}>
         <Card>

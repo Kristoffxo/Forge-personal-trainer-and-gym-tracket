@@ -21,6 +21,7 @@ import AddFood  from './src/screens/AddFood';
 import Train    from './src/screens/Train';
 import Discover from './src/screens/Feed';
 import You      from './src/screens/You';
+import Trainer  from './src/screens/Trainer';
 import Onboarding from './src/screens/Onboarding';
 
 /* Four tabs, in the order they are used. Train is first because it
@@ -35,6 +36,8 @@ const TABS = [
     title:'Discover',        sub:'See how everyone is doing' },
   { key:'you',   label:'You',   icon:'✦', colorKey:'violet',
     title:'You',             sub:'Your streak and your numbers' },
+  { key:'trainer', label:'Trainer', icon:'✆', colorKey:'teal',
+    title:'Trainer',         sub:'Ask a real trainer' },
 ];
 
 /* Spell every edge out. react-native-safe-area-context's web SafeAreaView falls
@@ -146,6 +149,8 @@ function Root() {
                       onAdd={(meal) => setAdding(meal)} />
               ) : tab === 'feed' ? (
                 <Discover user={user} profile={profile} />
+              ) : tab === 'trainer' ? (
+                <Trainer user={user} />
               ) : (
                 <You user={user} profile={profile} onProfile={setProfile} />
               )}
@@ -236,7 +241,7 @@ const makeStyles = (C, T) => StyleSheet.create({
          borderTopWidth:1, borderTopColor:C.line },
   indicator:{ position:'absolute', top:0, left:0, height:3, backgroundColor:C.ember },
   tab:{ flex:1, alignItems:'center', paddingTop:9, paddingBottom:4 },
-  iconWrap:{ paddingHorizontal:17, paddingVertical:3, borderRadius:999, marginBottom:3 },
+  iconWrap:{ paddingHorizontal:13, paddingVertical:3, borderRadius:999, marginBottom:3 },
   icon:{ fontSize:17 },
-  tabLabel:{ fontSize:11.5, letterSpacing:0.3 },
+  tabLabel:{ fontSize:10.5, letterSpacing:0.2 },
 });

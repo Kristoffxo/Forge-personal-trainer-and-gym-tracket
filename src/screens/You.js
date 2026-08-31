@@ -17,10 +17,12 @@ import { useLang } from '../lang';
 import Progress from './Progress';
 import Tools from './Tools';
 import Admin from './Admin';
+import Settings from './Settings';
 
 const PAGES = [
   { key: 'progress', label: 'Progress' },
   { key: 'numbers', label: 'Numbers' },
+  { key: 'settings', label: 'Settings' },
 ];
 
 /* Only whoever runs the app sees this one. */
@@ -54,7 +56,8 @@ export default function You({ user, profile, onProfile }) {
       <View style={{ flex: 1 }}>
         {page === 'progress' ? <Progress user={user} profile={profile} />
           : page === 'admin' ? <Admin />
-            : <Tools user={user} profile={profile} onProfile={onProfile} />}
+            : page === 'settings' ? <Settings user={user} profile={profile} onProfile={onProfile} />
+              : <Tools user={user} profile={profile} onProfile={onProfile} />}
       </View>
     </View>
   );
@@ -66,5 +69,5 @@ const makeStyles = (C, T) => StyleSheet.create({
     padding: 4, marginHorizontal: S.lg, marginTop: S.md,
   },
   tab: { flex: 1, paddingVertical: 10, borderRadius: R.pill, alignItems: 'center' },
-  tabTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 13.5, color: C.dim },
+  tabTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 12.5, color: C.dim },
 });

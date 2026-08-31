@@ -40,6 +40,17 @@ export default {
       return json(result);
     }
 
+    /* Both stores require a way to delete an account, and it has to
+       remove the auth row — not just the profile. That needs the
+       service key, which only exists here. */
+    if (url.pathname === '/api/delete-account') {
+      if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+      return deleteAccount(request, env).catch((err) => {
+        console.error('delete failed', err && err.stack);
+        return json({ error: 'failed' }, 500);
+      });
+    }
+
     if (url.pathname.startsWith('/api/')) return json({ error: 'not_found' }, 404);
     return env.ASSETS.fetch(request);
   },
@@ -98,6 +109,44 @@ async function sendDaily(env) {
 
   if (dead.length) await dropSubs(env, dead);
   return { sent, gone, failed, total: subs.length };
+}
+
+/* ---------------------------------------------------------------
+   Deleting an account.
+
+   The caller proves who they are with their own access token, and
+   only ever deletes themselves — the id comes from Supabase's answer
+   about the token, never from the request body. Everything else
+   cascades off auth.users.
+   --------------------------------------------------------------- */
+async function deleteAccount(request, env) {
+  const auth = request.headers.get('authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  if (!token) return json({ error: 'unauthorised' }, 401);
+  if (!env.SUPABASE_SERVICE_KEY) return json({ error: 'not_configured' }, 503);
+
+  const who = await fetch(env.SUPABASE_URL + '/auth/v1/user', {
+    headers: { authorization: 'Bearer ' + token, apikey: env.SUPABASE_SERVICE_KEY },
+  });
+  if (!who.ok) return json({ error: 'unauthorised' }, 401);
+  const user = await who.json();
+  if (!user || !user.id) return json({ error: 'unauthorised' }, 401);
+
+  // their feed photographs are not covered by the cascade
+  await fetch(
+    `${env.SUPABASE_URL}/storage/v1/object/posts/${user.id}`,
+    { method: 'DELETE', headers: adminHeaders(env) },
+  ).catch(() => {});
+
+  const gone = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${user.id}`, {
+    method: 'DELETE',
+    headers: adminHeaders(env),
+  });
+  if (!gone.ok) {
+    console.error('admin delete refused', gone.status, await gone.text());
+    return json({ error: 'failed' }, 500);
+  }
+  return json({ deleted: true });
 }
 
 /* ---------------------------------------------------------------
