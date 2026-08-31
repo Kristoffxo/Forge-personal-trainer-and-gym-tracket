@@ -54,7 +54,7 @@ export default function Library({ place, user, profile, onBack }) {
             style={{ alignSelf: 'flex-start' }}>
             <Text style={[T.small, { color: accent }]}>{'←'} {t('Back')}</Text>
           </Press>
-          <Text style={styles.title}>{t(picked.name)}</Text>
+          <Text style={styles.title}>{picked.name}</Text>
           <Text style={[T.small, { marginTop: 2 }]}>
             {picked.exercises.length} {t('moves')} · {minutesFor(picked.exercises.length)} {t('minutes')}
             {place === 'home' ? ' · ' + t('at home') : ''}
@@ -113,7 +113,7 @@ export default function Library({ place, user, profile, onBack }) {
             <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.98} style={styles.planRow}>
               <Orb colour={c} size={70} source={artForTarget(tg.key)} />
               <View style={{ flex: 1, marginLeft: 16 }}>
-                <Text style={styles.planName}>{t(tg.name)}</Text>
+                <Text style={styles.planName}>{tg.name}</Text>
                 <Text style={T.tiny}>{t(tg.sub)}</Text>
               </View>
             </Press>
@@ -133,7 +133,7 @@ export default function Library({ place, user, profile, onBack }) {
                 <Press onPress={() => open(tg)} scaleTo={0.94}
                   style={{ alignItems: 'center' }}>
                   <Orb colour={c} size={92} source={artForTarget(tg.key)} />
-                  <Text style={styles.tileName}>{t(tg.name)}</Text>
+                  <Text style={styles.tileName}>{tg.name}</Text>
                 </Press>
               </View>
             );
