@@ -212,7 +212,7 @@ function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, o
         </Press>
       </View>
 
-      <Press onPress={onOpen} scaleTo={0.995}>
+      <Press onPress={onOpen} scaleTo={0.995} style={{ alignSelf: 'center' }}>
         <Image
           source={{ uri }}
           style={{
@@ -563,7 +563,8 @@ function PostView({ post, user, profile, onBack }) {
 const makeStyles = (C, T) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.bg },
 
-  top: { paddingHorizontal: S.lg, paddingTop: S.md },
+  top: { paddingHorizontal: S.lg, paddingTop: S.md,
+    maxWidth: 620, alignSelf: 'center', width: '100%' },
   share: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
     borderRadius: R.md, padding: S.md, borderWidth: 1.5, borderColor: C.line,
@@ -577,7 +578,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: S.xxl, paddingHorizontal: S.xl },
   emptyBig: { fontFamily: 'WorkSans_600SemiBold', fontSize: 28, color: C.dim },
 
-  card: { marginTop: S.lg },
+  card: { marginTop: S.lg, maxWidth: 620, alignSelf: 'center', width: '100%' },
   cardHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.lg, marginBottom: S.sm },
   avatar: {
     width: 34, height: 34, borderRadius: 17, backgroundColor: C.raised,
