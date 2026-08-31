@@ -1,89 +1,50 @@
 /* ---------------------------------------------------------------
    Challenges.
 
-   Pick a length, press start, then train every day. Miss one and
-   the streak survives — once. Miss a second and the run ends.
+   There is nothing to start. You train, the days add up, and the
+   medals arrive on their own — which is the only version of this
+   that survives a real life, because nobody remembers to press
+   Start before a good month.
 
-   The screen reads the state, tells you where you are, and writes
-   back only the one thing that has to persist: whether the free
-   miss has been spent. Everything else is derived, so a challenge
-   cannot drift out of step with what you actually did.
+   Four tiers, four grades each. Every complete block of seven days
+   inside a run earns a grade at the seven tier, and so on up. Do a
+   tier four times and it goes diamond.
+
+   One rest day a week is free and does not break anything. That is
+   said plainly on this screen, because a rule nobody knows about is
+   not a kindness.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, FadeIn, Label, Bar } from '../ui/kit';
-import { useSheet } from '../ui/sheet';
+import { Press, FadeIn, Label, Bar } from '../ui/kit';
 import { useLang } from '../lang';
-import { CHALLENGES } from '../routines';
-import {
-  activeChallenge, startChallenge, updateChallenge, leaveChallenge,
-  trainedOn, progress, message,
-} from '../challenge';
+import { MedalRow, RankCard } from '../ui/medals';
+import { TIERS, GRADE_COLOUR, gradeOf } from '../rank';
+import { myStanding } from '../challenge';
+import { leaderboard } from '../social';
 
 export default function Challenges({ user, onBack }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
-  const sheet = useSheet();
 
-  const [challenge, setChallenge] = useState(undefined);   // undefined = loading
-  const [state, setState] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [me, setMe] = useState(null);
+  const [board, setBoard] = useState([]);
 
   const load = useCallback(async () => {
-    const ch = await activeChallenge(user.id);
-    if (!ch) { setChallenge(null); setState(null); return; }
-
-    const days = await trainedOn(user.id, ch.started_on);
-    const p = progress(ch, days);
-
-    /* The one write: remember that the free miss has been used, so
-       we do not forgive the same day twice. */
-    if (p.spend) {
-      await updateChallenge(ch.id, { grace_used: true });
-      ch.grace_used = true;
-    }
-    if (p.state === 'broken' || p.state === 'done') {
-      await updateChallenge(ch.id, {
-        status: p.state === 'done' ? 'done' : 'broken',
-        ended_on: new Date().toISOString().slice(0, 10),
-      });
-    }
-
-    setChallenge(ch);
-    setState(p);
+    setMe(await myStanding(user.id));
+    setBoard(await leaderboard(10));
   }, [user.id]);
 
   useEffect(() => { load(); }, [load]);
 
-  async function begin(days) {
-    setBusy(true);
-    const r = await startChallenge(user.id, days);
-    setBusy(false);
-    if (r.error) { await sheet.tell({ title: t('Could not start'), message: r.error }); return; }
-    load();
-  }
-
-  async function quit() {
-    const yes = await sheet.confirm({
-      title: t('Leave this challenge?'),
-      message: t('Your streak ends here. You can start a new one straight away.'),
-      confirmLabel: t('Leave it'),
-      destructive: true,
-    });
-    if (!yes) return;
-    await leaveChallenge(challenge.id);
-    load();
-  }
-
-  if (challenge === undefined) {
+  if (!me) {
     return <View style={styles.boot}><ActivityIndicator color={C.violet} /></View>;
   }
 
-  const running = challenge && state && (state.state === 'on' || state.state === 'grace');
-  const note = state ? message(state) : null;
+  const next = me.next;
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
@@ -93,96 +54,104 @@ export default function Challenges({ user, onBack }) {
         </Press>
         <Text style={styles.title}>{t('Challenges')}</Text>
         <Text style={[T.small, { marginTop: 2 }]}>
-          {t('Train every day. Miss one and the streak survives — once.')}
+          {t('Just train. The medals come to you.')}
         </Text>
       </View>
 
-      {/* ---------- a challenge is running ---------- */}
-      {running ? (
-        <FadeIn style={{ padding: S.lg }}>
-          <View style={[styles.live, state.state === 'grace' && { borderColor: C.amber }]}>
-            <Label color={state.state === 'grace' ? C.amber : C.violet}>
-              {challenge.days} {t('day challenge')}
-            </Label>
-            <Text style={styles.dayBig}>
-              {t('Day')} {state.dayNumber}
-              <Text style={styles.daySmall}> / {state.total}</Text>
+      {/* where you stand */}
+      <FadeIn style={{ padding: S.lg, paddingBottom: 0 }}>
+        <RankCard level={me.level} rank={me.rank}
+          current={me.current} longest={me.longest} accent={C.violet} />
+      </FadeIn>
+
+      {/* this week's free rest day */}
+      <FadeIn delay={40} style={{ paddingHorizontal: S.lg, marginTop: S.md }}>
+        <View style={[styles.rest, { borderColor: me.restUsedThisWeek ? C.amber : C.lime }]}>
+          <Text style={[styles.restIcon, { color: me.restUsedThisWeek ? C.amber : C.lime }]}>
+            {me.restUsedThisWeek ? '◑' : '●'}
+          </Text>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={[T.bodyOn, { fontSize: 14.5 }]}>
+              {me.restUsedThisWeek
+                ? t('Rest day used this week')
+                : t('One free rest day left this week')}
             </Text>
-
-            <Bar value={state.completedDays} max={state.total}
-              color={state.state === 'grace' ? C.amber : C.violet}
-              height={8} style={{ marginTop: S.md, marginBottom: S.md }} />
-
-            <Text style={[T.h3, { marginBottom: 4 }]}>{t(note.title)}</Text>
-            <Text style={T.small}>{t(note.body)}</Text>
-
-            <View style={styles.statRow}>
-              <View style={styles.stat}>
-                <Text style={styles.statNum}>{state.completedDays}</Text>
-                <Label>{t('days trained')}</Label>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNum}>{state.daysLeft}</Text>
-                <Label>{t('to go')}</Label>
-              </View>
-              <View style={styles.stat}>
-                <Text style={[styles.statNum, challenge.grace_used && { color: C.amber }]}>
-                  {challenge.grace_used ? 0 : 1}
-                </Text>
-                <Label>{t('misses left')}</Label>
-              </View>
-            </View>
-
-            {state.trainedToday ? (
-              <View style={styles.doneToday}>
-                <Text style={[T.small, { color: C.lime }]}>{t('Today is logged ✓')}</Text>
-              </View>
-            ) : (
-              <Text style={[T.tiny, { marginTop: S.md }]}>
-                {t('Any workout today keeps it going — planner, gym or home.')}
-              </Text>
-            )}
+            <Text style={T.tiny}>
+              {me.restUsedThisWeek
+                ? t('Miss another day before Monday and the streak resets.')
+                : t('Every week you get one day off that does not break your streak.')}
+            </Text>
           </View>
+        </View>
+      </FadeIn>
 
-          <Press onPress={quit} scaleTo={0.97} style={styles.quit}>
-            <Text style={[T.small, { color: C.dim }]}>{t('Leave this challenge')}</Text>
-          </Press>
-        </FadeIn>
-      ) : (
-        <>
-          {/* ---------- just finished, or just broke ---------- */}
-          {challenge && state && note ? (
-            <FadeIn style={{ paddingHorizontal: S.lg, paddingTop: S.lg }}>
-              <View style={[styles.verdict,
-                { borderLeftColor: state.state === 'done' ? C.lime : C.dim }]}>
-                <Text style={[T.h3, { marginBottom: 4 }]}>{t(note.title)}</Text>
-                <Text style={T.small}>{t(note.body)}</Text>
-              </View>
-            </FadeIn>
-          ) : null}
+      {/* the four tiers */}
+      <FadeIn delay={70} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+        <Label style={{ marginBottom: S.md }}>{t('Your medals')}</Label>
+        <View style={styles.medalBox}>
+          <MedalRow medals={me.medals} size={62} />
+        </View>
 
-          <FadeIn delay={40} style={{ padding: S.lg }}>
-            <Label style={{ marginBottom: S.sm }}>{t('Pick a length')}</Label>
-            {CHALLENGES.map((c, i) => (
-              <Press key={c.days} onPress={() => begin(c.days)} disabled={busy}
-                scaleTo={0.985} style={styles.opt}>
-                <View style={styles.daysBadge}>
-                  <Text style={styles.daysNum}>{c.days}</Text>
-                  <Text style={T.tiny}>{t('days')}</Text>
-                </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text style={styles.optName}>{t(c.name)}</Text>
-                  <Text style={[T.small, { marginTop: 2 }]}>{t(c.blurb)}</Text>
-                </View>
-              </Press>
-            ))}
-
-            <Text style={[T.tiny, { marginTop: S.md }]}>
-              {t('One challenge at a time. It starts today.')}
+        {next ? (
+          <View style={styles.nextBox}>
+            <Text style={[T.small, { color: C.text }]}>
+              {next.daysToGo} {next.daysToGo === 1 ? t('day') : t('days')} {t('to')}{' '}
+              <Text style={{ color: GRADE_COLOUR[next.grade] }}>{t(next.grade)}</Text>
+              {' '}{t('at the')} {next.tier} {t('day tier')}
             </Text>
-          </FadeIn>
-        </>
-      )}
+            <Bar value={next.tier - next.daysToGo} max={next.tier}
+              color={GRADE_COLOUR[next.grade]} height={6} style={{ marginTop: S.sm }} />
+          </View>
+        ) : (
+          <View style={styles.nextBox}>
+            <Text style={[T.small, { color: C.text }]}>
+              {t('Every medal earned. There is nothing left to win — only to keep.')}
+            </Text>
+          </View>
+        )}
+      </FadeIn>
+
+      {/* how it works */}
+      <FadeIn delay={110} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+        <Label style={{ marginBottom: S.sm }}>{t('How it works')}</Label>
+        {[
+          t('Any workout counts — planner, gym or home.'),
+          t('7, 15, 30 and 90 days. Finish a tier four times for diamond.'),
+          t('One rest day a week is free. A second missed day resets the streak.'),
+          t('30 days unbroken is Level 2. 90 is Level 3. 360 is Level 4.'),
+        ].map((line, i) => (
+          <View key={i} style={styles.ruleRow}>
+            <Text style={[styles.ruleDot, { color: C.violet }]}>{'—'}</Text>
+            <Text style={[T.small, { flex: 1 }]}>{line}</Text>
+          </View>
+        ))}
+      </FadeIn>
+
+      {/* the board */}
+      {board.length ? (
+        <FadeIn delay={150} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+          <Label style={{ marginBottom: S.sm }}>{t('This month')}</Label>
+          <Text style={[T.tiny, { marginBottom: S.sm }]}>
+            {t('Longest run wins. Top of the board at the end of the month gets a reward.')}
+          </Text>
+          {board.map((p, i) => {
+            const mine = p.id === user.id;
+            const g = gradeOf((p.medals || {})[90] || (p.medals || {})[30] || 0);
+            return (
+              <View key={p.id} style={[styles.boardRow, mine && { borderColor: C.violet }]}>
+                <Text style={[styles.place, i < 3 && { color: C.gold }]}>{i + 1}</Text>
+                <Text style={[styles.boardName, mine && { color: C.violet }]}>
+                  {p.name}{mine ? ' ' + t('(you)') : ''}
+                </Text>
+                <Text style={[T.tiny, { marginRight: 8 }]}>{t('Level')} {p.level}</Text>
+                <Text style={[styles.boardStreak, g && { color: GRADE_COLOUR[g] }]}>
+                  {p.best_streak}
+                </Text>
+              </View>
+            );
+          })}
+        </FadeIn>
+      ) : null}
     </ScrollView>
   );
 }
@@ -193,36 +162,26 @@ const makeStyles = (C, T) => StyleSheet.create({
   head: { paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.md, backgroundColor: C.surface },
   title: { fontFamily: 'Forum_400Regular', fontSize: 30, lineHeight: 34, color: C.text, marginTop: 8 },
 
-  live: {
-    backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
-    borderWidth: 1.5, borderColor: C.violet,
-  },
-  dayBig: { fontFamily: 'Forum_400Regular', fontSize: 46, lineHeight: 50, color: C.text, marginTop: 2 },
-  daySmall: { fontSize: 22, color: C.dim },
-
-  statRow: { flexDirection: 'row', marginTop: S.lg, gap: S.sm },
-  stat: { flex: 1, alignItems: 'center', backgroundColor: C.raised, borderRadius: R.sm, paddingVertical: S.sm },
-  statNum: { fontFamily: 'Forum_400Regular', fontSize: 26, color: C.text },
-
-  doneToday: {
-    marginTop: S.md, alignSelf: 'flex-start', borderRadius: R.pill,
-    borderWidth: 1, borderColor: C.lime, paddingHorizontal: 12, paddingVertical: 5,
-  },
-  quit: { alignItems: 'center', paddingVertical: 14, marginTop: S.md },
-
-  verdict: {
-    backgroundColor: C.surface, borderRadius: R.md, padding: S.md, borderLeftWidth: 4,
-  },
-
-  opt: {
+  rest: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
-    borderRadius: R.md, padding: S.md, marginBottom: 10,
-    borderWidth: 1.5, borderColor: C.line,
+    borderRadius: R.md, padding: S.md, borderWidth: 1.5,
   },
-  daysBadge: {
-    width: 58, height: 58, borderRadius: R.md, backgroundColor: C.raised,
-    alignItems: 'center', justifyContent: 'center',
+  restIcon: { fontSize: 18 },
+
+  medalBox: { backgroundColor: C.surface, borderRadius: R.lg, padding: S.md },
+  nextBox: {
+    backgroundColor: C.surface, borderRadius: R.md, padding: S.md, marginTop: S.sm,
   },
-  daysNum: { fontFamily: 'Forum_400Regular', fontSize: 24, color: C.violet, lineHeight: 26 },
-  optName: { fontFamily: 'Forum_400Regular', fontSize: 22, color: C.text },
+
+  ruleRow: { flexDirection: 'row', marginBottom: 7 },
+  ruleDot: { width: 18, fontSize: 13 },
+
+  boardRow: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.sm, paddingHorizontal: S.md, paddingVertical: 11, marginBottom: 7,
+    borderWidth: 1.5, borderColor: 'transparent',
+  },
+  place: { fontFamily: 'Forum_400Regular', fontSize: 18, color: C.dim, width: 26 },
+  boardName: { flex: 1, fontFamily: 'WorkSans_500Medium', fontSize: 14.5, color: C.text },
+  boardStreak: { fontFamily: 'Forum_400Regular', fontSize: 20, color: C.text, minWidth: 30, textAlign: 'right' },
 });

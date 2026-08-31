@@ -7,9 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const DARK = {
   mode:'dark',
-  bg:'#0E0D0C', surface:'#1A1817', raised:'#242120', line:'#332F2D',
-  text:'#F6F2EC', dim:'#A9A29A', faint:'#6E6862', onAccent:'#120F0D',
-  ember:'#E85C24', amber:'#F5A623', teal:'#2EC4B6', violet:'#8B6DFF', lime:'#8BC34A',
+  bg:'#100E0D', surface:'#1D1A18', raised:'#292523', line:'#3A3532',
+  text:'#F8F4EE', dim:'#B4ADA4', faint:'#7C756E', onAccent:'#120F0D',
+  ember:'#FF6B2C', amber:'#FFB43A', teal:'#2FD9C8', violet:'#9B7BFF', lime:'#9BD84F',
   gold:'#C99A3E', taupe:'#CFC1AA',   // straight off the logo
   protein:'#E8543F', carbs:'#F2A93B', fat:'#2EC4B6',
   danger:'#E4453A', white:'#FFFFFF',
@@ -21,7 +21,7 @@ export const LIGHT = {
   mode:'light',
   bg:'#FAF7F1', surface:'#FFFFFF', raised:'#F1ECE3', line:'#DED8CE',
   text:'#17150F', dim:'#6B655C', faint:'#9C958B', onAccent:'#FFFFFF',
-  ember:'#C7481A', amber:'#B9761A', teal:'#12867C', violet:'#6244D8', lime:'#4E7C1F',
+  ember:'#E0521C', amber:'#C9821B', teal:'#12968A', violet:'#6B4CE0', lime:'#5A8F22',
   gold:'#B0801F', taupe:'#B9A88C',
   protein:'#C63D2C', carbs:'#B9761A', fat:'#12867C',
   danger:'#C0392B', white:'#FFFFFF',
@@ -31,9 +31,9 @@ export const LIGHT = {
 
 /* muscle colours are readable on both, nudged darker for light mode */
 export const MUSCLE_DARK = {
-  Chest:'#E85C24', Back:'#2EC4B6', Shoulders:'#F5A623', Biceps:'#8B6DFF',
-  Triceps:'#E8543F', Quads:'#8BC34A', Hamstrings:'#26A69A', Glutes:'#EC7BA0',
-  Calves:'#5C9BE8', Core:'#F2C94C',
+  Chest:'#FF6B2C', Back:'#2FD9C8', Shoulders:'#FFB43A', Biceps:'#9B7BFF',
+  Triceps:'#FF6A55', Quads:'#9BD84F', Hamstrings:'#31C4B4', Glutes:'#FF8FB4',
+  Calves:'#69A9FF', Core:'#FFD84D',
 };
 export const MUSCLE_LIGHT = {
   Chest:'#C7481A', Back:'#12867C', Shoulders:'#B9761A', Biceps:'#6244D8',

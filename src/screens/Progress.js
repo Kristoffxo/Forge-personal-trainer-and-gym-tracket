@@ -20,6 +20,8 @@ import { Card, Label, Btn, FadeIn, useCountUp } from '../ui/kit';
 import { loadRange, totals, todayKey } from '../diary';
 import { num } from '../num';
 import { useLang } from '../lang';
+import { RankCard, MedalRow } from '../ui/medals';
+import { myStanding } from '../challenge';
 
 const WKEY = 'nemea:weights';
 const DAYS = 14;
@@ -86,10 +88,12 @@ export default function Progress({ user, profile }) {
   const [weights, setWeights] = useState([]);
   const [entry, setEntry] = useState('');
   const [saved, setSaved] = useState(false);
+  const [standing, setStanding] = useState(null);
 
   const load = useCallback(() => {
     loadRange(user.id, DAYS).then(setRows);
     readWeights().then(setWeights);
+    myStanding(user.id).then(setStanding);
   }, [user.id]);
 
   useEffect(load, [load]);
@@ -131,7 +135,17 @@ export default function Progress({ user, profile }) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: S.xxl }}>
-      <FadeIn>
+      {standing ? (
+        <FadeIn>
+          <RankCard level={standing.level} rank={standing.rank}
+            current={standing.current} longest={standing.longest} />
+          <View style={styles.medalBox}>
+            <MedalRow medals={standing.medals} size={56} />
+          </View>
+        </FadeIn>
+      ) : null}
+
+      <FadeIn delay={40} style={{ marginTop: S.md }}>
         <StreakCard streak={streak} logged={logged} days={DAYS} />
       </FadeIn>
 
@@ -271,6 +285,10 @@ const makeStyles = (C, T) =>
   StyleSheet.create({
     boot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
+    medalBox: {
+      backgroundColor: C.surface, borderRadius: R.lg,
+      padding: S.md, marginTop: S.sm,
+    },
     streak: {
       alignItems: 'center',
       paddingVertical: S.lg,

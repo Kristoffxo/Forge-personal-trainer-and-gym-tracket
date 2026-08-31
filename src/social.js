@@ -211,6 +211,24 @@ export async function setLike(postId, userId, on) {
 }
 
 /* ---------------------------------------------------------------
+   Other people's standing.
+
+   Both of these go through security-definer functions that return
+   a first name, a level and the medals — and cannot return height,
+   weight or anything else on the profile row.
+   --------------------------------------------------------------- */
+export async function publicProfile(uid) {
+  const { data, error } = await supabase.rpc('public_profile', { uid });
+  if (error || !data || !data.length) return null;
+  return data[0];
+}
+
+export async function leaderboard(top = 20) {
+  const { data, error } = await supabase.rpc('leaderboard', { top });
+  return error ? [] : (data || []);
+}
+
+/* ---------------------------------------------------------------
    Moderation, for whoever runs the app.
 
    `is_admin` on the profile is what unlocks this; the database

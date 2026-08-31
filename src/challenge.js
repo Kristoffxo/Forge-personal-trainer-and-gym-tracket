@@ -12,12 +12,45 @@
    --------------------------------------------------------------- */
 import { supabase } from './supabase';
 import { dayKey } from './challengeRules';
+import { analyse } from './rank';
 
 export { dayKey, progress, message } from './challengeRules';
 
 /* ---------------------------------------------------------------
    Writing down that you trained
    --------------------------------------------------------------- */
+/* ---------------------------------------------------------------
+   Publishing your standing.
+
+   Medals are computed on the device from workout_days, which only
+   you can read. This copies the results onto your profile so other
+   people can see them when they tap your name — and nothing else
+   about you goes with it.
+   --------------------------------------------------------------- */
+export async function publishStats(userId) {
+  const days = await allTrainedDays(userId);
+  const a = analyse(days);
+  await supabase.from('profiles').update({
+    level: a.level,
+    medals: a.medals,
+    best_streak: a.longest,
+    current_streak: a.current,
+    stats_at: new Date().toISOString(),
+  }).eq('id', userId);
+  return a;
+}
+
+export async function allTrainedDays(userId) {
+  const { data, error } = await supabase
+    .from('workout_days').select('day').eq('user_id', userId).order('day');
+  return error ? [] : (data || []).map((r) => r.day);
+}
+
+/* Where you stand, without a round trip to anyone else. */
+export async function myStanding(userId) {
+  return analyse(await allTrainedDays(userId));
+}
+
 export async function markWorkout(userId, kind, name) {
   const { error } = await supabase
     .from('workout_days')
@@ -25,6 +58,7 @@ export async function markWorkout(userId, kind, name) {
       { user_id: userId, day: dayKey(), kind: kind || 'workout', name: name || null },
       { onConflict: 'user_id,day' },
     );
+  if (!error) await publishStats(userId);
   return !error;
 }
 

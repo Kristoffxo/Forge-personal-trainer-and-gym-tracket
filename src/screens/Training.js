@@ -225,13 +225,17 @@ export default function Training({ user, onBack }) {
             setCustom((plan.days && plan.days.custom) || [[], [], [], [], [], [], []]);
             setEditing(true);
           }}
-          scaleTo={0.97}
+          scaleTo={0.98}
           style={styles.changeBtn}
         >
-          <Text style={[T.small, { color: C.dim }]}>
-            {SPLITS.find((s) => s.id === plan.split)?.name || 'Custom'} ·{' '}
-            {plan.per_session} {t('a session')} · {t('change')}
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[T.bodyOn, { fontSize: 15 }]}>{t('Change my plan')}</Text>
+            <Text style={T.tiny}>
+              {t(SPLITS.find((s) => s.id === plan.split)?.name || 'Custom')} ·{' '}
+              {plan.per_session} {t('a session')}
+            </Text>
+          </View>
+          <Text style={{ color: C.ember, fontSize: 22 }}>{'›'}</Text>
         </Press>
       </FadeIn>
     </ScrollView>
@@ -440,7 +444,8 @@ const makeStyles = (C, T) => StyleSheet.create({
   checkMark: { color: C.onAccent, fontSize: 15, fontFamily: 'WorkSans_500Medium' },
 
   changeBtn: {
-    alignItems: 'center', paddingVertical: 14, marginTop: S.lg,
-    borderRadius: R.md, borderWidth: 1, borderColor: C.line,
+    flexDirection: 'row', alignItems: 'center', padding: S.md, marginTop: S.lg,
+    borderRadius: R.md, borderWidth: 1.5, borderColor: C.ember,
+    backgroundColor: 'rgba(255,107,44,0.08)',
   },
 });

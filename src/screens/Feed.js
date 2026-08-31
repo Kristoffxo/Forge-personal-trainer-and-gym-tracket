@@ -19,6 +19,7 @@ import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
+import PersonSheet from './PersonSheet';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import {
   loadFeed, createPost, deletePost, loadComments, addComment, deleteComment,
@@ -38,6 +39,7 @@ export default function Feed({ user, profile }) {
   const [more, setMore] = useState(false);
   const [open, setOpen] = useState(null);          // the post being read
   const [posted, setPosted] = useState(false);     // already posted today
+  const [person, setPerson] = useState(null);      // whose profile is open
   const [likes, setLikes] = useState({});          // post id -> how many
   const [mine, setMine] = useState(new Set());     // which ones I liked
 
@@ -140,10 +142,15 @@ export default function Feed({ user, profile }) {
             liked={mine.has(p.id)}
             onLike={() => toggleLike(p)}
             onOpen={() => { setOpen(p); setView('post'); }}
+            onPerson={() => setPerson({ id: p.user_id, name: firstNameOf(p.name) })}
             onChanged={load}
           />
         ))
       )}
+
+      {person ? (
+        <PersonSheet userId={person.id} name={person.name} onClose={() => setPerson(null)} />
+      ) : null}
 
       {more ? (
         <Press onPress={loadMore} scaleTo={0.97} style={styles.moreBtn}>
@@ -157,7 +164,7 @@ export default function Feed({ user, profile }) {
 /* ---------------------------------------------------------------
    One post in the list
    --------------------------------------------------------------- */
-function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, onChanged }) {
+function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, onPerson, onChanged }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -169,10 +176,13 @@ function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, o
   return (
     <FadeIn delay={Math.min(index, 6) * 26} from={8} style={styles.card}>
       <View style={styles.cardHead}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarTxt}>{firstNameOf(post.name).charAt(0).toUpperCase()}</Text>
-        </View>
-        <Text style={styles.who}>{firstNameOf(post.name)}</Text>
+        <Press onPress={onPerson} scaleTo={0.94}
+          style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarTxt}>{firstNameOf(post.name).charAt(0).toUpperCase()}</Text>
+          </View>
+          <Text style={styles.who}>{firstNameOf(post.name)}</Text>
+        </Press>
         <Text style={T.tiny}>{ago(post.created_at)}</Text>
         <Press
           onPress={() => menuFor({ sheet, post, mine, user, onChanged })}

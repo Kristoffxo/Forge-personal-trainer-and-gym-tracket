@@ -121,14 +121,18 @@ export default function Library({ place, user, profile, onBack }) {
       <FadeIn delay={70} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
         <Label style={{ marginBottom: S.sm }}>{t('One muscle')}</Label>
         <View style={styles.grid}>
-          {TARGETS.map((tg) => (
-            <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.96} style={styles.tile}>
-              <Text style={[styles.tileIcon, { color: MUSCLE_C[tg.muscles[0]] || accent }]}>
-                {tg.icon}
-              </Text>
-              <Text style={styles.tileName}>{t(tg.name)}</Text>
-            </Press>
-          ))}
+          {TARGETS.map((tg) => {
+            const c = MUSCLE_C[tg.muscles[0]] || accent;
+            return (
+              <View key={tg.key} style={styles.tileWrap}>
+                <Press onPress={() => open(tg)} scaleTo={0.96}
+                  style={[styles.tile, { borderColor: c + '55', backgroundColor: c + '12' }]}>
+                  <Text style={[styles.tileIcon, { color: c }]}>{tg.icon}</Text>
+                  <Text style={styles.tileName}>{t(tg.name)}</Text>
+                </Press>
+              </View>
+            );
+          })}
         </View>
       </FadeIn>
 
@@ -152,14 +156,18 @@ const makeStyles = (C, T) => StyleSheet.create({
   cardName: { fontFamily: 'Forum_400Regular', fontSize: 22, color: C.text },
   chev: { fontSize: 22, color: C.faint },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
+  /* Two across, square-ish, with real room. The old three-across
+     grid squeezed "Shoulders" into a column narrower than the word. */
+  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -5 },
+  tileWrap: { width: '50%', paddingHorizontal: 5, paddingBottom: 10 },
   tile: {
-    width: '31.5%', backgroundColor: C.surface, borderRadius: R.md,
-    paddingVertical: S.md, alignItems: 'center',
-    borderWidth: 1, borderColor: C.line,
+    backgroundColor: C.surface, borderRadius: R.lg,
+    paddingVertical: S.lg, paddingHorizontal: S.md,
+    alignItems: 'center', justifyContent: 'center',
+    minHeight: 104, borderWidth: 1.5,
   },
-  tileIcon: { fontSize: 20, marginBottom: 6 },
-  tileName: { fontFamily: 'WorkSans_500Medium', fontSize: 13, color: C.text },
+  tileIcon: { fontSize: 26, marginBottom: 8 },
+  tileName: { fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.text, textAlign: 'center' },
 
   exRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,

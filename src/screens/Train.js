@@ -17,7 +17,8 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { S, R, useTheme } from '../theme';
 import { Press, FadeIn } from '../ui/kit';
 import { useLang } from '../lang';
-import { activeChallenge, trainedOn, progress, dayKey } from '../challenge';
+import { myStanding } from '../challenge';
+import { GRADE_COLOUR } from '../rank';
 
 import Planner from './Training';
 import Library from './Library';
@@ -52,16 +53,12 @@ export default function Train({ user, profile }) {
   const styles = makeStyles(C, T);
 
   const [open, setOpen] = useState(null);
-  const [banner, setBanner] = useState(null);   // the live challenge, if any
+  const [me, setMe] = useState(null);          // streak, medals, level
 
-  /* A running challenge is the one thing worth saying on the hub —
-     it is the reason someone opened the app at all. */
+  /* The streak is the one thing worth saying on the hub — it is the
+     reason most people opened the app at all. */
   const load = useCallback(async () => {
-    const ch = await activeChallenge(user.id);
-    if (!ch) { setBanner(null); return; }
-    const days = await trainedOn(user.id, ch.started_on);
-    const p = progress(ch, days);
-    setBanner(p.state === 'on' || p.state === 'grace' ? { ch, p } : null);
+    setMe(await myStanding(user.id));
   }, [user.id]);
 
   useEffect(() => { load(); }, [load, open]);
@@ -77,18 +74,32 @@ export default function Train({ user, profile }) {
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: 70 }}>
-      {banner ? (
+      {me ? (
         <FadeIn>
           <Press onPress={() => setOpen('challenges')} scaleTo={0.99}
-            style={[styles.banner, banner.p.state === 'grace' && { borderColor: C.amber }]}>
-            <View style={{ flex: 1 }}>
+            style={[styles.banner, {
+              borderColor: me.rank.grade ? GRADE_COLOUR[me.rank.grade] : C.violet,
+            }]}>
+            <View style={styles.streakBadge}>
+              <Text style={[styles.streakNum, {
+                color: me.rank.grade ? GRADE_COLOUR[me.rank.grade] : C.violet,
+              }]}>
+                {me.current}
+              </Text>
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.bannerTop}>
-                {banner.ch.days} {t('day challenge')} · {t('Day')} {banner.p.dayNumber}
+                {me.current === 1
+                  ? t('1 day streak')
+                  : me.current + ' ' + t('day streak')}
+                {' · '}{t(me.rank.label)}
               </Text>
               <Text style={T.tiny}>
-                {banner.p.trainedToday
+                {me.trainedToday
                   ? t('Today is logged ✓')
-                  : t('Nothing logged today yet')}
+                  : me.restUsedThisWeek
+                    ? t('Nothing today yet — this week’s rest day is gone')
+                    : t('Nothing today yet — one free rest day left')}
               </Text>
             </View>
             <Text style={[styles.chev, { color: C.violet }]}>{'›'}</Text>
@@ -127,6 +138,11 @@ const makeStyles = (C, T) => StyleSheet.create({
     borderWidth: 1.5, borderColor: C.violet,
   },
   bannerTop: { fontFamily: 'WorkSans_500Medium', fontSize: 14, color: C.text },
+  streakBadge: {
+    width: 42, height: 42, borderRadius: 21, backgroundColor: C.raised,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  streakNum: { fontFamily: 'Forum_400Regular', fontSize: 20, lineHeight: 24 },
 
   box: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
