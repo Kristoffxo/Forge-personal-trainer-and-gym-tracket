@@ -61,7 +61,21 @@ export function sizeFor(level) {
   return VOLUME[level] || VOLUME.intermediate;
 }
 
-/* Home is bodyweight or one dumbbell. Everything else is the gym. */
+/* Home is bodyweight first.
+
+   Allowing a dumbbell alongside meant every home session filled up
+   with dumbbell work and looked exactly like the gym one. So the
+   pool is bodyweight only, and a dumbbell is brought in for a muscle
+   only when the floor genuinely cannot cover it. */
+function poolFor(muscle, place) {
+  const all = EX.filter((x) => x.m === muscle);
+  if (place !== 'home') return all;
+
+  const floor = all.filter((x) => x.e === 'None');
+  if (floor.length >= 3) return floor;
+  return floor.concat(all.filter((x) => x.e === 'Dumbbell'));
+}
+
 function usable(x, place) {
   if (place !== 'home') return true;
   return x.e === 'None' || x.e === 'Dumbbell';
@@ -88,7 +102,7 @@ export function buildRoutine({ target, place = 'gym', level = 'intermediate' }) 
 
   const out = [];
   live.forEach((m) => {
-    const pool = EX.filter((x) => x.m === m && usable(x, place));
+    const pool = poolFor(m, place);
     const compounds = pool.filter((x) => x.t === 'c');
     const isolations = pool.filter((x) => x.t === 'i');
     const n = per[m];
@@ -108,6 +122,60 @@ export function buildRoutine({ target, place = 'gym', level = 'intermediate' }) 
 /* Roughly how long it takes, for the card. */
 export function minutesFor(count) {
   return 10 + count * 6;
+}
+
+/* ---------------------------------------------------------------
+   Instant workouts.
+
+   No equipment, no plan, no thinking — say how long you have and
+   get a full-body circuit that fits. Everything is bodyweight, so
+   these work in a hotel room.
+
+   Exercises are spread across the whole body rather than piled onto
+   one muscle, because a ten-minute session is the only training
+   somebody might do that day.
+   --------------------------------------------------------------- */
+export const INSTANT = [
+  { mins: 10, name: '10 minutes', blurb: 'Four moves. No excuse fits in less than this.' },
+  { mins: 15, name: '15 minutes', blurb: 'Six moves, whole body. The everyday one.' },
+  { mins: 20, name: '20 minutes', blurb: 'Eight moves. Enough to feel it tomorrow.' },
+  { mins: 30, name: '30 minutes', blurb: 'Twelve moves. A full session on the floor.' },
+];
+
+/* Round-robin across the body so nothing is trained twice before
+   everything is trained once. */
+const INSTANT_ORDER = ['Quads', 'Chest', 'Back', 'Core', 'Glutes',
+                       'Shoulders', 'Hamstrings', 'Triceps', 'Calves', 'Biceps'];
+
+/* "No equipment" has to mean it. These are bodyweight but still need
+   a bar, a bench or a partner, so they are no use in a hotel room. */
+const NEEDS_A_BAR = /pull-?up|chin-?up|dip|inverted row|hanging|nordic|ab wheel/i;
+
+export function buildInstant(mins) {
+  const want = Math.max(4, Math.round(mins / 2.6));
+  const pools = {};
+  INSTANT_ORDER.forEach((m) => {
+    pools[m] = EX.filter((x) => x.m === m && x.e === 'None' && !NEEDS_A_BAR.test(x.n));
+  });
+
+  const out = [];
+  let round = 0;
+  while (out.length < want && round < 6) {
+    for (const m of INSTANT_ORDER) {
+      if (out.length >= want) break;
+      const pool = pools[m];
+      if (pool && pool.length) out.push(pool.shift());
+    }
+    round += 1;
+  }
+
+  return {
+    key: 'instant' + mins,
+    name: mins + ' minute workout',
+    sub: 'Full body, no equipment',
+    mins,
+    exercises: out,
+  };
 }
 
 /* ---------------------------------------------------------------

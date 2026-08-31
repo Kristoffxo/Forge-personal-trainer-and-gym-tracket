@@ -42,6 +42,11 @@ const BOXES = [
     sub: 'Bodyweight, or one dumbbell',
   },
   {
+    key: 'instant', photo: 'home', colorKey: 'lime',
+    name: 'Instant Workouts',
+    sub: '10, 15, 20 or 30 minutes — no equipment',
+  },
+  {
     key: 'challenges', photo: 'rest', colorKey: 'violet',
     name: 'Challenges',
     sub: 'Medals for every streak you keep',
@@ -70,6 +75,9 @@ export default function Train({ user, profile }) {
   }
   if (open === 'home') {
     return <Library place="home" user={user} profile={profile} onBack={() => setOpen(null)} />;
+  }
+  if (open === 'instant') {
+    return <Library place="instant" user={user} profile={profile} onBack={() => setOpen(null)} />;
   }
   if (open === 'challenges') return <Challenges user={user} onBack={() => setOpen(null)} />;
 

@@ -19,8 +19,9 @@ import { useLang } from '../lang';
 import { artForTarget } from '../muscleArt';
 import { photoForTarget, photoForMuscle, groupPhoto, PHOTO } from '../photos';
 import { framesFor } from '../exercisePhotos';
-import { SPLIT_TARGETS, TARGETS, buildRoutine, minutesFor } from '../routines';
+import { SPLIT_TARGETS, TARGETS, buildRoutine, minutesFor, INSTANT, buildInstant } from '../routines';
 import Session from './Session';
+import Exercise from './Exercise';
 
 export default function Library({ place, user, profile, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
@@ -29,9 +30,25 @@ export default function Library({ place, user, profile, onBack }) {
 
   const [picked, setPicked] = useState(null);   // the routine being previewed
   const [running, setRunning] = useState(false);
+  const [peek, setPeek] = useState(null);      // one exercise, just to look at
 
   const level = (profile && profile.experience) || 'intermediate';
   const accent = place === 'home' ? C.teal : C.ember;
+
+  /* Tapping a move in the list opens the demonstration without
+     starting anything — you are just checking what it is. */
+  if (peek !== null && picked && picked.exercises[peek]) {
+    return (
+      <Exercise
+        exercise={picked.exercises[peek]}
+        index={peek}
+        total={picked.exercises.length}
+        onBack={() => setPeek(null)}
+        onDone={() => setPeek(null)}
+        previewOnly
+      />
+    );
+  }
 
   if (running && picked) {
     return (
@@ -61,7 +78,8 @@ export default function Library({ place, user, profile, onBack }) {
             </Press>
             <Text style={styles.heroTitle}>{picked.name}</Text>
             <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
-              {picked.exercises.length} {t('exercises')} · {minutesFor(picked.exercises.length)} {t('minutes')}
+              {picked.exercises.length} {t('exercises')} ·{' '}
+              {picked.mins || minutesFor(picked.exercises.length)} {t('minutes')}
               {place === 'home' ? ' · ' + t('at home') : ''}
             </Text>
           </View>
@@ -70,7 +88,7 @@ export default function Library({ place, user, profile, onBack }) {
         <View style={{ paddingHorizontal: S.lg, marginTop: S.md }}>
           {picked.exercises.map((x, i) => (
             <FadeIn key={x.n + i} delay={i * 18} from={6}>
-              <View style={styles.exRow}>
+              <Press onPress={() => setPeek(i)} scaleTo={0.99} style={styles.exRow}>
                 <View style={[styles.exNum, { backgroundColor: MUSCLE_C[x.m] }]}>
                   <Text style={styles.exNumTxt}>{i + 1}</Text>
                 </View>
@@ -80,7 +98,8 @@ export default function Library({ place, user, profile, onBack }) {
                   <Text style={T.tiny}>{x.m} · {x.e}</Text>
                 </View>
                 <Text style={[styles.setsTxt, { color: accent }]}>{x.s}</Text>
-              </View>
+                <Text style={styles.rowChev}>{'›'}</Text>
+              </Press>
             </FadeIn>
           ))}
 
@@ -93,6 +112,46 @@ export default function Library({ place, user, profile, onBack }) {
 
   /* ---------- the menu ---------- */
   const open = (target) => setPicked(buildRoutine({ target, place, level }));
+
+  if (place === 'instant') {
+    return (
+      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+        <ImageBackground source={PHOTO.home} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
+          <View style={styles.heroVeil} />
+          <View style={styles.heroBody}>
+            <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
+            </Press>
+            <Text style={styles.heroTitle}>{t('Instant Workouts')}</Text>
+            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
+              {t('Say how long you have. No equipment needed.')}
+            </Text>
+          </View>
+        </ImageBackground>
+
+        <View style={{ padding: S.lg }}>
+          {INSTANT.map((o, i) => (
+            <FadeIn key={o.mins} delay={i * 40} from={8}>
+              <Press onPress={() => setPicked(buildInstant(o.mins))} scaleTo={0.985}
+                style={styles.timeRow}>
+                <View style={[styles.timeBadge, { borderColor: accent }]}>
+                  <Text style={[styles.timeNum, { color: accent }]}>{o.mins}</Text>
+                  <Text style={T.tiny}>{t('min')}</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 14 }}>
+                  <Text style={styles.planName}>{t(o.name)}</Text>
+                  <Text style={[T.small, { marginTop: 2 }]}>{t(o.blurb)}</Text>
+                </View>
+                <View style={[styles.go, { backgroundColor: accent }]}>
+                  <Text style={styles.goTxt}>{'→'}</Text>
+                </View>
+              </Press>
+            </FadeIn>
+          ))}
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
@@ -153,7 +212,9 @@ export default function Library({ place, user, profile, onBack }) {
       </FadeIn>
 
       <Text style={[T.tiny, { textAlign: 'center', marginTop: S.lg, paddingHorizontal: S.lg }]}>
-        {t('Sessions are sized to your level. Change it in You → Numbers.')}
+        {place === 'instant'
+          ? t('No equipment at all. Rest 30 seconds between moves.')
+          : t('Sessions are sized to your level. Change it in You → Numbers.')}
       </Text>
     </ScrollView>
   );
@@ -168,6 +229,15 @@ const makeStyles = (C, T) => StyleSheet.create({
     fontFamily: 'WorkSans_500Medium', fontSize: 12, letterSpacing: 2,
     color: C.dim, textTransform: 'uppercase', marginBottom: S.md,
   },
+  timeRow: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.md, padding: S.md, marginBottom: 10,
+  },
+  timeBadge: {
+    width: 56, height: 56, borderRadius: R.md, borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  timeNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 22, lineHeight: 24 },
   planRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
     borderRadius: R.md, padding: 12, marginBottom: 10,
@@ -213,4 +283,5 @@ const makeStyles = (C, T) => StyleSheet.create({
   exThumb: { width: 46, height: 46, borderRadius: R.sm, marginLeft: 10, backgroundColor: C.raised },
   exName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14.5, color: C.text },
   setsTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13 },
+  rowChev: { fontSize: 19, color: C.faint, marginLeft: 6 },
 });

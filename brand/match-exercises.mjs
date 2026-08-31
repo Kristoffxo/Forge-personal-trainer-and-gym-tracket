@@ -88,6 +88,31 @@ const ALIAS = {
   'Pike Push-up': 'Handstand Push-Ups',
   'Bulgarian Split Squat': 'Smith Single-Leg Split Squat',
   'Dumbbell RDL': 'Romanian Deadlift',
+
+  /* the bodyweight additions */
+  'Wide Push-up': 'Push-Up Wide',
+  'Incline Push-up': 'Incline Push-Up',
+  'Decline Push-up': 'Push-Ups With Feet Elevated',
+  'Plyo Push-up': 'Plyo Push-up',
+  'Superman': 'Superman',
+  'Wide-Grip Pull-up': 'Wide-Grip Rear Pull-Up',
+  'Handstand Push-up': 'Handstand Push-Ups',
+  'Seated Front Raise': 'Seated Front Deltoid',
+  'Close-Grip Push-up': 'Push-Ups - Close Triceps Position',
+  'Triceps Dip': 'Dips - Triceps Version',
+  'Jump Squat': 'Freehand Jump Squat',
+  'Reverse Lunge': 'Bodyweight Walking Lunge',
+  /* no wall sit in the database; the isometric squat is the same hold */
+  'Wall Sit': 'Bodyweight Squat',
+  'Single-Leg Glute Bridge': 'Single Leg Glute Bridge',
+  'Flutter Kicks': 'Flutter Kicks',
+  'Inchworm': 'Inchworm',
+  'Front Leg Raise': 'Front Leg Raises',
+  'Calf Raise': 'Calf Press',
+  'Air Bike': 'Air Bike',
+  'Cross-Body Crunch': 'Cross-Body Crunch',
+  'Mountain Climber': 'Mountain Climbers',
+  'Butt-Ups': 'Butt-Ups',
 };
 
 const byName = new Map(db.map((d) => [norm(d.name), d]));

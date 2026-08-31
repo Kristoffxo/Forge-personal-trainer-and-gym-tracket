@@ -18,7 +18,7 @@ import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
 
-export default function Exercise({ exercise, index, total, onDone, onBack }) {
+export default function Exercise({ exercise, index, total, onDone, onBack, previewOnly }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -54,7 +54,9 @@ export default function Exercise({ exercise, index, total, onDone, onBack }) {
             <Label>{t('Aim for')}</Label>
             <Text style={styles.scheme}>{exercise.s}</Text>
             <Text style={[T.small, { marginTop: S.sm }]}>
-              {t('Pick a weight you can move cleanly for every rep. When all of them feel controlled, add a little next time — 2.5 kg is plenty.')}
+              {exercise.e === 'None'
+                ? t('Slow down rather than rushing. Three seconds down, one up — when that feels easy, add reps before you add anything else.')
+                : t('Pick a weight you can move cleanly for every rep. When all of them feel controlled, add a little next time — 2.5 kg is plenty.')}
             </Text>
           </View>
 
@@ -66,8 +68,11 @@ export default function Exercise({ exercise, index, total, onDone, onBack }) {
 
       <View style={styles.foot}>
         <Btn
-          label={index + 1 === total ? t('Done — finish workout') : t('Done — next exercise')}
+          label={previewOnly
+            ? t('Back to the list')
+            : index + 1 === total ? t('Done — finish workout') : t('Done — next exercise')}
           color={tint}
+          dark={previewOnly}
           onPress={onDone}
         />
       </View>

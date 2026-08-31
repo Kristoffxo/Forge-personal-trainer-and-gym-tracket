@@ -92,6 +92,41 @@ export const EX = [
   { n:'Russian Twist',              m:'Core', t:'i', e:'None',     s:'3 × 20' },
   { n:'Ab Wheel Rollout',           m:'Core', t:'c', e:'None',     s:'3 × 10' },
   { n:'Side Plank',                 m:'Core', t:'i', e:'None',     s:'3 × 30 s each' },
+
+  /* ---- Bodyweight, so a home session is not a gym session with the
+     barbells crossed out. There were only one or two of these per
+     muscle before, which is why Home and Gym looked alike. Every one
+     has a photograph in the library. ---- */
+  { n:'Wide Push-up',               m:'Chest', t:'c', e:'None',     s:'4 × 10–15' },
+  { n:'Incline Push-up',            m:'Chest', t:'c', e:'None',     s:'4 × 12–15' },
+  { n:'Decline Push-up',            m:'Chest', t:'c', e:'None',     s:'3 × 10–12' },
+  { n:'Plyo Push-up',               m:'Chest', t:'c', e:'None',     s:'3 × 6–8' },
+
+  { n:'Superman',                   m:'Back', t:'i', e:'None',      s:'3 × 12–15' },
+  { n:'Wide-Grip Pull-up',          m:'Back', t:'c', e:'None',      s:'4 × 6–10' },
+
+  { n:'Handstand Push-up',          m:'Shoulders', t:'c', e:'None', s:'3 × 5–8' },
+  { n:'Seated Front Raise',         m:'Shoulders', t:'i', e:'None', s:'3 × 15' },
+
+  { n:'Close-Grip Push-up',         m:'Triceps', t:'c', e:'None',   s:'3 × 10–15' },
+  { n:'Triceps Dip',                m:'Triceps', t:'c', e:'None',   s:'3 × 10–15' },
+
+  { n:'Jump Squat',                 m:'Quads', t:'c', e:'None',     s:'3 × 12' },
+  { n:'Reverse Lunge',              m:'Quads', t:'c', e:'None',     s:'3 × 12 each' },
+  { n:'Wall Sit',                   m:'Quads', t:'i', e:'None',     s:'3 × 45 s' },
+
+  { n:'Single-Leg Glute Bridge',    m:'Glutes', t:'c', e:'None',    s:'3 × 12 each' },
+  { n:'Flutter Kicks',              m:'Glutes', t:'i', e:'None',    s:'3 × 30 s' },
+
+  { n:'Inchworm',                   m:'Hamstrings', t:'c', e:'None', s:'3 × 8' },
+  { n:'Front Leg Raise',            m:'Hamstrings', t:'i', e:'None', s:'3 × 12 each' },
+
+  { n:'Calf Raise',                 m:'Calves', t:'i', e:'None',    s:'4 × 20' },
+
+  { n:'Air Bike',                   m:'Core', t:'i', e:'None',      s:'3 × 20' },
+  { n:'Cross-Body Crunch',          m:'Core', t:'i', e:'None',      s:'3 × 15 each' },
+  { n:'Mountain Climber',           m:'Core', t:'c', e:'None',      s:'3 × 40 s' },
+  { n:'Butt-Ups',                   m:'Core', t:'i', e:'None',      s:'3 × 15' },
 ];
 
 export const MUSCLES = ['Chest','Back','Shoulders','Biceps','Triceps',
