@@ -42,7 +42,7 @@ export const MUSCLE_LIGHT = {
 };
 
 export const F = {
-  display:'Forum_400Regular',
+  display:'WorkSans_600SemiBold',
   body:'WorkSans_400Regular',
   medium:'WorkSans_500Medium',
 };
@@ -50,9 +50,9 @@ export const F = {
 /* type scale, coloured for whichever palette is active */
 export function makeT(C) {
   return {
-    hero:  { fontFamily:F.display, fontSize:38, lineHeight:42, color:C.text },
-    h1:    { fontFamily:F.display, fontSize:30, lineHeight:34, color:C.text },
-    h2:    { fontFamily:F.display, fontSize:23, lineHeight:28, color:C.text },
+    hero:  { fontFamily:F.bold, fontSize:36, lineHeight:41, letterSpacing:-0.6, color:C.text },
+    h1:    { fontFamily:F.bold, fontSize:28, lineHeight:33, letterSpacing:-0.4, color:C.text },
+    h2:    { fontFamily:F.display, fontSize:21, lineHeight:26, letterSpacing:-0.2, color:C.text },
     h3:    { fontFamily:F.medium,  fontSize:16, lineHeight:22, color:C.text },
     body:  { fontFamily:F.body,    fontSize:15, lineHeight:22, color:C.dim },
     bodyOn:{ fontFamily:F.body,    fontSize:15, lineHeight:22, color:C.text },
@@ -60,7 +60,7 @@ export function makeT(C) {
     tiny:  { fontFamily:F.body,    fontSize:11, lineHeight:15, color:C.faint },
     label: { fontFamily:F.medium,  fontSize:11, letterSpacing:1.4,
              textTransform:'uppercase', color:C.dim },
-    num:   { fontFamily:F.display, fontSize:44, color:C.text },
+    num:   { fontFamily:F.bold, fontSize:42, letterSpacing:-1, color:C.text },
   };
 }
 

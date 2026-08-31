@@ -160,7 +160,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   row:{ flexDirection:'row', alignItems:'center', paddingVertical:13, paddingHorizontal:S.lg,
         borderBottomWidth:1, borderBottomColor:C.line },
   totalRow:{ flexDirection:'row', justifyContent:'space-between', alignItems:'flex-end', marginTop:S.lg },
-  total:{ fontFamily:'Forum_400Regular', fontSize:50, lineHeight:54, color:C.amber },
+  total:{ fontFamily:'WorkSans_600SemiBold', fontSize:50, lineHeight:54, color:C.amber },
   qty:{ backgroundColor:C.raised, borderRadius:R.sm, paddingHorizontal:14, paddingVertical:12,
         fontFamily:'WorkSans_400Regular', fontSize:18, color:C.text },
   optRow:{ flexDirection:'row', alignItems:'center', paddingVertical:13, paddingHorizontal:S.lg,

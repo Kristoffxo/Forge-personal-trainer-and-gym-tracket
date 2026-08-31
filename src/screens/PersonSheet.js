@@ -98,8 +98,8 @@ const makeStyles = (C, T) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: C.gold, marginBottom: S.sm,
   },
-  avatarTxt: { fontFamily: 'Forum_400Regular', fontSize: 24, color: C.gold },
-  who: { fontFamily: 'Forum_400Regular', fontSize: 26, color: C.text },
+  avatarTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 24, color: C.gold },
+  who: { fontFamily: 'WorkSans_600SemiBold', fontSize: 26, color: C.text },
   medals: { backgroundColor: C.surface, borderRadius: R.lg, padding: S.md, marginTop: S.md },
   close: { alignItems: 'center', paddingVertical: 14, marginTop: S.sm },
 });

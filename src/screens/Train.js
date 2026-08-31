@@ -142,7 +142,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     width: 42, height: 42, borderRadius: 21, backgroundColor: C.raised,
     alignItems: 'center', justifyContent: 'center',
   },
-  streakNum: { fontFamily: 'Forum_400Regular', fontSize: 20, lineHeight: 24 },
+  streakNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20, lineHeight: 24 },
 
   box: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
@@ -154,6 +154,6 @@ const makeStyles = (C, T) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   icon: { fontSize: 24 },
-  boxName: { fontFamily: 'Forum_400Regular', fontSize: 23, lineHeight: 27, color: C.text },
+  boxName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 23, lineHeight: 27, color: C.text },
   chev: { fontSize: 24, color: C.faint, paddingLeft: 6 },
 });

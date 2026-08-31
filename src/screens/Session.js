@@ -134,7 +134,7 @@ export default function Session({ title, exercises, user, kind, name, onExit }) 
 const makeStyles = (C, T) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.bg },
   top: { paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.lg, backgroundColor: C.surface },
-  big: { fontFamily: 'Forum_400Regular', fontSize: 36, color: C.text, marginTop: 6 },
+  big: { fontFamily: 'WorkSans_600SemiBold', fontSize: 36, color: C.text, marginTop: 6 },
   exRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
     borderRadius: R.md, padding: 12, marginBottom: 9,

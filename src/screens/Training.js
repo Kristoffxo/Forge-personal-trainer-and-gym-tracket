@@ -369,11 +369,11 @@ const makeStyles = (C, T) => StyleSheet.create({
     backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
     borderWidth: 1.5, borderColor: C.line,
   },
-  todayTitle: { fontFamily: 'Forum_400Regular', fontSize: 38, lineHeight: 42, color: C.text, marginTop: 2 },
+  todayTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 38, lineHeight: 42, color: C.text, marginTop: 2 },
   mRow: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 8, marginTop: S.sm },
 
   wizHead: { paddingHorizontal: S.lg, paddingTop: S.lg, paddingBottom: S.md, backgroundColor: C.surface },
-  wizTitle: { fontFamily: 'Forum_400Regular', fontSize: 30, lineHeight: 34, color: C.text },
+  wizTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, color: C.text },
 
   stepDot: {
     width: 26, height: 26, borderRadius: 13, backgroundColor: C.ember,
@@ -385,7 +385,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
     borderRadius: R.md, padding: S.md, marginBottom: 10, borderWidth: 1.5, borderColor: C.line,
   },
-  optName: { fontFamily: 'Forum_400Regular', fontSize: 20, color: C.text },
+  optName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20, color: C.text },
   tag: {
     backgroundColor: C.raised, borderRadius: R.pill, paddingHorizontal: 9,
     paddingVertical: 3, marginLeft: 8,
@@ -413,7 +413,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   todayDot: { position: 'absolute', top: 6, right: 6, width: 6, height: 6, borderRadius: 3, backgroundColor: C.ember },
 
   sessionHead: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: S.md },
-  sessionTitle: { fontFamily: 'Forum_400Regular', fontSize: 30, color: C.text, marginTop: 2 },
+  sessionTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, color: C.text, marginTop: 2 },
 
   mTag: {
     flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: R.pill,
@@ -432,10 +432,10 @@ const makeStyles = (C, T) => StyleSheet.create({
   setsBox: { backgroundColor: C.raised, borderRadius: R.sm, paddingHorizontal: 10, paddingVertical: 6 },
   setsTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 12.5, color: C.ember },
   chev: { fontSize: 22, color: C.faint, paddingHorizontal: 4 },
-  restBig: { fontFamily: 'Forum_400Regular', fontSize: 36, color: C.dim },
+  restBig: { fontFamily: 'WorkSans_600SemiBold', fontSize: 36, color: C.dim },
 
   workTop: { paddingHorizontal: S.lg, paddingTop: S.lg, paddingBottom: S.lg, backgroundColor: C.surface },
-  workBig: { fontFamily: 'Forum_400Regular', fontSize: 38, color: C.text },
+  workBig: { fontFamily: 'WorkSans_600SemiBold', fontSize: 38, color: C.text },
 
   check: {
     width: 30, height: 30, borderRadius: 15, borderWidth: 2,

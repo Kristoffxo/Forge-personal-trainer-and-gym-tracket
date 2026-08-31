@@ -4,8 +4,8 @@ import { View, Text, StyleSheet, ActivityIndicator, Animated, Easing,
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import { Forum_400Regular } from '@expo-google-fonts/forum';
-import { WorkSans_400Regular, WorkSans_500Medium } from '@expo-google-fonts/work-sans';
+import { WorkSans_400Regular, WorkSans_500Medium, WorkSans_600SemiBold,
+         WorkSans_700Bold } from '@expo-google-fonts/work-sans';
 
 import { useTheme, ThemeProvider } from './src/theme';
 import { LangProvider, useLang } from './src/lang';
@@ -63,7 +63,7 @@ function Root() {
   const { t: tr } = useLang();
   const styles = makeStyles(C, T);
   const insets = useSafeAreaInsets();
-  const [fontsLoaded] = useFonts({ Forum_400Regular, WorkSans_400Regular, WorkSans_500Medium });
+  const [fontsLoaded] = useFonts({ WorkSans_600SemiBold, WorkSans_400Regular, WorkSans_500Medium });
   const [session, setSession] = useState(undefined);   // undefined = still checking
   const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState('train');
@@ -228,7 +228,7 @@ const makeStyles = (C, T) => StyleSheet.create({
             alignItems:'center', justifyContent:'center', marginRight:8 },
   langTxt:{ fontFamily:'WorkSans_500Medium', fontSize:11, letterSpacing:0.8 },
   themeIcon:{ fontSize:17, color:C.dim },
-  titleTxt:{ fontFamily:'Forum_400Regular', fontSize:21, color:C.text },
+  titleTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:21, color:C.text },
   subTxt:{ fontFamily:'WorkSans_400Regular', fontSize:12, color:C.dim, marginTop:1 },
 
   /* bottom bar — the padding keeps it whole above the home indicator */

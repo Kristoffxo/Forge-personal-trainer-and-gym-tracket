@@ -296,7 +296,7 @@ const makeStyles = (C, T) =>
       borderWidth: 1.5,
       backgroundColor: C.surface,
     },
-    big: { fontFamily: 'Forum_400Regular', fontSize: 54, color: C.text, lineHeight: 60 },
+    big: { fontFamily: 'WorkSans_600SemiBold', fontSize: 54, color: C.text, lineHeight: 60 },
 
     chart: {
       flexDirection: 'row',

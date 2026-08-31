@@ -129,7 +129,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     flex: 1, backgroundColor: C.surface, borderRadius: R.md,
     padding: S.md, alignItems: 'center',
   },
-  statNum: { fontFamily: 'Forum_400Regular', fontSize: 34, color: C.text },
+  statNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 34, color: C.text },
   row: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
     borderRadius: R.md, padding: 10, marginTop: 9,

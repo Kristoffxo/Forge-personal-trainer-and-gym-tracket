@@ -124,7 +124,7 @@ const makeStyles = (C, T) => StyleSheet.create({
             paddingHorizontal:12, paddingVertical:7, borderRadius:R.pill,
             borderWidth:1.5, borderColor:C.gold, backgroundColor:'rgba(0,0,0,0.35)' },
   langTxt:{ fontFamily:'WorkSans_500Medium', fontSize:10.5, letterSpacing:1, color:C.gold },
-  tagline:{ fontFamily:'Forum_400Regular', fontSize:34, lineHeight:38, color:C.text, marginTop:6 },
+  tagline:{ fontFamily:'WorkSans_600SemiBold', fontSize:34, lineHeight:38, color:C.text, marginTop:6 },
   toggle:{ flexDirection:'row', backgroundColor:C.surface, borderRadius:R.pill,
            padding:4, marginBottom:S.lg },
   tab:{ flex:1, paddingVertical:11, borderRadius:R.pill, alignItems:'center' },

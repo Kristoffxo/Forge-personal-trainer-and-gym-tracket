@@ -165,7 +165,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     alignSelf: 'center', marginBottom: S.md,
   },
   title: {
-    fontFamily: 'Forum_400Regular', fontSize: 21, color: C.text,
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 21, color: C.text,
     textAlign: 'center', paddingHorizontal: S.sm,
   },
   msg: { textAlign: 'center', marginTop: 6, paddingHorizontal: S.sm },

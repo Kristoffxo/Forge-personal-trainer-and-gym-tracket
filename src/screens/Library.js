@@ -16,6 +16,8 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useLang } from '../lang';
+import { Orb } from '../ui/orb';
+import { artForTarget } from '../muscleArt';
 import { SPLIT_TARGETS, TARGETS, buildRoutine, minutesFor } from '../routines';
 import Session from './Session';
 
@@ -104,30 +106,33 @@ export default function Library({ place, user, profile, onBack }) {
       </View>
 
       <FadeIn delay={30} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
-        <Label style={{ marginBottom: S.sm }}>{t('Full sessions')}</Label>
-        {SPLIT_TARGETS.map((tg, i) => (
-          <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.985}
-            style={[styles.card, { borderLeftColor: accent }]}>
-            <Text style={[styles.cardIcon, { color: accent }]}>{tg.icon}</Text>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.cardName}>{t(tg.name)}</Text>
-              <Text style={T.tiny}>{t(tg.sub)}</Text>
-            </View>
-            <Text style={styles.chev}>{'›'}</Text>
-          </Press>
-        ))}
+        <Text style={styles.section}>{t('WORKOUT PLANS')}</Text>
+        {SPLIT_TARGETS.map((tg) => {
+          const c = MUSCLE_C[tg.muscles[0]] || accent;
+          return (
+            <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.98} style={styles.planRow}>
+              <Orb colour={c} size={70} source={artForTarget(tg.key)} />
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                <Text style={styles.planName}>{t(tg.name)}</Text>
+                <Text style={T.tiny}>{t(tg.sub)}</Text>
+              </View>
+            </Press>
+          );
+        })}
       </FadeIn>
 
-      <FadeIn delay={70} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
-        <Label style={{ marginBottom: S.sm }}>{t('One muscle')}</Label>
+      <View style={styles.divider} />
+
+      <FadeIn delay={70} style={{ paddingHorizontal: S.lg }}>
+        <Text style={styles.section}>{t('MUSCLE GROUPS')}</Text>
         <View style={styles.grid}>
           {TARGETS.map((tg) => {
             const c = MUSCLE_C[tg.muscles[0]] || accent;
             return (
               <View key={tg.key} style={styles.tileWrap}>
-                <Press onPress={() => open(tg)} scaleTo={0.96}
-                  style={[styles.tile, { borderColor: c + '55', backgroundColor: c + '12' }]}>
-                  <Text style={[styles.tileIcon, { color: c }]}>{tg.icon}</Text>
+                <Press onPress={() => open(tg)} scaleTo={0.94}
+                  style={{ alignItems: 'center' }}>
+                  <Orb colour={c} size={92} source={artForTarget(tg.key)} />
                   <Text style={styles.tileName}>{t(tg.name)}</Text>
                 </Press>
               </View>
@@ -146,28 +151,26 @@ export default function Library({ place, user, profile, onBack }) {
 const makeStyles = (C, T) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.bg },
   head: { paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.md, backgroundColor: C.surface },
-  title: { fontFamily: 'Forum_400Regular', fontSize: 30, lineHeight: 34, color: C.text, marginTop: 8 },
+  title: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, color: C.text, marginTop: 8 },
 
-  card: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
-    borderRadius: R.md, padding: S.md, marginBottom: 9, borderLeftWidth: 4,
+  section: {
+    fontFamily: 'WorkSans_500Medium', fontSize: 12, letterSpacing: 2,
+    color: C.dim, textTransform: 'uppercase', marginBottom: S.md,
   },
-  cardIcon: { fontSize: 20 },
-  cardName: { fontFamily: 'Forum_400Regular', fontSize: 22, color: C.text },
-  chev: { fontSize: 22, color: C.faint },
+  planRow: { flexDirection: 'row', alignItems: 'center', marginBottom: S.md },
+  planName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 24, color: C.text, letterSpacing: -0.3 },
+  divider: { height: 1, backgroundColor: C.line, marginVertical: S.lg, marginHorizontal: S.lg },
 
   /* Two across, square-ish, with real room. The old three-across
      grid squeezed "Shoulders" into a column narrower than the word. */
-  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -5 },
-  tileWrap: { width: '50%', paddingHorizontal: 5, paddingBottom: 10 },
-  tile: {
-    backgroundColor: C.surface, borderRadius: R.lg,
-    paddingVertical: S.lg, paddingHorizontal: S.md,
-    alignItems: 'center', justifyContent: 'center',
-    minHeight: 104, borderWidth: 1.5,
+  /* three across, like the mockup — the discs carry the meaning so
+     the tiles need no border or background of their own */
+  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 },
+  tileWrap: { width: '33.333%', paddingHorizontal: 6, paddingBottom: S.lg, alignItems: 'center' },
+  tileName: {
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 16, color: C.text,
+    textAlign: 'center', marginTop: 10,
   },
-  tileIcon: { fontSize: 26, marginBottom: 8 },
-  tileName: { fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.text, textAlign: 'center' },
 
   exRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,

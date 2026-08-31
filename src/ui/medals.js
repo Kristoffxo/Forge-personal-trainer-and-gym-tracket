@@ -98,7 +98,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   disc: {
     borderWidth: 2.5, alignItems: 'center', justifyContent: 'center',
   },
-  discNum: { fontFamily: 'Forum_400Regular', lineHeight: 26 },
+  discNum: { fontFamily: 'WorkSans_600SemiBold', lineHeight: 26 },
   discDay: { fontFamily: 'WorkSans_400Regular', fontSize: 9, letterSpacing: 0.5, marginTop: -2 },
 
   pips: { flexDirection: 'row', gap: 3, marginTop: 7 },
@@ -118,9 +118,9 @@ const makeStyles = (C, T) => StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 4, marginBottom: S.sm,
   },
   levelTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 11, letterSpacing: 1 },
-  rankTxt: { fontFamily: 'Forum_400Regular', fontSize: 30, lineHeight: 34, color: C.text },
+  rankTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, color: C.text },
 
   streakRow: { flexDirection: 'row', gap: S.xl, marginTop: S.md },
   streakBit: { alignItems: 'center' },
-  streakNum: { fontFamily: 'Forum_400Regular', fontSize: 30, color: C.text, lineHeight: 34 },
+  streakNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, color: C.text, lineHeight: 34 },
 });

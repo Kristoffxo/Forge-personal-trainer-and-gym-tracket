@@ -160,7 +160,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.bg },
   boot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
   head: { paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.md, backgroundColor: C.surface },
-  title: { fontFamily: 'Forum_400Regular', fontSize: 30, lineHeight: 34, color: C.text, marginTop: 8 },
+  title: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, color: C.text, marginTop: 8 },
 
   rest: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
@@ -181,7 +181,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     borderRadius: R.sm, paddingHorizontal: S.md, paddingVertical: 11, marginBottom: 7,
     borderWidth: 1.5, borderColor: 'transparent',
   },
-  place: { fontFamily: 'Forum_400Regular', fontSize: 18, color: C.dim, width: 26 },
+  place: { fontFamily: 'WorkSans_600SemiBold', fontSize: 18, color: C.dim, width: 26 },
   boardName: { flex: 1, fontFamily: 'WorkSans_500Medium', fontSize: 14.5, color: C.text },
-  boardStreak: { fontFamily: 'Forum_400Regular', fontSize: 20, color: C.text, minWidth: 30, textAlign: 'right' },
+  boardStreak: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20, color: C.text, minWidth: 30, textAlign: 'right' },
 });

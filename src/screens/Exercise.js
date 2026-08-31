@@ -217,7 +217,7 @@ export default function Exercise({ exercise, user, index, total, onDone, onBack 
 
 const makeStyles = (C, T) => StyleSheet.create({
   head: { paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.md, backgroundColor: C.surface },
-  title: { fontFamily: 'Forum_400Regular', fontSize: 30, lineHeight: 35, color: C.text, marginTop: 8 },
+  title: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 35, color: C.text, marginTop: 8 },
   metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   pill: {
     flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: C.line,
@@ -229,13 +229,13 @@ const makeStyles = (C, T) => StyleSheet.create({
   stageLabel: { marginTop: 2 },
 
   cue: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
-  cueNum: { fontFamily: 'Forum_400Regular', fontSize: 17, width: 22 },
+  cueNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, width: 22 },
 
   lastBox: {
     backgroundColor: C.surface, borderRadius: R.md, padding: S.md,
     borderLeftWidth: 4, borderLeftColor: C.gold,
   },
-  lastTxt: { fontFamily: 'Forum_400Regular', fontSize: 24, color: C.text, marginTop: 2, marginBottom: 2 },
+  lastTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 24, color: C.text, marginTop: 2, marginBottom: 2 },
 
   rest: { borderWidth: 1.5, borderRadius: R.pill, paddingHorizontal: 12, paddingVertical: 5 },
   restTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 12.5 },
@@ -245,7 +245,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     borderRadius: R.md, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 8,
     borderWidth: 1.5, borderColor: 'transparent',
   },
-  setNo: { fontFamily: 'Forum_400Regular', fontSize: 19, color: C.dim, width: 20 },
+  setNo: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, color: C.dim, width: 20 },
   field: { flex: 1, flexDirection: 'row', alignItems: 'baseline', marginLeft: 8 },
   input: {
     fontFamily: 'WorkSans_500Medium', fontSize: 19, color: C.text,

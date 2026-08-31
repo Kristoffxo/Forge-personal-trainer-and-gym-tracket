@@ -202,7 +202,7 @@ function Choice({ on, name, sub, onPress }) {
 
 const makeStyles = (C, T) => StyleSheet.create({
   head: { alignItems: 'center', paddingTop: S.xl, paddingHorizontal: S.lg, paddingBottom: S.sm },
-  q: { fontFamily: 'Forum_400Regular', fontSize: 30, lineHeight: 34, color: C.text, marginBottom: 6 },
+  q: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, color: C.text, marginBottom: 6 },
 
   input: {
     backgroundColor: C.surface, borderRadius: R.md, paddingHorizontal: 16, paddingVertical: 15,
@@ -215,14 +215,14 @@ const makeStyles = (C, T) => StyleSheet.create({
     borderRadius: R.md, padding: S.md, marginBottom: 10,
     borderWidth: 1.5, borderColor: C.line,
   },
-  optName: { fontFamily: 'Forum_400Regular', fontSize: 21, color: C.text },
+  optName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 21, color: C.text },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: C.line, marginLeft: S.sm },
 
   result: {
     backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
     alignItems: 'center', borderWidth: 1.5, borderColor: C.gold,
   },
-  big: { fontFamily: 'Forum_400Regular', fontSize: 64, lineHeight: 68, color: C.gold },
+  big: { fontFamily: 'WorkSans_600SemiBold', fontSize: 64, lineHeight: 68, color: C.gold },
   rule: { height: 1, alignSelf: 'stretch', backgroundColor: C.line, marginVertical: S.md },
 
   back: { alignItems: 'center', paddingVertical: 14 },

@@ -544,7 +544,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     borderLeftWidth: 4, borderLeftColor: C.danger },
 
   empty: { alignItems: 'center', paddingTop: S.xxl, paddingHorizontal: S.xl },
-  emptyBig: { fontFamily: 'Forum_400Regular', fontSize: 28, color: C.dim },
+  emptyBig: { fontFamily: 'WorkSans_600SemiBold', fontSize: 28, color: C.dim },
 
   card: { marginTop: S.lg },
   cardHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.lg, marginBottom: S.sm },
@@ -552,7 +552,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     width: 34, height: 34, borderRadius: 17, backgroundColor: C.raised,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.gold,
   },
-  avatarTxt: { fontFamily: 'Forum_400Regular', fontSize: 16, color: C.gold },
+  avatarTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 16, color: C.gold },
   who: { flex: 1, fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.text, marginLeft: 10 },
   dots: { paddingHorizontal: 8, paddingVertical: 4, marginLeft: 4 },
   dotsTxt: { color: C.faint, fontSize: 15, letterSpacing: 1 },
