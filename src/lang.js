@@ -469,6 +469,45 @@ const HI = {
     'Thoda zyada hai. Roz thodi kam calories khao.',
   'Well above the healthy range. Structured coaching matters most here.':
     'Kaafi zyada hai. Yahan sahi guidance sabse zaroori hai.',
+
+  /* ---------- trainer and credits ---------- */
+  'Trainer': 'Trainer',
+  'Ask a real trainer': 'Asli trainer se poocho',
+  'A real trainer answers': 'Jawab ek asli trainer deta hai',
+  'Not a bot, and not a model pretending to be one. A person reads your question and writes back, so give it a few hours.':
+    'Koi bot nahi, koi AI nahi. Ek insaan aapka sawaal padhta hai aur jawab likhta hai, toh thoda waqt lagta hai.',
+  'Your credits': 'Aapke credits',
+  'One credit per line. Ten credits is a ten-line question.':
+    'Ek line ka ek credit. Das credit matlab das line ka sawaal.',
+  'for': 'ke',
+  'Top up': 'Credits lo',
+  'Opening…': 'Khul raha hai…',
+  'Paid securely through Razorpay. Credits arrive on their own.':
+    'Razorpay se safe payment. Credits khud aa jaate hain.',
+  'Payments are not switched on yet — nothing on this screen can charge you.':
+    'Payment abhi chalu nahi hai — is screen se koi paisa nahi katega.',
+  'Payments are not switched on yet': 'Payment abhi chalu nahi hai',
+  'Nothing has been charged. The gateway needs its keys setting on the server first.':
+    'Koi paisa nahi kata. Pehle server pe payment ki keys lagani hongi.',
+  'Payment problem': 'Payment mein dikkat',
+  'Payment received': 'Payment mil gaya',
+  'Your credits are on their way and usually land within a minute. Pull the screen to refresh.':
+    'Aapke credits aa rahe hain, ek minute mein aa jaate hain. Screen kheench ke refresh karo.',
+  'Credits added': 'Credits aa gaye',
+  'You now have': 'Ab aapke paas hain',
+  'credits': 'credits',
+  'credit': 'credit',
+  'Your questions': 'Aapke sawaal',
+  'Nothing yet. Ask anything — form, a plan, an injury, what to eat.':
+    'Abhi kuch nahi. Kuch bhi poocho — form, plan, chot, kya khaana hai.',
+  'Ask the trainer something': 'Trainer se kuch poocho',
+  'Up to': 'Zyada se zyada',
+  'lines': 'line',
+  'Send': 'Bhejo',
+  'Not enough credits': 'Credits kam hain',
+  'That question costs': 'Us sawaal ka kharcha hai',
+  'You have': 'Aapke paas hain',
+  'Could not send': 'Bheja nahi ja saka',
 };
 
 const Ctx = createContext(null);

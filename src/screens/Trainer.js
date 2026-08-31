@@ -18,9 +18,9 @@ import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
-import { PACK, MAX_LINES, costOf, myCredits, loadThread, ask, PAYMENTS_CONNECTED } from '../trainer';
+import { PACK, MAX_LINES, costOf, myCredits, loadThread, ask, payConfig, buy } from '../trainer';
 
-export default function Trainer({ user }) {
+export default function Trainer({ user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -30,11 +30,14 @@ export default function Trainer({ user }) {
   const [thread, setThread] = useState([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pay, setPay] = useState({ enabled: false });
+  const [buying, setBuying] = useState(false);
   const scroller = useRef(null);
 
   const load = useCallback(async () => {
     setCredits(await myCredits(user.id));
     setThread(await loadThread(user.id));
+    setPay(await payConfig());
   }, [user.id]);
 
   useEffect(() => { load(); }, [load]);
@@ -62,10 +65,40 @@ export default function Trainer({ user }) {
     setTimeout(() => scroller.current && scroller.current.scrollToEnd({ animated: true }), 80);
   }
 
-  async function buy() {
+  async function topUp() {
+    if (!pay.enabled) {
+      await sheet.tell({
+        title: t('Payments are not switched on yet'),
+        message: t('Nothing has been charged. The gateway needs its keys setting on the server first.'),
+      });
+      return;
+    }
+
+    setBuying(true);
+    const r = await buy({
+      userId: user.id,
+      name: (profile && profile.full_name) || '',
+      email: user.email,
+    });
+    setBuying(false);
+
+    if (r.cancelled) return;                 // they closed it; say nothing
+    if (r.error === 'off') return;
+    if (r.error) { await sheet.tell({ title: t('Payment problem'), message: r.error }); return; }
+
+    if (r.pending) {
+      await sheet.tell({
+        title: t('Payment received'),
+        message: t('Your credits are on their way and usually land within a minute. Pull the screen to refresh.'),
+      });
+      load();
+      return;
+    }
+
+    setCredits(r.credits);
     await sheet.tell({
-      title: t('Payments are not connected yet'),
-      message: t('Nothing has been charged. Message the trainer to arrange payment and your credits will be added by hand.'),
+      title: t('Credits added'),
+      message: `${t('You now have')} ${r.credits} ${t('credits')}.`,
     });
   }
 
@@ -100,16 +133,17 @@ export default function Trainer({ user }) {
                 {t('One credit per line. Ten credits is a ten-line question.')}
               </Text>
             </View>
-            <Press onPress={buy} scaleTo={0.95} style={styles.buy}>
+            <Press onPress={topUp} disabled={buying} scaleTo={0.95}
+              style={[styles.buy, buying && { opacity: 0.5 }]}>
               <Text style={styles.buyTop}>{PACK.credits} {t('for')} ₹{PACK.rupees}</Text>
-              <Text style={styles.buyBottom}>{t('Top up')}</Text>
+              <Text style={styles.buyBottom}>{buying ? t('Opening…') : t('Top up')}</Text>
             </Press>
           </View>
-          {!PAYMENTS_CONNECTED ? (
-            <Text style={[T.tiny, { marginTop: 6 }]}>
-              {t('Payments are not connected yet — nothing on this screen can charge you.')}
-            </Text>
-          ) : null}
+          <Text style={[T.tiny, { marginTop: 6 }]}>
+            {pay.enabled
+              ? t('Paid securely through Razorpay. Credits arrive on their own.')
+              : t('Payments are not switched on yet — nothing on this screen can charge you.')}
+          </Text>
         </FadeIn>
 
         {/* the conversation */}

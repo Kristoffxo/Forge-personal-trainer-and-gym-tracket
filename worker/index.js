@@ -51,6 +51,27 @@ export default {
       });
     }
 
+    /* ---- payments ---- */
+    if (url.pathname === '/api/pay-config') return payConfig(env);
+
+    if (url.pathname === '/api/create-order') {
+      if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+      return createOrder(request, env).catch((err) => {
+        console.error('create-order failed', err && err.stack);
+        return json({ error: 'failed' }, 500);
+      });
+    }
+
+    if (url.pathname === '/api/razorpay-webhook') {
+      if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+      return razorpayWebhook(request, env).catch((err) => {
+        console.error('webhook failed', err && err.stack);
+        /* 500 makes Razorpay retry, which is what we want if our own
+           side broke — the settle step is safe to repeat. */
+        return json({ error: 'failed' }, 500);
+      });
+    }
+
     if (url.pathname.startsWith('/api/')) return json({ error: 'not_found' }, 404);
     return env.ASSETS.fetch(request);
   },
@@ -112,6 +133,174 @@ async function sendDaily(env) {
 }
 
 /* ---------------------------------------------------------------
+   Payments.
+
+   The rule that shapes all of this: the app is never believed about
+   whether money moved. It can ask for an order, and it can open the
+   checkout, but credits are only ever added by the webhook, after
+   Razorpay's signature over the raw body has been verified here.
+
+   Three secrets:
+     npx wrangler secret put RAZORPAY_KEY_ID
+     npx wrangler secret put RAZORPAY_KEY_SECRET
+     npx wrangler secret put RAZORPAY_WEBHOOK_SECRET
+   --------------------------------------------------------------- */
+
+/* What a pack is. Kept on the server so the price cannot be edited
+   in a browser and then honoured. */
+const PACKS = {
+  p10: { credits: 10, paise: 3900 },     // ten credits, thirty-nine rupees
+};
+
+function payConfig(env) {
+  const on = !!(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET);
+  return json({
+    enabled: on,
+    keyId: on ? env.RAZORPAY_KEY_ID : null,
+    packs: Object.entries(PACKS).map(([id, p]) => ({
+      id, credits: p.credits, rupees: p.paise / 100,
+    })),
+  });
+}
+
+async function createOrder(request, env) {
+  if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
+    return json({ error: 'not_configured' }, 503);
+  }
+
+  const user = await whoIsAsking(request, env);
+  if (!user) return json({ error: 'unauthorised' }, 401);
+
+  let body = {};
+  try { body = await request.json(); } catch (e) { /* defaults below */ }
+  const pack = PACKS[body.pack] || PACKS.p10;
+
+  const auth = btoa(`${env.RAZORPAY_KEY_ID}:${env.RAZORPAY_KEY_SECRET}`);
+  const made = await fetch('https://api.razorpay.com/v1/orders', {
+    method: 'POST',
+    headers: { authorization: 'Basic ' + auth, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      amount: pack.paise,
+      currency: 'INR',
+      receipt: 'nemea-' + user.id.slice(0, 8) + '-' + Date.now(),
+      notes: { user_id: user.id, credits: String(pack.credits) },
+    }),
+  });
+
+  if (!made.ok) {
+    console.error('razorpay refused the order', made.status, await made.text());
+    return json({ error: 'gateway' }, 502);
+  }
+  const order = await made.json();
+
+  /* Record it before handing the id back, so the webhook always has
+     a row to settle even if it arrives before the app returns. */
+  const saved = await fetch(env.SUPABASE_URL + '/rest/v1/payments', {
+    method: 'POST',
+    headers: { ...adminHeaders(env), prefer: 'return=minimal' },
+    body: JSON.stringify({
+      order_id: order.id, user_id: user.id,
+      credits: pack.credits, paise: pack.paise,
+    }),
+  });
+  if (!saved.ok) {
+    console.error('could not record the order', saved.status, await saved.text());
+    return json({ error: 'failed' }, 500);
+  }
+
+  return json({
+    orderId: order.id, amount: pack.paise, currency: 'INR',
+    keyId: env.RAZORPAY_KEY_ID, credits: pack.credits,
+  });
+}
+
+/* ---------------------------------------------------------------
+   The webhook. The only thing that can add credits.
+
+   Razorpay signs the raw body with the webhook secret, so the body
+   is read as text and verified before it is parsed — parsing first
+   and re-serialising would change the bytes and break the check.
+   --------------------------------------------------------------- */
+async function razorpayWebhook(request, env) {
+  const secret = env.RAZORPAY_WEBHOOK_SECRET;
+  if (!secret) return json({ error: 'not_configured' }, 503);
+
+  const raw = await request.text();
+  const sent = request.headers.get('x-razorpay-signature') || '';
+  const ok = await validSignature(raw, sent, secret);
+  if (!ok) {
+    console.error('webhook signature did not match');
+    return json({ error: 'bad_signature' }, 401);
+  }
+
+  const event = JSON.parse(raw);
+  const kind = event && event.event;
+  if (kind !== 'payment.captured' && kind !== 'order.paid') {
+    return json({ ignored: kind });     // 200, so Razorpay stops retrying
+  }
+
+  const payment = event.payload && event.payload.payment && event.payload.payment.entity;
+  const orderId = (payment && payment.order_id)
+    || (event.payload && event.payload.order && event.payload.order.entity
+        && event.payload.order.entity.id);
+  const paymentId = (payment && payment.id) || orderId;
+
+  if (!orderId) return json({ ignored: 'no order id' });
+
+  const settled = await fetch(env.SUPABASE_URL + '/rest/v1/rpc/settle_payment', {
+    method: 'POST',
+    headers: adminHeaders(env),
+    body: JSON.stringify({ p_order: orderId, p_payment: paymentId }),
+  });
+
+  if (!settled.ok) {
+    console.error('settle_payment failed', settled.status, await settled.text());
+    return json({ error: 'failed' }, 500);   // let Razorpay retry
+  }
+
+  const balance = await settled.json();
+  console.log('settled', orderId, 'balance now', balance);
+  return json({ ok: true });
+}
+
+/* Constant-time-ish compare of the HMAC, hex encoded. */
+async function validSignature(raw, sent, secret) {
+  if (!sent) return false;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+  );
+  const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(raw));
+  const hex = [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  if (hex.length !== sent.length) return false;
+  let diff = 0;
+  for (let i = 0; i < hex.length; i++) diff |= hex.charCodeAt(i) ^ sent.charCodeAt(i);
+  return diff === 0;
+}
+
+/* ---------------------------------------------------------------
+   Who is asking.
+
+   The caller proves who they are with their own Supabase access
+   token. The id comes back from Supabase's answer about that token,
+   never from the request body — otherwise anyone could buy credits
+   into somebody else's account, or delete it.
+   --------------------------------------------------------------- */
+async function whoIsAsking(request, env) {
+  const auth = request.headers.get('authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  if (!token || !env.SUPABASE_SERVICE_KEY) return null;
+
+  const who = await fetch(env.SUPABASE_URL + '/auth/v1/user', {
+    headers: { authorization: 'Bearer ' + token, apikey: env.SUPABASE_SERVICE_KEY },
+  });
+  if (!who.ok) return null;
+
+  const user = await who.json();
+  return user && user.id ? user : null;
+}
+
+/* ---------------------------------------------------------------
    Deleting an account.
 
    The caller proves who they are with their own access token, and
@@ -120,17 +309,10 @@ async function sendDaily(env) {
    cascades off auth.users.
    --------------------------------------------------------------- */
 async function deleteAccount(request, env) {
-  const auth = request.headers.get('authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!token) return json({ error: 'unauthorised' }, 401);
   if (!env.SUPABASE_SERVICE_KEY) return json({ error: 'not_configured' }, 503);
 
-  const who = await fetch(env.SUPABASE_URL + '/auth/v1/user', {
-    headers: { authorization: 'Bearer ' + token, apikey: env.SUPABASE_SERVICE_KEY },
-  });
-  if (!who.ok) return json({ error: 'unauthorised' }, 401);
-  const user = await who.json();
-  if (!user || !user.id) return json({ error: 'unauthorised' }, 401);
+  const user = await whoIsAsking(request, env);
+  if (!user) return json({ error: 'unauthorised' }, 401);
 
   // their feed photographs are not covered by the cascade
   await fetch(

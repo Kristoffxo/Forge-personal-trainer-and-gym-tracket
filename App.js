@@ -150,7 +150,7 @@ function Root() {
               ) : tab === 'feed' ? (
                 <Discover user={user} profile={profile} />
               ) : tab === 'trainer' ? (
-                <Trainer user={user} />
+                <Trainer user={user} profile={profile} />
               ) : (
                 <You user={user} profile={profile} onProfile={setProfile} />
               )}

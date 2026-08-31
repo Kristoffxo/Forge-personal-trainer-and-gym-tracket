@@ -57,9 +57,15 @@ export async function loadThread(userId) {
 /* ---------------------------------------------------------------
    Asking.
 
-   Credits come off first. If the message then fails to save they
-   are put back, because taking someone's credit and losing their
-   question is the one outcome that must not happen.
+   The credits and the message move together, in one database
+   function, so the two cannot come apart. Either the question is
+   saved and paid for, or nothing happened at all — there is no
+   window in which someone has been charged for a question that was
+   never stored.
+
+   The price is worked out on the server as well. costOf() below is
+   only so the screen can show what a question will cost before it
+   is sent; it is not what anybody is charged.
    --------------------------------------------------------------- */
 export async function ask(userId, text) {
   const body = String(text || '').trim();
@@ -67,44 +73,114 @@ export async function ask(userId, text) {
 
   const cost = costOf(body);
 
-  const { data: left, error: spend } = await supabase
-    .rpc('spend_credits', { n: cost, why: 'question' });
-
-  if (spend) {
-    if (/not enough/i.test(spend.message)) {
-      return { error: 'notEnough', cost };
-    }
-    if (/schema cache|does not exist/i.test(spend.message)) {
-      return { error: 'The trainer is not set up on the database yet — run supabase-v4.sql.' };
-    }
-    return { error: spend.message };
-  }
-
-  const { data, error } = await supabase
-    .from('messages')
-    .insert({ user_id: userId, sender: 'client', body })
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc('ask_trainer', { p_body: body });
 
   if (error) {
-    // give the credits back rather than losing both
-    await supabase.rpc('spend_credits', { n: -cost, why: 'refund' }).catch(() => {});
-    return { error: 'Could not send that. Your credits are untouched.' };
+    if (/not enough/i.test(error.message)) return { error: 'notEnough', cost };
+    if (/schema cache|does not exist|function/i.test(error.message)) {
+      return { error: 'The trainer is not set up on the database yet — run supabase-v5.sql.' };
+    }
+    return { error: error.message };
   }
 
-  return { message: data, cost, left };
+  return { message: data.message, cost: data.cost, left: data.left };
 }
 
 /* ---------------------------------------------------------------
    Buying.
 
-   Deliberately not implemented. Wiring a real gateway means keys,
-   a webhook that credits the account only after the provider
-   confirms, and a refund path — none of which should be faked with
-   a button that looks like it charges you.
+   The app never tells the server that money moved — it cannot be
+   trusted about that, and neither can anything running in a browser.
+   All it does is ask for an order, open Razorpay's checkout, and
+   then wait for the balance to change. The credits are added by the
+   webhook in worker/index.js, after Razorpay's signature has been
+   verified.
 
-   Until then the honest version is: you pay however you already
-   take money, and grant the credits with
-   `select public.grant_credits('them@example.com', 10, 'paid');`
+   That is why there is a wait at the end of buy(): the payment
+   finishes on the phone a second or two before the webhook reaches
+   us, so the screen watches the balance rather than assuming.
    --------------------------------------------------------------- */
-export const PAYMENTS_CONNECTED = false;
+
+const CHECKOUT_JS = 'https://checkout.razorpay.com/v1/checkout.js';
+
+export async function payConfig() {
+  try {
+    const res = await fetch('/api/pay-config');
+    if (!res.ok) return { enabled: false };
+    return res.json();
+  } catch (e) {
+    return { enabled: false };
+  }
+}
+
+function loadCheckout() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('web only'));
+  if (window.Razorpay) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const tag = document.createElement('script');
+    tag.src = CHECKOUT_JS;
+    tag.onload = () => resolve();
+    tag.onerror = () => reject(new Error('Could not reach the payment page.'));
+    document.head.appendChild(tag);
+  });
+}
+
+async function token() {
+  const { data } = await supabase.auth.getSession();
+  return data && data.session && data.session.access_token;
+}
+
+/* Resolves { credits } once the webhook has landed, or
+   { pending: true } if it is taking longer than it should. */
+export async function buy({ userId, pack = 'p10', name, email }) {
+  const cfg = await payConfig();
+  if (!cfg.enabled) return { error: 'off' };
+
+  try {
+    await loadCheckout();
+  } catch (e) {
+    return { error: e.message };
+  }
+
+  const jwt = await token();
+  if (!jwt) return { error: 'Sign in first.' };
+
+  const made = await fetch('/api/create-order', {
+    method: 'POST',
+    headers: { authorization: 'Bearer ' + jwt, 'content-type': 'application/json' },
+    body: JSON.stringify({ pack }),
+  });
+  if (!made.ok) return { error: 'Could not start the payment. Try again.' };
+  const order = await made.json();
+
+  const before = await myCredits(userId);
+
+  const paid = await new Promise((resolve) => {
+    const rzp = new window.Razorpay({
+      key: order.keyId,
+      amount: order.amount,
+      currency: order.currency,
+      order_id: order.orderId,
+      name: 'Nemea',
+      description: order.credits + ' credits',
+      prefill: { name: name || '', email: email || '' },
+      theme: { color: '#FF6B1A' },
+      handler: () => resolve(true),
+      modal: { ondismiss: () => resolve(false) },
+    });
+    rzp.on('payment.failed', () => resolve(false));
+    rzp.open();
+  });
+
+  if (!paid) return { cancelled: true };
+
+  /* Wait for the webhook. Usually a second; give it fifteen. */
+  for (let i = 0; i < 15; i++) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((r) => setTimeout(r, 1000));
+    // eslint-disable-next-line no-await-in-loop
+    const now = await myCredits(userId);
+    if (now > before) return { credits: now };
+  }
+  return { pending: true };
+}
