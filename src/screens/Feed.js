@@ -27,6 +27,23 @@ import {
   likeCounts, myLikes, setLike,
 } from '../social';
 
+/* The photo's own aspect ratio, clamped. Resolved from the file
+   itself, because posts do not record their dimensions. */
+function useAspect(uri) {
+  const [ratio, setRatio] = useState(1);
+  useEffect(() => {
+    let gone = false;
+    if (!uri) return undefined;
+    Image.getSize(
+      uri,
+      (w, h) => { if (!gone && w && h) setRatio(Math.min(1.25, Math.max(0.62, w / h))); },
+      () => {},
+    );
+    return () => { gone = true; };
+  }, [uri]);
+  return ratio;
+}
+
 export default function Feed({ user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
@@ -172,6 +189,8 @@ function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, o
   const { width } = useWindowDimensions();
   const mine = post.user_id === user.id;
   const side = Math.min(width, 620) - S.lg * 2;
+  const uri = imageUrl(post.image_path);
+  const ratio = useAspect(uri);
 
   return (
     <FadeIn delay={Math.min(index, 6) * 26} from={8} style={styles.card}>
@@ -195,8 +214,11 @@ function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, o
 
       <Press onPress={onOpen} scaleTo={0.995}>
         <Image
-          source={{ uri: imageUrl(post.image_path) }}
-          style={{ width: side, height: side, backgroundColor: C.raised }}
+          source={{ uri }}
+          style={{
+            width: side, height: Math.round(side / ratio),
+            backgroundColor: C.raised, borderRadius: R.md,
+          }}
           resizeMode="cover"
         />
       </Press>
@@ -332,7 +354,11 @@ function Compose({ user, profile, alreadyPosted, onCancel, onDone }) {
             <Press onPress={() => choose(false)} scaleTo={0.99}>
               <Image
                 source={{ uri: photo.uri }}
-                style={{ width: side, height: side, borderRadius: R.md, backgroundColor: C.raised }}
+                style={{
+                  width: side,
+                  height: Math.round(side / Math.min(1.25, Math.max(0.62, photo.width / photo.height))),
+                  borderRadius: R.md, backgroundColor: C.raised,
+                }}
                 resizeMode="cover"
               />
               <Text style={[T.tiny, { textAlign: 'center', marginTop: 8 }]}>
@@ -407,6 +433,8 @@ function PostView({ post, user, profile, onBack }) {
   const scroller = useRef(null);
 
   const side = Math.min(width, 620) - S.lg * 2;
+  const postUri = imageUrl(post.image_path);
+  const ratio = useAspect(postUri);
   const myName = firstNameOf(profile && profile.full_name);
 
   const load = useCallback(() => { loadComments(post.id).then(setList); }, [post.id]);
@@ -472,8 +500,11 @@ function PostView({ post, user, profile, onBack }) {
         keyboardShouldPersistTaps="handled"
       >
         <Image
-          source={{ uri: imageUrl(post.image_path) }}
-          style={{ width: side, height: side, borderRadius: R.md, backgroundColor: C.raised }}
+          source={{ uri: postUri }}
+          style={{
+            width: side, height: Math.round(side / ratio),
+            borderRadius: R.md, backgroundColor: C.raised,
+          }}
           resizeMode="cover"
         />
 

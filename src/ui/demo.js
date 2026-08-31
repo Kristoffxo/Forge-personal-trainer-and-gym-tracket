@@ -10,7 +10,7 @@
    the database has no photo for falls back to a still of the muscle
    being trained, so the screen is never empty.
    --------------------------------------------------------------- */
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Image, Animated, Easing, StyleSheet } from 'react-native';
 import { useTheme, R } from '../theme';
 import { framesFor } from '../exercisePhotos';
@@ -20,7 +20,6 @@ export function Demo({ exercise, playing = true, height = 240, style }) {
   const { C } = useTheme();
   const frames = framesFor(exercise);
   const fade = useRef(new Animated.Value(0)).current;
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!frames || frames.length < 2 || !playing) {
@@ -59,13 +58,11 @@ export function Demo({ exercise, playing = true, height = 240, style }) {
 
   return (
     <View style={box}>
-      <Image source={frames[0]} style={styles.fill} resizeMode="cover"
-        onLoad={() => setReady(true)} />
+      <Image source={frames[0]} style={styles.fill} resizeMode="cover" />
       {frames[1] ? (
         <Animated.Image source={frames[1]} style={[styles.fill, { opacity: fade }]}
           resizeMode="cover" />
       ) : null}
-      {!ready ? <View style={[styles.fill, { backgroundColor: C.raised }]} /> : null}
     </View>
   );
 }

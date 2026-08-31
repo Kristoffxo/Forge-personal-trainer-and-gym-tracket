@@ -10,18 +10,21 @@
    came from.
    --------------------------------------------------------------- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image, TextInput,
+         Platform, KeyboardAvoidingView, useWindowDimensions } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, FadeIn, Bar } from '../ui/kit';
+import { Btn, Press, FadeIn, Bar, Label } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { markWorkout } from '../challenge';
 import { framesFor } from '../exercisePhotos';
 import { photoForMuscle } from '../photos';
+import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
+import { createPost, postedToday, firstNameOf } from '../social';
 import Exercise from './Exercise';
 
-export default function Session({ title, exercises, user, kind, name, onExit }) {
+export default function Session({ title, exercises, user, profile, kind, name, onExit }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -29,18 +32,25 @@ export default function Session({ title, exercises, user, kind, name, onExit }) 
 
   const [done, setDone] = useState({});
   const [openIdx, setOpenIdx] = useState(0);
+  const [finished, setFinished] = useState(false);
 
   const total = exercises.length;
   const ticked = Object.keys(done).filter((k) => done[k]).length;
   const allDone = ticked === total && total > 0;
   const nextIdx = exercises.findIndex((_, i) => !done[i]);
 
+  if (finished) {
+    return (
+      <Finished title={title} count={ticked} user={user} profile={profile}
+        onExit={() => onExit(true)} />
+    );
+  }
+
   /* one move, full screen */
   if (openIdx !== null && exercises[openIdx]) {
     return (
       <Exercise
         exercise={exercises[openIdx]}
-        user={user}
         index={openIdx}
         total={total}
         onBack={() => setOpenIdx(null)}
@@ -64,8 +74,12 @@ export default function Session({ title, exercises, user, kind, name, onExit }) 
       if (!stop) return;
     }
     // anything ticked counts as having trained today
-    if (ticked > 0) await markWorkout(user.id, kind, name || title);
-    onExit(ticked > 0);
+    if (ticked > 0) {
+      await markWorkout(user.id, kind, name || title);
+      setFinished(true);      // ask for the photo before letting go
+      return;
+    }
+    onExit(false);
   }
 
   return (
@@ -134,8 +148,127 @@ export default function Session({ title, exercises, user, kind, name, onExit }) 
   );
 }
 
+/* ---------------------------------------------------------------
+   Done.
+
+   The moment right after a workout is the only moment anybody
+   actually wants to post — so that is where the feed asks. One tap
+   to the camera, one to publish, and "Not now" is the same size as
+   the other button.
+   --------------------------------------------------------------- */
+function Finished({ title, count, user, profile, onExit }) {
+  const { C, T } = useTheme();
+  const { t } = useLang();
+  const styles = makeStyles(C, T);
+  const sheet = useSheet();
+  const { width } = useWindowDimensions();
+
+  const [photo, setPhoto] = useState(null);
+  const [caption, setCaption] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [already, setAlready] = useState(null);
+
+  const side = Math.min(width, 620) - S.lg * 2;
+  const who = firstNameOf(profile && profile.full_name);
+
+  React.useEffect(() => { postedToday(user.id).then(setAlready); }, [user.id]);
+
+  async function choose() {
+    try {
+      const p = await pickPhoto({ camera: true });
+      if (p) setPhoto(p);
+    } catch (e) {
+      await sheet.tell({ title: t('Cannot open the camera'), message: e.message });
+    }
+  }
+
+  async function share() {
+    setBusy(true);
+    const r = await createPost({ userId: user.id, name: who, blob: photo.blob, caption });
+    setBusy(false);
+    if (r.error) { await sheet.tell({ title: t('Could not post'), message: r.error }); return; }
+    onExit();
+  }
+
+  return (
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.bg }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: 60 }}
+        keyboardShouldPersistTaps="handled">
+        <FadeIn>
+          <Text style={styles.bigDone}>{t('Workout done')}</Text>
+          <Text style={[T.small, { marginTop: 4 }]}>
+            {t(title)} · {count} {count === 1 ? t('exercise') : t('exercises')}
+          </Text>
+        </FadeIn>
+
+        {already === false ? (
+          <FadeIn delay={60} style={{ marginTop: S.xl }}>
+            {photo ? (
+              <>
+                <Press onPress={choose} scaleTo={0.99}>
+                  <Image source={{ uri: photo.uri }}
+                    style={{
+                      width: side,
+                      height: Math.round(side / Math.min(1.25, Math.max(0.62, photo.width / photo.height))),
+                      borderRadius: R.md, backgroundColor: C.raised,
+                    }}
+                    resizeMode="cover" />
+                </Press>
+                <Label style={{ marginTop: S.lg, marginBottom: 8 }}>{t('Caption')}</Label>
+                <TextInput
+                  value={caption} onChangeText={setCaption}
+                  placeholder={t('Say something (optional)')}
+                  placeholderTextColor={C.faint}
+                  multiline maxLength={300}
+                  style={styles.input}
+                />
+                <Btn label={t('Post to Discover')} color={C.gold} busy={busy}
+                  onPress={share} style={{ marginTop: S.lg }} />
+              </>
+            ) : (
+              <Press onPress={choose} scaleTo={0.98} style={styles.invite}>
+                <Text style={styles.inviteIcon}>{'◎'}</Text>
+                <Text style={styles.inviteTitle}>{t('Upload a picture')}</Text>
+                <Text style={[T.small, { textAlign: 'center', marginTop: 4 }]}>
+                  {t('Put it on Discover so everyone can see you turned up.')}
+                </Text>
+                {!CAN_TAKE_PHOTOS ? (
+                  <Text style={[T.tiny, { marginTop: 8 }]}>
+                    {t('Photos need the web app for now.')}
+                  </Text>
+                ) : null}
+              </Press>
+            )}
+          </FadeIn>
+        ) : already === true ? (
+          <FadeIn delay={60} style={{ marginTop: S.xl }}>
+            <Text style={T.small}>{t('You have already posted today. One a day.')}</Text>
+          </FadeIn>
+        ) : null}
+
+        <Btn label={photo ? t('Skip') : t('Not now')} dark color={C.dim}
+          onPress={onExit} style={{ marginTop: S.lg }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
 const makeStyles = (C, T) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.bg },
+  bigDone: { fontFamily: 'WorkSans_600SemiBold', fontSize: 34, letterSpacing: -0.7, color: C.text },
+  invite: {
+    alignItems: 'center', paddingVertical: S.xxl, paddingHorizontal: S.lg,
+    borderRadius: R.lg, borderWidth: 1.5, borderStyle: 'dashed',
+    borderColor: C.gold, backgroundColor: 'rgba(201,154,62,0.07)',
+  },
+  inviteIcon: { fontSize: 34, color: C.gold, marginBottom: 10 },
+  inviteTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, color: C.text },
+  input: {
+    backgroundColor: C.surface, borderRadius: R.md, paddingHorizontal: 16, paddingVertical: 14,
+    fontFamily: 'WorkSans_400Regular', fontSize: 15.5, color: C.text,
+    borderWidth: 1, borderColor: C.line, minHeight: 84, textAlignVertical: 'top',
+  },
   top: { paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.lg, backgroundColor: C.surface },
   big: { fontFamily: 'WorkSans_600SemiBold', fontSize: 36, color: C.text, marginTop: 6 },
   exRow: {

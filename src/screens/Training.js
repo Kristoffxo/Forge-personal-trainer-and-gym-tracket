@@ -26,7 +26,7 @@ import Session from './Session';
 const PER = [3, 4, 5, 6, 7, 8];
 const KITS = ['Full gym', 'None'];
 
-export default function Training({ user, onBack }) {
+export default function Training({ user, profile, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -88,6 +88,7 @@ export default function Training({ user, onBack }) {
         title={day.title}
         exercises={day.exercises}
         user={user}
+        profile={profile}
         kind="planner"
         name={day.title}
         onExit={() => { setRunning(false); setDone({}); setOpenIdx(null); }}

@@ -39,6 +39,7 @@ export default function Library({ place, user, profile, onBack }) {
         title={picked.name}
         exercises={picked.exercises}
         user={user}
+        profile={profile}
         kind={place}
         name={picked.name}
         onExit={() => { setRunning(false); setPicked(null); }}

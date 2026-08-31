@@ -64,7 +64,7 @@ export default function Train({ user, profile }) {
 
   useEffect(() => { load(); }, [load, open]);
 
-  if (open === 'planner') return <Planner user={user} onBack={() => setOpen(null)} />;
+  if (open === 'planner') return <Planner user={user} profile={profile} onBack={() => setOpen(null)} />;
   if (open === 'gym') {
     return <Library place="gym" user={user} profile={profile} onBack={() => setOpen(null)} />;
   }
