@@ -23,6 +23,7 @@ import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import {
   loadFeed, createPost, deletePost, loadComments, addComment, deleteComment,
   report, blockUser, imageUrl, firstNameOf, ago, postedToday,
+  likeCounts, myLikes, setLike,
 } from '../social';
 
 export default function Feed({ user, profile }) {
@@ -37,6 +38,8 @@ export default function Feed({ user, profile }) {
   const [more, setMore] = useState(false);
   const [open, setOpen] = useState(null);          // the post being read
   const [posted, setPosted] = useState(false);     // already posted today
+  const [likes, setLikes] = useState({});          // post id -> how many
+  const [mine, setMine] = useState(new Set());     // which ones I liked
 
   const load = useCallback(async () => {
     const r = await loadFeed();
@@ -46,7 +49,22 @@ export default function Feed({ user, profile }) {
     setCounts(r.counts);
     setMore(r.posts.length >= 12);
     setPosted(await postedToday(user.id));
+
+    const ids = r.posts.map((p) => p.id);
+    setLikes(await likeCounts(ids));
+    setMine(await myLikes(user.id, ids));
   }, [user.id]);
+
+  /* Optimistic: the number moves the instant you tap. A like that
+     fails to save is not worth a spinner. */
+  async function toggleLike(post) {
+    const on = !mine.has(post.id);
+    const next = new Set(mine);
+    if (on) next.add(post.id); else next.delete(post.id);
+    setMine(next);
+    setLikes({ ...likes, [post.id]: Math.max(0, (likes[post.id] || 0) + (on ? 1 : -1)) });
+    await setLike(post.id, user.id, on);
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -118,6 +136,9 @@ export default function Feed({ user, profile }) {
           <PostCard
             key={p.id} post={p} index={i} user={user}
             comments={counts[p.id] || 0}
+            likes={likes[p.id] || 0}
+            liked={mine.has(p.id)}
+            onLike={() => toggleLike(p)}
             onOpen={() => { setOpen(p); setView('post'); }}
             onChanged={load}
           />
@@ -136,7 +157,7 @@ export default function Feed({ user, profile }) {
 /* ---------------------------------------------------------------
    One post in the list
    --------------------------------------------------------------- */
-function PostCard({ post, index, user, comments, onOpen, onChanged }) {
+function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, onChanged }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -170,19 +191,32 @@ function PostCard({ post, index, user, comments, onOpen, onChanged }) {
         />
       </Press>
 
+      <View style={styles.actions}>
+        <Press onPress={onLike} scaleTo={0.86} style={styles.likeBtn}>
+          <Text style={[styles.heart, liked && { color: C.ember }]}>
+            {liked ? '♥' : '♡'}
+          </Text>
+          <Text style={[T.small, liked && { color: C.ember }]}>
+            {likes === 0 ? t('Like')
+              : likes === 1 ? t('1 person liked this')
+                : likes + ' ' + t('people liked this')}
+          </Text>
+        </Press>
+
+        <Press onPress={onOpen} scaleTo={0.94} style={{ paddingVertical: 6 }}>
+          <Text style={[T.small, { color: C.gold }]}>
+            {comments === 0 ? t('Add a comment')
+              : comments + ' ' + t('comments')}
+          </Text>
+        </Press>
+      </View>
+
       {post.caption ? (
         <Text style={styles.caption}>
           <Text style={styles.captionWho}>{firstNameOf(post.name)} </Text>
           {post.caption}
         </Text>
       ) : null}
-
-      <Press onPress={onOpen} scaleTo={0.98} style={styles.commentBar}>
-        <Text style={[T.small, { color: C.gold }]}>
-          {comments === 0 ? t('Add a comment')
-            : comments + ' ' + t('comments')}
-        </Text>
-      </Press>
     </FadeIn>
   );
 }
@@ -517,7 +551,12 @@ const makeStyles = (C, T) => StyleSheet.create({
     color: C.text, paddingHorizontal: S.lg, marginTop: S.sm },
   captionWho: { fontFamily: 'WorkSans_500Medium' },
 
-  commentBar: { paddingHorizontal: S.lg, paddingTop: S.sm, paddingBottom: 2 },
+  actions: {
+    flexDirection: 'row', alignItems: 'center', gap: S.lg,
+    paddingHorizontal: S.lg, paddingTop: S.sm,
+  },
+  likeBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
+  heart: { fontSize: 19, color: C.faint, marginRight: 7 },
 
   moreBtn: { alignSelf: 'center', marginTop: S.xl, paddingVertical: 12, paddingHorizontal: 26,
     borderRadius: R.pill, borderWidth: 1.5, borderColor: C.line },

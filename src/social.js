@@ -175,6 +175,42 @@ export async function blockUser({ blockerId, blockedId }) {
 }
 
 /* ---------------------------------------------------------------
+   Likes, which nobody can trace.
+
+   The database lets you read your own like and nobody else's, so
+   the app can never learn who liked a post even if it wanted to.
+   Totals come from a security-definer function that returns counts
+   and no identities at all.
+   --------------------------------------------------------------- */
+export async function likeCounts(ids) {
+  if (!ids || !ids.length) return {};
+  const { data, error } = await supabase.rpc('like_counts', { ids });
+  if (error) return {};
+  const out = {};
+  (data || []).forEach((r) => { out[r.post_id] = Number(r.n) || 0; });
+  return out;
+}
+
+/* Which of these did I like? Only ever my own rows come back. */
+export async function myLikes(userId, ids) {
+  if (!ids || !ids.length) return new Set();
+  const { data, error } = await supabase
+    .from('likes').select('post_id').eq('user_id', userId).in('post_id', ids);
+  return error ? new Set() : new Set((data || []).map((r) => r.post_id));
+}
+
+export async function setLike(postId, userId, on) {
+  if (on) {
+    const { error } = await supabase.from('likes').insert({ post_id: postId, user_id: userId });
+    // already liked is not a failure
+    return !error || String(error.message).includes('duplicate');
+  }
+  const { error } = await supabase
+    .from('likes').delete().eq('post_id', postId).eq('user_id', userId);
+  return !error;
+}
+
+/* ---------------------------------------------------------------
    Moderation, for whoever runs the app.
 
    `is_admin` on the profile is what unlocks this; the database

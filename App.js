@@ -18,9 +18,10 @@ import { useWebChrome } from './src/webChrome';
 import Auth     from './src/screens/Auth';
 import Food     from './src/screens/Food';
 import AddFood  from './src/screens/AddFood';
-import Training from './src/screens/Training';
-import Feed     from './src/screens/Feed';
+import Train    from './src/screens/Train';
+import Discover from './src/screens/Feed';
 import You      from './src/screens/You';
+import Onboarding from './src/screens/Onboarding';
 
 /* Four tabs, in the order they are used. Train is first because it
    is what most days open the app for; You holds the things you set
@@ -30,8 +31,8 @@ const TABS = [
     title:'Train',           sub:'Today’s workout' },
   { key:'food',  label:'Food',  icon:'◍', colorKey:'amber',
     title:'Food',            sub:'What you ate today' },
-  { key:'feed',  label:'Feed',  icon:'◈', colorKey:'gold',
-    title:'Feed',            sub:'See how everyone is doing' },
+  { key:'feed',  label:'Discover', icon:'◈', colorKey:'gold',
+    title:'Discover',        sub:'See how everyone is doing' },
   { key:'you',   label:'You',   icon:'✦', colorKey:'violet',
     title:'You',             sub:'Your streak and your numbers' },
 ];
@@ -105,6 +106,18 @@ function Root() {
   }
 
   const user = session.user;
+
+  if (profile && !profile.onboarded) {
+    return (
+      <>
+        <StatusBar style={mode === 'light' ? 'dark' : 'light'} />
+        <SafeAreaView style={styles.wrap} edges={EDGES_TOP}>
+          <Onboarding profile={profile} onDone={(p) => setProfile(p || { ...profile, onboarded: true })} />
+        </SafeAreaView>
+      </>
+    );
+  }
+
   const tabW = width / TABS.length;
   const current = TABS.find((x) => x.key === tab) || TABS[0];
   const accent = C[current.colorKey] || C.ember;
@@ -127,12 +140,12 @@ function Root() {
 
             <View style={{ flex:1 }}>
               {tab === 'train' ? (
-                <Training user={user} />
+                <Train user={user} profile={profile} />
               ) : tab === 'food' ? (
                 <Food user={user} profile={profile} refreshKey={refreshKey}
                       onAdd={(meal) => setAdding(meal)} />
               ) : tab === 'feed' ? (
-                <Feed user={user} profile={profile} />
+                <Discover user={user} profile={profile} />
               ) : (
                 <You user={user} profile={profile} onProfile={setProfile} />
               )}

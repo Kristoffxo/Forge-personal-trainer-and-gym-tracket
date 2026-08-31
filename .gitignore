@@ -42,3 +42,6 @@ yarn-error.*
 
 # local backups
 *.bak
+
+# push keys — the private half must not be committed
+brand/vapid.txt

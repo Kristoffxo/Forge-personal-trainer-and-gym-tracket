@@ -1,13 +1,22 @@
 {
-  // Deploys the exported web app to Cloudflare as a static-assets Worker.
+  // Deploys the exported web app, with a Worker in front of it that
+  // does one thing: send the six o'clock notification.
   //
   //   npm run build:web    writes web-build/
   //   npx wrangler deploy  uploads it
   //
-  // The build below runs first, so a plain `npx wrangler deploy` is enough
-  // both here and on Cloudflare's own builder.
+  // Before the notification will send, two secrets:
+  //
+  //   npx wrangler secret put VAPID_PRIVATE_JWK      (see brand/vapid.txt)
+  //   npx wrangler secret put SUPABASE_SERVICE_KEY   (Supabase -> Settings -> API)
+  //
+  // Optional, for testing it without waiting until six:
+  //   npx wrangler secret put ADMIN_KEY
+  //   curl -X POST -H "x-admin-key: <that key>" \
+  //        https://nemea.thearyanbasantani.workers.dev/api/send-daily
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nemea",
+  "main": "worker/index.js",
   "compatibility_date": "2026-08-29",
 
   "build": {
@@ -16,8 +25,27 @@
 
   "assets": {
     "directory": "./web-build",
+    // The Worker serves anything it does not handle itself.
+    "binding": "ASSETS",
     // One page, so anything that is not a real file falls back to it.
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // Without this the asset router answers /api/* with index.html
+    // and the Worker never runs.
+    "run_worker_first": ["/api/*"]
+  },
+
+  // 12:30 UTC is 18:00 in India. Cloudflare crons are UTC only.
+  "triggers": {
+    "crons": ["30 12 * * *"]
+  },
+
+  "vars": {
+    // Not secrets. The Supabase URL is in the client bundle already,
+    // and the VAPID public key is handed to every browser that
+    // subscribes — it is only useful next to the private half.
+    "SUPABASE_URL": "https://emzuykgqysezhlscmlhv.supabase.co",
+    "VAPID_PUBLIC": "BHWdjEaZBWDvdCYcNCyAzRY8Uah78rVKfCA7vEnCbaO3elsxXpyUPN5YQG2k-277M1OxDCe8KERaZaThruSu6e8",
+    "VAPID_SUBJECT": "mailto:thearyanbasantani@gmail.com"
   },
 
   "observability": {

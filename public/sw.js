@@ -116,3 +116,74 @@ self.addEventListener('fetch', (event) => {
     })()
   );
 });
+
+/* ---------------------------------------------------------------
+   The six o'clock quote.
+
+   The push arrives with no payload at all — the server only says
+   "wake up". The worker picks the line itself from the list below,
+   keyed on the date, so everybody gets the same quote on the same
+   evening and nothing personal ever travels over the wire.
+
+   Keep this list in step with src/quotes.js.
+   --------------------------------------------------------------- */
+const DAILY = [
+  ['It is a shame for a man to grow old without seeing the beauty and strength of which his body is capable.', 'Socrates'],
+  ['The first wealth is health.', 'Ralph Waldo Emerson'],
+  ['Difficulties strengthen the mind, as labour does the body.', 'Seneca'],
+  ['The impediment to action advances action. What stands in the way becomes the way.', 'Marcus Aurelius'],
+  ['You have power over your mind \u2014 not outside events. Realise this, and you will find strength.', 'Marcus Aurelius'],
+  ['Waste no more time arguing what a good man should be. Be one.', 'Marcus Aurelius'],
+  ['First say to yourself what you would be; and then do what you have to do.', 'Epictetus'],
+  ['No man is free who is not master of himself.', 'Epictetus'],
+  ['Well-being is realised by small steps, but is truly no small thing.', 'Zeno of Citium'],
+  ['Walking is man\u2019s best medicine.', 'Hippocrates'],
+  ['A sound mind in a sound body.', 'Juvenal'],
+  ['The greatest wealth is health.', 'Virgil'],
+  ['A feeble body weakens the mind.', 'Jean-Jacques Rousseau'],
+  ['He who has a why to live can bear almost any how.', 'Friedrich Nietzsche'],
+  ['That which does not kill us makes us stronger.', 'Friedrich Nietzsche'],
+  ['We are what we repeatedly do. Excellence, then, is not an act, but a habit.', 'Will Durant'],
+  ['The body is the servant of the mind.', 'James Allen'],
+  ['Begin at once to live, and count each separate day as a separate life.', 'Seneca'],
+  ['It is not that we have a short time to live, but that we waste much of it.', 'Seneca'],
+  ['The wish for healing has always been half of health.', 'Seneca'],
+  ['No man has the right to be an amateur in the matter of physical training.', 'Socrates'],
+  ['Know thyself.', 'Inscription at Delphi'],
+  ['The unexamined life is not worth living.', 'Socrates'],
+  ['Happiness is the highest good, and it is an activity of the soul.', 'Aristotle'],
+  ['Patience is bitter, but its fruit is sweet.', 'Aristotle'],
+  ['Energy and persistence conquer all things.', 'Benjamin Franklin'],
+  ['To keep the body in good health is a duty, for otherwise we shall not be able to keep our mind strong and clear.', 'The Buddha'],
+  ['Health is the greatest gift, contentment the greatest wealth.', 'The Buddha'],
+];
+
+function quoteToday() {
+  const n = Math.floor(Date.now() / 86400000);
+  return DAILY[((n % DAILY.length) + DAILY.length) % DAILY.length];
+}
+
+self.addEventListener('push', (event) => {
+  const [line, who] = quoteToday();
+  event.waitUntil(
+    self.registration.showNotification('Nemea', {
+      body: line + '\n\u2014 ' + who,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-96.png',
+      tag: 'nemea-daily',
+      renotify: false,
+      data: { url: '/' },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of all) {
+      if (c.url.includes(self.location.origin)) return c.focus();
+    }
+    return self.clients.openWindow('/');
+  })());
+});

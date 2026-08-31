@@ -7,6 +7,9 @@ import { getProfile, saveProfile, signOut } from '../auth';
 import { num, int } from '../num';
 import { quoteOfDay } from '../quotes';
 import { useLang } from '../lang';
+import { useSheet } from '../ui/sheet';
+import * as push from '../push';
+import { quoteForDate } from '../quotes';
 
 const BANDS = [
   { max:18.5, label:'Underweight', color:'#5C9BE8',
@@ -22,6 +25,19 @@ const BANDS = [
 export default function Tools({ user, profile, onProfile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
+  const sheet = useSheet();
+  const [notifOn, setNotifOn] = useState(false);
+  const [notifBusy, setNotifBusy] = useState(false);
+
+  useEffect(() => { push.isOn().then(setNotifOn); }, []);
+
+  async function toggleNotif() {
+    setNotifBusy(true);
+    const r = notifOn ? await push.disable(user.id) : await push.enable(user.id);
+    setNotifBusy(false);
+    if (r.error) { await sheet.tell({ title: t('Not switched on'), message: r.error }); return; }
+    setNotifOn(await push.isOn());
+  }
   const styles = makeStyles(C, T);
   const [cm, setCm] = useState(profile?.height_cm ? String(profile.height_cm) : '');
   const [kg, setKg] = useState(profile?.weight_kg ? String(profile.weight_kg) : '');
@@ -126,6 +142,26 @@ export default function Tools({ user, profile, onProfile }) {
             <Label style={{ marginTop:S.sm }}>{q[1]}</Label>
           </View>
         </ImageBackground>
+      </FadeIn>
+
+      {/* ---- the six o'clock line ---- */}
+      <FadeIn delay={180} style={{ paddingHorizontal:S.lg, marginBottom:S.lg }}>
+        <Card color={C.gold}>
+          <Label>{t('Daily reminder')}</Label>
+          <Text style={[T.small, { marginTop:4 }]}>
+            {t('One line from a philosopher, every evening at six.')}
+          </Text>
+          <Btn
+            label={notifOn ? t('Turn off the 6pm reminder') : t('Send me the 6pm reminder')}
+            color={notifOn ? C.dim : C.gold} dark={notifOn}
+            busy={notifBusy} onPress={toggleNotif}
+            style={{ marginTop:S.md }} />
+          {notifOn ? (
+            <Text style={[T.tiny, { marginTop:S.sm }]}>
+              {t('Tonight')}: “{quoteForDate()[0]}” — {quoteForDate()[1]}
+            </Text>
+          ) : null}
+        </Card>
       </FadeIn>
 
       {/* ---- account ---- */}

@@ -21,12 +21,12 @@ import { useLang } from '../lang';
 import { SPLITS, DAY_NAMES, buildWeek, todayIndex, dayTitle } from '../planner';
 import { MUSCLES } from '../exercises';
 import { supabase } from '../supabase';
-import Exercise from './Exercise';
+import Session from './Session';
 
 const PER = [3, 4, 5, 6, 7, 8];
 const KITS = ['Full gym', 'None'];
 
-export default function Training({ user }) {
+export default function Training({ user, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -71,6 +71,7 @@ export default function Training({ user }) {
         custom={custom} setCustom={setCustom}
         onSave={savePlan}
         onCancel={plan ? () => setEditing(false) : null}
+        onBack={onBack}
       />
     );
   }
@@ -80,44 +81,16 @@ export default function Training({ user }) {
   const day = week[viewDay];
   const isToday = viewDay === todayIndex();
 
-  /* ---------- one move, full screen ---------- */
-  if (running && openIdx !== null && day.exercises[openIdx]) {
-    return (
-      <Exercise
-        exercise={day.exercises[openIdx]}
-        user={user}
-        index={openIdx}
-        total={day.exercises.length}
-        onBack={() => setOpenIdx(null)}
-        onDone={() => {
-          const next = { ...done, [openIdx]: true };
-          setDone(next);
-          // straight on to the next one you have not finished
-          const following = day.exercises.findIndex((_, i) => !next[i]);
-          setOpenIdx(following === -1 ? null : following);
-        }}
-      />
-    );
-  }
-
-  /* ---------- the workout ---------- */
+  /* ---------- doing it ---------- */
   if (running) {
     return (
-      <Workout
-        day={day} done={done}
-        onOpen={setOpenIdx}
-        onFinish={async () => {
-          const ticked = Object.keys(done).filter((k) => done[k]).length;
-          if (ticked < day.exercises.length) {
-            const stop = await sheet.confirm({
-              title: t('Finish early?'),
-              message: `${day.exercises.length - ticked} ${t('moves still to go.')}`,
-              confirmLabel: t('Finish anyway'),
-            });
-            if (!stop) return;
-          }
-          setRunning(false); setDone({}); setOpenIdx(null);
-        }}
+      <Session
+        title={day.title}
+        exercises={day.exercises}
+        user={user}
+        kind="planner"
+        name={day.title}
+        onExit={() => { setRunning(false); setDone({}); setOpenIdx(null); }}
       />
     );
   }
@@ -127,6 +100,13 @@ export default function Training({ user }) {
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+      {onBack ? (
+        <Press onPress={onBack} hitSlop={12} scaleTo={0.94}
+          style={{ alignSelf: 'flex-start', paddingHorizontal: S.lg, paddingTop: S.md }}>
+          <Text style={[T.small, { color: C.ember }]}>{'←'} {t('Train')}</Text>
+        </Press>
+      ) : null}
+
       {/* today, front and centre */}
       <FadeIn style={{ padding: S.lg, paddingBottom: 0 }}>
         <View style={styles.todayCard}>
@@ -259,82 +239,10 @@ export default function Training({ user }) {
 }
 
 /* ---------------------------------------------------------------
-   Doing the workout. A list, and one of them is next.
-   --------------------------------------------------------------- */
-function Workout({ day, done, onOpen, onFinish }) {
-  const { C, T, MUSCLE_C } = useTheme();
-  const { t } = useLang();
-  const styles = makeStyles(C, T);
-
-  const total = day.exercises.length;
-  const ticked = Object.keys(done).filter((k) => done[k]).length;
-  const allDone = ticked === total && total > 0;
-  const nextIdx = day.exercises.findIndex((_, i) => !done[i]);
-
-  return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
-      <View style={styles.workTop}>
-        <Text style={styles.workBig}>{t(day.title)}</Text>
-        <Text style={[T.small, { marginTop: 2 }]}>{total} {t('mein se')} {ticked} {t('done')}</Text>
-        <Bar value={ticked} max={total} color={allDone ? C.lime : C.ember}
-          height={7} style={{ marginTop: S.md }} />
-      </View>
-
-      <View style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
-        {day.exercises.map((x, i) => {
-          const on = !!done[i];
-          const isNext = i === nextIdx;
-          return (
-            <FadeIn key={x.n + i} delay={i * 18} from={6}>
-              <Press
-                scaleTo={0.985}
-                onPress={() => onOpen(i)}
-                style={[
-                  styles.exRow,
-                  on && { opacity: 0.5, borderColor: C.lime, borderWidth: 1.5 },
-                  isNext && { borderColor: MUSCLE_C[x.m], borderWidth: 1.5 },
-                ]}
-              >
-                <View style={[styles.check,
-                  { backgroundColor: on ? C.lime : 'transparent',
-                    borderColor: on ? C.lime : MUSCLE_C[x.m] }]}>
-                  {on ? <Text style={styles.checkMark}>{'✓'}</Text>
-                    : <Text style={[styles.exNumTxt, { color: MUSCLE_C[x.m] }]}>{i + 1}</Text>}
-                </View>
-
-                <View style={{ flex: 1, marginHorizontal: 12 }}>
-                  <Text style={[styles.exName, on && { textDecorationLine: 'line-through' }]}>
-                    {x.n}
-                  </Text>
-                  <Text style={T.tiny}>{x.m} · {x.e} · {x.s}</Text>
-                </View>
-
-                <Text style={[styles.chev, isNext && { color: MUSCLE_C[x.m] }]}>
-                  {on ? '' : '›'}
-                </Text>
-              </Press>
-            </FadeIn>
-          );
-        })}
-
-        <Btn
-          label={allDone ? t('Finish — well done') : t('Finish workout')}
-          color={allDone ? C.lime : C.ember} dark={!allDone}
-          onPress={onFinish} style={{ marginTop: S.xl }}
-        />
-        <Text style={[T.tiny, { textAlign: 'center', marginTop: S.sm }]}>
-          {t('Tap a move to see how it is done')}
-        </Text>
-      </View>
-    </ScrollView>
-  );
-}
-
-/* ---------------------------------------------------------------
    The plan wizard
    --------------------------------------------------------------- */
 function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
-  custom, setCustom, onSave, onCancel }) {
+  custom, setCustom, onSave, onCancel, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -344,6 +252,11 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
       <View style={styles.wizHead}>
+        {onBack && !onCancel ? (
+          <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+            <Text style={[T.small, { color: C.ember }]}>{'←'} {t('Train')}</Text>
+          </Press>
+        ) : null}
         <Text style={styles.wizTitle}>
           {firstTime ? t('Let’s build your week') : t('Change your plan')}
         </Text>
