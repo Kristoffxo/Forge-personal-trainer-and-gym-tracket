@@ -18,8 +18,9 @@ import { S, R, useTheme } from '../theme';
 import { Btn, Press, Card, FadeIn, Label, Chip, Bar } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
-import { SPLITS, DAY_NAMES, buildWeek, todayIndex, dayTitle } from '../planner';
-import { MUSCLES } from '../exercises';
+import { splitsFor, splitById, DAY_NAMES, buildWeek, todayIndex, dayTitle } from '../planner';
+import { MUSCLES, WOMEN_MUSCLES } from '../exercises';
+import { useSide } from '../side';
 import { supabase } from '../supabase';
 import Session from './Session';
 
@@ -29,6 +30,7 @@ const KITS = ['Full gym', 'None'];
 export default function Training({ user, profile, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
+  const { side } = useSide();
   const styles = makeStyles(C, T);
   const sheet = useSheet();
 
@@ -77,7 +79,7 @@ export default function Training({ user, profile, onBack }) {
   }
 
   const kitSaved = (plan.days && plan.days.kit) || 'Full gym';
-  const week = buildWeek(plan.split, plan.days && plan.days.custom, plan.per_session, kitSaved);
+  const week = buildWeek(plan.split, plan.days && plan.days.custom, plan.per_session, kitSaved, side);
   const day = week[viewDay];
   const isToday = viewDay === todayIndex();
 
@@ -232,7 +234,7 @@ export default function Training({ user, profile, onBack }) {
           <View style={{ flex: 1 }}>
             <Text style={[T.bodyOn, { fontSize: 15 }]}>{t('Change my plan')}</Text>
             <Text style={T.tiny}>
-              {t(SPLITS.find((s) => s.id === plan.split)?.name || 'Custom')} ·{' '}
+              {t(splitById(plan.split)?.name || 'Custom')} ·{' '}
               {plan.per_session} {t('a session')}
             </Text>
           </View>
@@ -250,7 +252,12 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
   custom, setCustom, onSave, onCancel, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
+  const { side } = useSide();
   const styles = makeStyles(C, T);
+  const SPLITS = splitsFor(side);
+  /* Build-my-own lists the muscles in the order that side trains
+     them, so glutes are not four rows below the chest. */
+  const PICKABLE = side === 'women' ? WOMEN_MUSCLES : MUSCLES;
 
   const ready = splitId && (splitId !== 'custom' || custom.some((d) => d.length));
 
@@ -299,7 +306,7 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
             <View key={d} style={styles.customDay}>
               <Text style={styles.customDayName}>{d}</Text>
               <View style={styles.wrapRow}>
-                {MUSCLES.map((m) => {
+                {PICKABLE.map((m) => {
                   const on = custom[i].includes(m);
                   return (
                     <Chip key={m} label={m} on={on} color={MUSCLE_C[m]}

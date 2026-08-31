@@ -8,6 +8,7 @@ import { WorkSans_400Regular, WorkSans_500Medium, WorkSans_600SemiBold,
          WorkSans_700Bold } from '@expo-google-fonts/work-sans';
 
 import { useTheme, ThemeProvider } from './src/theme';
+import { SideProvider, useSide, WOMEN } from './src/side';
 import { LangProvider, useLang } from './src/lang';
 import { Press } from './src/ui/kit';
 import { SheetProvider } from './src/ui/sheet';
@@ -49,21 +50,24 @@ const EDGES_TOP = { top:'additive', bottom:'off', left:'off', right:'off' };
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <LangProvider>
-        <SafeAreaProvider>
-          <SheetProvider>
-            <Root />
-          </SheetProvider>
-        </SafeAreaProvider>
-      </LangProvider>
-    </ThemeProvider>
+    <SideProvider>
+      <ThemeProvider>
+        <LangProvider>
+          <SafeAreaProvider>
+            <SheetProvider>
+              <Root />
+            </SheetProvider>
+          </SafeAreaProvider>
+        </LangProvider>
+      </ThemeProvider>
+    </SideProvider>
   );
 }
 
 function Root() {
-  const { C, T, mode, toggle } = useTheme();
+  const { C, T, mode } = useTheme();
   const { t: tr } = useLang();
+  const { seedFrom } = useSide();
   const styles = makeStyles(C, T);
   const insets = useSafeAreaInsets();
   const [fontsLoaded] = useFonts({ WorkSans_600SemiBold, WorkSans_400Regular, WorkSans_500Medium });
@@ -84,6 +88,13 @@ function Root() {
   useEffect(() => {
     if (session) getProfile().then(setProfile);
   }, [session]);
+
+  /* Onboarding already asked whether you are male or female, so the
+     first sight of the app is already the right one. It is only a
+     starting point — the switch in the title bar overrules it. */
+  useEffect(() => {
+    if (profile && profile.sex) seedFrom(profile.sex);
+  }, [profile, seedFrom]);
 
   useEffect(() => {
     const i = Math.max(0, TABS.findIndex((t) => t.key === tab));
@@ -139,7 +150,7 @@ function Root() {
       <SafeAreaView style={styles.wrap} edges={EDGES_TOP}>
         {overlay || (
           <>
-            <TitleBar tab={current} accent={accent} mode={mode} onToggle={toggle} />
+            <TitleBar tab={current} accent={accent} />
 
             <View style={{ flex:1 }}>
               {tab === 'train' ? (
@@ -190,10 +201,15 @@ function Root() {
   );
 }
 
-/* Says where you are and what this tab is for, with the mark on the left. */
-function TitleBar({ tab, accent, mode, onToggle }) {
+/* Says where you are and what this tab is for, with the mark on the
+   left and the one switch that changes the app on the right.
+
+   Light/dark and the language used to live here too. They were moved
+   into Settings: they are set once and then never touched again,
+   whereas this one is the difference between two different apps. */
+function TitleBar({ tab, accent }) {
   const { C, T } = useTheme();
-  const { t, lang, toggle: toggleLang } = useLang();
+  const { t } = useLang();
   const styles = makeStyles(C, T);
   if (!tab) return null;
   return (
@@ -203,18 +219,32 @@ function TitleBar({ tab, accent, mode, onToggle }) {
         <Text style={styles.titleTxt}>{t(tab.title)}</Text>
         <Text style={styles.subTxt}>{t(tab.sub)}</Text>
       </View>
+      <SideSwitch />
+    </View>
+  );
+}
 
-      {/* Language before theme: which words you read matters more
-          than whether the screen is dark. */}
-      <Press onPress={toggleLang} scaleTo={0.9} style={[styles.langBtn, { borderColor: accent }]}>
-        <Text style={[styles.langTxt, { color: accent }]}>
-          {lang === 'hi' ? 'ENG' : 'HIN'}
-        </Text>
-      </Press>
+/* Two halves of one pill. Blue on the left, pink on the right, and
+   the whole thing is a single tap — there is no third state to get
+   lost in and nothing to confirm. */
+function SideSwitch() {
+  const { C, T } = useTheme();
+  const { t } = useLang();
+  const { side, setSide } = useSide();
+  const styles = makeStyles(C, T);
+  const women = side === WOMEN;
 
-      <Press onPress={onToggle} scaleTo={0.88} style={styles.themeBtn}>
-        <Text style={styles.themeIcon}>{mode === 'light' ? '☽' : '☀'}</Text>
-      </Press>
+  const half = (key, label, colour, on) => (
+    <Press onPress={() => setSide(key)} scaleTo={0.94}
+      style={[styles.sideHalf, on && { backgroundColor: colour }]}>
+      <Text style={[styles.sideTxt, { color: on ? C.onAccent : C.faint }]}>{t(label)}</Text>
+    </Press>
+  );
+
+  return (
+    <View style={[styles.sideWrap, { borderColor: women ? '#FF4D8D' : '#3B82F6' }]}>
+      {half('men', 'Men', '#3B82F6', !women)}
+      {half(WOMEN, 'Women', '#FF4D8D', women)}
     </View>
   );
 }
@@ -227,12 +257,11 @@ const makeStyles = (C, T) => StyleSheet.create({
   titleBar:{ flexDirection:'row', alignItems:'center', paddingHorizontal:18,
              paddingTop:12, paddingBottom:11,
              backgroundColor:C.surface, borderBottomWidth:2 },
-  themeBtn:{ width:38, height:38, borderRadius:19, alignItems:'center',
-             justifyContent:'center', backgroundColor:C.raised },
-  langBtn:{ height:30, minWidth:46, paddingHorizontal:9, borderRadius:15, borderWidth:1.5,
-            alignItems:'center', justifyContent:'center', marginRight:8 },
-  langTxt:{ fontFamily:'WorkSans_500Medium', fontSize:11, letterSpacing:0.8 },
-  themeIcon:{ fontSize:17, color:C.dim },
+  sideWrap:{ flexDirection:'row', borderRadius:999, borderWidth:1.5,
+             backgroundColor:C.raised, padding:2, overflow:'hidden' },
+  sideHalf:{ paddingHorizontal:11, paddingVertical:6, borderRadius:999 },
+  sideTxt:{ fontFamily:'WorkSans_500Medium', fontSize:11, letterSpacing:0.7,
+            textTransform:'uppercase' },
   titleTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:21, color:C.text },
   subTxt:{ fontFamily:'WorkSans_400Regular', fontSize:12, color:C.dim, marginTop:1 },
 

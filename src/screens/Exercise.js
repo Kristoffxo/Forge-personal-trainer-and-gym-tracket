@@ -37,9 +37,11 @@ export default function Exercise({ exercise, index, total, onDone, onBack, previ
               <View style={[styles.dot, { backgroundColor: tint }]} />
               <Text style={[T.tiny, { color: C.text }]}>{exercise.m}</Text>
             </View>
-            <View style={styles.pill}>
-              <Text style={[T.tiny, { color: C.text }]}>{exercise.e}</Text>
-            </View>
+            {exercise.r ? null : (
+              <View style={styles.pill}>
+                <Text style={[T.tiny, { color: C.text }]}>{exercise.e}</Text>
+              </View>
+            )}
             <View style={{ flex: 1 }} />
             <Text style={T.tiny}>{index + 1} {t('of')} {total}</Text>
           </View>
@@ -51,17 +53,21 @@ export default function Exercise({ exercise, index, total, onDone, onBack, previ
 
         <FadeIn delay={60} style={{ padding: S.lg }}>
           <View style={[styles.card, { borderLeftColor: tint }]}>
-            <Label>{t('Aim for')}</Label>
+            <Label>{exercise.r ? t('Hold for') : t('Aim for')}</Label>
             <Text style={styles.scheme}>{exercise.s}</Text>
             <Text style={[T.small, { marginTop: S.sm }]}>
-              {exercise.e === 'None'
-                ? t('Slow down rather than rushing. Three seconds down, one up — when that feels easy, add reps before you add anything else.')
-                : t('Pick a weight you can move cleanly for every rep. When all of them feel controlled, add a little next time — 2.5 kg is plenty.')}
+              {exercise.r
+                ? t('Go only as far as is comfortable and breathe out slowly into it. Nothing here should hurt — if it does, come out of it.')
+                : exercise.e === 'None'
+                  ? t('Slow down rather than rushing. Three seconds down, one up — when that feels easy, add reps before you add anything else.')
+                  : t('Pick a weight you can move cleanly for every rep. When all of them feel controlled, add a little next time — 2.5 kg is plenty.')}
             </Text>
           </View>
 
           <Text style={[T.tiny, { marginTop: S.md, textAlign: 'center' }]}>
-            {t('Rest a minute or two between sets.')}
+            {exercise.r
+              ? t('There is no rush and nothing to count. Move to the next one when you are ready.')
+              : t('Rest a minute or two between sets.')}
           </Text>
         </FadeIn>
       </ScrollView>

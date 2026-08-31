@@ -1,15 +1,20 @@
 /* ---------------------------------------------------------------
    The Train tab.
 
-   Four ways in, because people arrive wanting different things:
+   Several ways in, because people arrive wanting different things:
 
      7 Day Workout Planner   write me a week and tell me what today is
      Gym Workouts            I am at the gym, today is chest
      Home Workouts           I have a floor and maybe a dumbbell
+     Instant Workouts        I have twenty minutes and no equipment
      Challenges              give me a reason to turn up tomorrow
+     Menstrual Exercises     it is day two and I want to feel human
 
-   The hub is deliberately four large targets and nothing else. Every
-   screen behind it knows how to get back here.
+   The last one only appears on the women's side, because on the
+   men's side it would be a box nobody could ever open.
+
+   The hub is deliberately a handful of large targets and nothing
+   else. Every screen behind it knows how to get back here.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ImageBackground } from 'react-native';
@@ -20,43 +25,55 @@ import { useLang } from '../lang';
 import { myStanding } from '../challenge';
 import { GRADE_COLOUR } from '../rank';
 import { PHOTO } from '../photos';
+import { useSide } from '../side';
 
 import Planner from './Training';
 import Library from './Library';
 import Challenges from './Challenges';
 
-const BOXES = [
-  {
-    key: 'planner', photo: 'gym', colorKey: 'ember',
-    name: '7 Day Workout Planner',
-    sub: 'A week built around your days',
-  },
-  {
-    key: 'gym', photo: 'hero', colorKey: 'amber',
-    name: 'Gym Workouts',
-    sub: 'Push, pull, legs — or one muscle',
-  },
-  {
-    key: 'home', photo: 'kit', colorKey: 'teal',
-    name: 'Home Workouts',
-    sub: 'Bodyweight, or one dumbbell',
-  },
-  {
-    key: 'instant', photo: 'home', colorKey: 'lime',
-    name: 'Instant Workouts',
-    sub: '10, 15, 20 or 30 minutes — no equipment',
-  },
-  {
-    key: 'challenges', photo: 'rest', colorKey: 'violet',
-    name: 'Challenges',
-    sub: 'Medals for every streak you keep',
-  },
-];
+function boxesFor(women) {
+  return [
+    {
+      key: 'planner', photo: 'gym', colorKey: 'ember',
+      name: '7 Day Workout Planner',
+      sub: 'A week built around your days',
+    },
+    {
+      key: 'gym', photo: 'hero', colorKey: 'amber',
+      name: 'Gym Workouts',
+      sub: women ? 'Glutes, thighs, lower body — or one muscle'
+                 : 'Push, pull, legs — or one muscle',
+    },
+    {
+      key: 'home', photo: 'kit', colorKey: 'teal',
+      name: 'Home Workouts',
+      sub: women ? 'Bodyweight, a band, or one dumbbell'
+                 : 'Bodyweight, or one dumbbell',
+    },
+    {
+      key: 'instant', photo: 'home', colorKey: 'lime',
+      name: 'Instant Workouts',
+      sub: '10, 15, 20 or 30 minutes — no equipment',
+    },
+    ...(women ? [{
+      key: 'relief', photo: 'calm', colorKey: 'gold',
+      name: 'Menstrual Exercises',
+      sub: 'Ten to twenty minutes for period pain',
+    }] : []),
+    {
+      key: 'challenges', photo: 'bench', colorKey: 'violet',
+      name: 'Challenges',
+      sub: 'Medals for every streak you keep',
+    },
+  ];
+}
 
 export default function Train({ user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
+  const { isWomen } = useSide();
   const styles = makeStyles(C, T);
+  const BOXES = boxesFor(isWomen);
 
   const [open, setOpen] = useState(null);
   const [me, setMe] = useState(null);          // streak, medals, level
@@ -78,6 +95,9 @@ export default function Train({ user, profile }) {
   }
   if (open === 'instant') {
     return <Library place="instant" user={user} profile={profile} onBack={() => setOpen(null)} />;
+  }
+  if (open === 'relief') {
+    return <Library place="relief" user={user} profile={profile} onBack={() => setOpen(null)} />;
   }
   if (open === 'challenges') return <Challenges user={user} onBack={() => setOpen(null)} />;
 

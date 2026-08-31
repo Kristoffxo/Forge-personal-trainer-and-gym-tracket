@@ -12,10 +12,23 @@
    `place` is 'gym' or 'home'. Home means bodyweight or a single
    dumbbell — and a dumbbell can be a water can, a filled bag, or
    anything else with a handle and some weight in it.
+
+   `side` is 'men' or 'women'. It changes three things and nothing
+   else: which targets are offered, how the work is shared out
+   between the muscles in one, and which exercises come out of the
+   drawer first. The men's side is exactly what it was.
    --------------------------------------------------------------- */
 import { EX } from './exercises.js';
 
-/* What each target actually trains. */
+/* The string, not an import of it. src/side.js holds React and this
+   file is loaded by the test scripts under plain node, which cannot
+   parse JSX. One word is not worth a module boundary. */
+const WOMEN = 'women';
+const isWomen = (side) => side === WOMEN;
+
+/* ---------------------------------------------------------------
+   What each target trains — the men's side, unchanged.
+   --------------------------------------------------------------- */
 export const TARGETS = [
   { key: 'chest', name: 'Chest', muscles: ['Chest'], icon: '◐' },
   { key: 'back', name: 'Back', muscles: ['Back'], icon: '◑' },
@@ -45,8 +58,60 @@ export const SPLIT_TARGETS = [
   },
 ];
 
+/* ---------------------------------------------------------------
+   And the women's side.
+
+   The lower body is broken up rather than lumped into one "Legs",
+   because that is where most of the training goes and one tile
+   cannot hold it. The upper body goes the other way: one target
+   for the lot, trained properly but not four days a week.
+   --------------------------------------------------------------- */
+export const WOMEN_TARGETS = [
+  { key: 'glutes', name: 'Glutes', muscles: ['Glutes'], icon: '◗' },
+  { key: 'thighs', name: 'Thighs', muscles: ['Thighs', 'Quads'], icon: '▽' },
+  { key: 'hamstrings', name: 'Hamstrings', muscles: ['Hamstrings'], icon: '◺' },
+  { key: 'calves', name: 'Calves', muscles: ['Calves'], icon: '◡' },
+  { key: 'core', name: 'Core', muscles: ['Core'], icon: '◍' },
+  { key: 'upper', name: 'Arms & Back', muscles: ['Back', 'Biceps', 'Triceps'], icon: '◈' },
+];
+
+export const WOMEN_SPLIT_TARGETS = [
+  {
+    key: 'lower', name: 'Lower Body',
+    muscles: ['Glutes', 'Thighs', 'Quads', 'Hamstrings', 'Calves'], icon: '▼',
+    sub: 'Glutes, thighs, hamstrings and calves',
+  },
+  {
+    key: 'glutethigh', name: 'Glutes & Thighs',
+    muscles: ['Glutes', 'Thighs'], icon: '◗',
+    sub: 'The one most people come here for',
+  },
+  {
+    key: 'toned', name: 'Full Body',
+    muscles: ['Glutes', 'Thighs', 'Core', 'Back', 'Shoulders'], icon: '✦',
+    sub: 'Everything, lower body first',
+  },
+  {
+    key: 'upperlight', name: 'Upper Body',
+    muscles: ['Back', 'Shoulders', 'Triceps', 'Biceps', 'Chest'], icon: '▲',
+    sub: 'Back, shoulders and arms — lighter',
+  },
+  {
+    key: 'corework', name: 'Core', muscles: ['Core'], icon: '◍',
+    sub: 'Everything through the middle',
+  },
+];
+
+export function targetsFor(side) {
+  return isWomen(side) ? WOMEN_TARGETS : TARGETS;
+}
+
+export function splitTargetsFor(side) {
+  return isWomen(side) ? WOMEN_SPLIT_TARGETS : SPLIT_TARGETS;
+}
+
 export function allTargets() {
-  return SPLIT_TARGETS.concat(TARGETS);
+  return SPLIT_TARGETS.concat(TARGETS, WOMEN_SPLIT_TARGETS, WOMEN_TARGETS);
 }
 
 export function targetByKey(key) {
@@ -66,19 +131,82 @@ export function sizeFor(level) {
    Allowing a dumbbell alongside meant every home session filled up
    with dumbbell work and looked exactly like the gym one. So the
    pool is bodyweight only, and a dumbbell is brought in for a muscle
-   only when the floor genuinely cannot cover it. */
-function poolFor(muscle, place) {
-  const all = EX.filter((x) => x.m === muscle);
+   only when the floor genuinely cannot cover it.
+
+   A band counts as home kit. One costs less than a month of the gym
+   and it is what half the women's glute work is done with. */
+export function poolFor(muscle, place, side) {
+  let all = EX.filter((x) => x.m === muscle);
+
+  if (isWomen(side)) {
+    /* the tagged-out lifts leave, and the ones the women's side
+       leads with come to the front. Sorting rather than filtering
+       means nothing disappears — a light chest day still finds
+       press-ups underneath. */
+    all = all.filter((x) => !x.x);
+    all = all.slice().sort((a, b) => (b.w ? 1 : 0) - (a.w ? 1 : 0));
+  }
+
   if (place !== 'home') return all;
 
-  const floor = all.filter((x) => x.e === 'None');
+  const floor = all.filter((x) => x.e === 'None' || x.e === 'Band');
   if (floor.length >= 3) return floor;
   return floor.concat(all.filter((x) => x.e === 'Dumbbell'));
 }
 
 function usable(x, place) {
   if (place !== 'home') return true;
-  return x.e === 'None' || x.e === 'Dumbbell';
+  return x.e === 'None' || x.e === 'Band' || x.e === 'Dumbbell';
+}
+
+/* ---------------------------------------------------------------
+   How the work is shared out.
+
+   Evenly, on the men's side. On the women's side the lower body
+   gets roughly twice the slots of the upper — which is the whole
+   of "focus less on the top half" in one table.
+   --------------------------------------------------------------- */
+const WEIGHT_WOMEN = {
+  Glutes: 3, Thighs: 3, Quads: 2, Hamstrings: 2, Calves: 2, Core: 2,
+  Back: 1, Shoulders: 1, Biceps: 1, Triceps: 1, Chest: 1,
+};
+
+function weightsFor(muscles, side) {
+  const w = {};
+  muscles.forEach((m) => { w[m] = isWomen(side) ? (WEIGHT_WOMEN[m] || 1) : 1; });
+  return w;
+}
+
+/* Hand out `want` slots in proportion to the weights.
+
+   Everything named in a target gets at least one slot before any
+   muscle gets a second, or "Full Body" quietly stops including the
+   back. Only what is left over is shared by weight, heaviest first. */
+function share(muscles, want, side) {
+  const w = weightsFor(muscles, side);
+  const order = muscles.slice().sort((a, b) => w[b] - w[a]);
+
+  const per = {};
+  muscles.forEach((m) => { per[m] = 0; });
+
+  /* not enough slots to go round: the heaviest muscles take them */
+  if (want <= muscles.length) {
+    order.slice(0, want).forEach((m) => { per[m] = 1; });
+    return per;
+  }
+
+  muscles.forEach((m) => { per[m] = 1; });
+  let left = want - muscles.length;
+
+  const total = muscles.reduce((sum, m) => sum + w[m], 0) || 1;
+  muscles.forEach((m) => {
+    const extra = Math.floor((left * w[m]) / total);
+    per[m] += extra;
+  });
+
+  let given = muscles.reduce((sum, m) => sum + per[m], 0);
+  for (let i = 0; given < want; i++, given++) per[order[i % order.length]] += 1;
+  return per;
 }
 
 /* ---------------------------------------------------------------
@@ -88,21 +216,18 @@ function usable(x, place) {
    divides, and each muscle leads with its compounds. A muscle with
    nothing available at home is skipped rather than padded.
    --------------------------------------------------------------- */
-export function buildRoutine({ target, place = 'gym', level = 'intermediate' }) {
+export function buildRoutine({ target, place = 'gym', level = 'intermediate', side = 'men' }) {
   const t = typeof target === 'string' ? targetByKey(target) : target;
   const want = sizeFor(level);
 
   const live = t.muscles.filter((m) => EX.some((x) => x.m === m && usable(x, place)));
   if (!live.length) return { ...t, exercises: [] };
 
-  const per = {};
-  live.forEach((m) => { per[m] = Math.floor(want / live.length); });
-  let spare = want - live.length * Math.floor(want / live.length);
-  for (let i = 0; spare > 0; i++, spare--) per[live[i % live.length]] += 1;
+  const per = share(live, want, side);
 
   const out = [];
   live.forEach((m) => {
-    const pool = poolFor(m, place);
+    const pool = poolFor(m, place, side);
     const compounds = pool.filter((x) => x.t === 'c');
     const isolations = pool.filter((x) => x.t === 'i');
     const n = per[m];
@@ -147,21 +272,34 @@ export const INSTANT = [
 const INSTANT_ORDER = ['Quads', 'Chest', 'Back', 'Core', 'Glutes',
                        'Shoulders', 'Hamstrings', 'Triceps', 'Calves', 'Biceps'];
 
+/* Same idea, different order. The lower body comes round twice
+   before the upper body comes round once. */
+const INSTANT_ORDER_WOMEN = ['Glutes', 'Thighs', 'Core', 'Quads', 'Calves',
+                             'Hamstrings', 'Back', 'Glutes', 'Thighs', 'Shoulders',
+                             'Core', 'Biceps', 'Chest', 'Triceps'];
+
 /* "No equipment" has to mean it. These are bodyweight but still need
    a bar, a bench or a partner, so they are no use in a hotel room. */
 const NEEDS_A_BAR = /pull-?up|chin-?up|dip|inverted row|hanging|nordic|ab wheel/i;
 
-export function buildInstant(mins) {
+export function buildInstant(mins, side = 'men') {
   const want = Math.max(4, Math.round(mins / 2.6));
+  const order = isWomen(side) ? INSTANT_ORDER_WOMEN : INSTANT_ORDER;
+
   const pools = {};
-  INSTANT_ORDER.forEach((m) => {
-    pools[m] = EX.filter((x) => x.m === m && x.e === 'None' && !NEEDS_A_BAR.test(x.n));
+  order.forEach((m) => {
+    if (pools[m]) return;
+    let pool = EX.filter((x) => x.m === m && x.e === 'None' && !NEEDS_A_BAR.test(x.n));
+    if (isWomen(side)) {
+      pool = pool.filter((x) => !x.x).sort((a, b) => (b.w ? 1 : 0) - (a.w ? 1 : 0));
+    }
+    pools[m] = pool;
   });
 
   const out = [];
   let round = 0;
   while (out.length < want && round < 6) {
-    for (const m of INSTANT_ORDER) {
+    for (const m of order) {
       if (out.length >= want) break;
       const pool = pools[m];
       if (pool && pool.length) out.push(pool.shift());

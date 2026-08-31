@@ -33,6 +33,32 @@ export const PHOTOS = {
   rest: ['1532384748853-8f54a8f476e2', 1.9, 'between sets'],
   bench: ['1546483875-ad9014c88eba', 1.9, 'bench, dark'],
   kit: ['1584735935682-2f2b69dff9d2', 1.9, 'dumbbells and bands'],
+
+  /* The period-pain screens. The rest of the wide set is somebody
+     straining at a machine, which is the wrong photograph to open a
+     screen about cramp with. */
+  calm: ['1590104872666-01ac8796ab87', 1.9, 'stretching at home'],
+};
+
+/* ---------------------------------------------------------------
+   The women's side, and the period-pain sessions.
+
+   The muscle-group cards on the men's side come from free-exercise-db,
+   which is almost entirely male models — fine there, wrong here. These
+   are Unsplash, same licence as everything above, and every one was
+   checked at 110x118 (the size the card actually is) before it was
+   kept. A photograph that looks good full-bleed is often a smudge on
+   a card, which is how the last set went wrong.
+
+     node brand/fetch-group-photos.mjs
+   --------------------------------------------------------------- */
+export const GROUP_PHOTOS = {
+  glutes: ['1662385930032-d9286e02325f', 'deep squat'],
+  thighs: ['1784819482937-cab89c3b8309', 'legs at the rack'],
+  hamstrings: ['1434608519344-49d77a699e1d', 'leg press'],
+  calves: ['1467818488384-3a21f2b79959', 'lower legs on the machine'],
+  relief: ['1590104872666-01ac8796ab87', 'stretching at home'],
+  upperw: ['1571731956672-f2b94d7dd0cb', 'lat pulldown'],
 };
 
 /* Which photo stands in for a session, so the exercise screens all

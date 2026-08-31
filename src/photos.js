@@ -18,6 +18,7 @@ export const PHOTO = {
   rest: require('../assets/photos/rest.jpg'),
   bench: require('../assets/photos/bench.jpg'),
   kit: require('../assets/photos/kit.jpg'),
+  calm: require('../assets/photos/calm.jpg'),
 };
 
 /* A session's photo. Split targets borrow the muscle they lead with. */
@@ -25,6 +26,12 @@ const FOR_TARGET = {
   push: 'chest', pull: 'back', legday: 'legs', corework: 'core',
   chest: 'chest', back: 'back', shoulders: 'shoulders',
   arms: 'arms', legs: 'legs', core: 'core',
+  /* the women's side */
+  lower: 'legs', glutethigh: 'legs', toned: 'hero', upperlight: 'back',
+  glutes: 'legs', thighs: 'legs', hamstrings: 'legs', calves: 'legs',
+  upper: 'back',
+  /* and the period-pain sessions, which are the calmest photo we have */
+  relief10: 'calm', relief15: 'calm', relief20: 'calm',
 };
 
 export function photoForTarget(key) {
@@ -36,7 +43,10 @@ const FOR_MUSCLE = {
   Chest: 'chest', Back: 'back', Shoulders: 'shoulders',
   Biceps: 'arms', Triceps: 'arms',
   Quads: 'legs', Hamstrings: 'legs', Glutes: 'legs', Calves: 'legs',
-  Core: 'core',
+  Thighs: 'legs', Core: 'core',
+  /* the period-pain sessions */
+  'Lower back': 'calm', Hips: 'calm', 'Inner thigh': 'calm',
+  'Upper back': 'calm', Ribs: 'calm',
 };
 
 export function photoForMuscle(m) {
@@ -57,9 +67,23 @@ export const GROUP_PHOTO = {
   arms: require('../assets/groups/arms.jpg'),
   legs: require('../assets/groups/legs.jpg'),
   core: require('../assets/groups/core.jpg'),
+  glutes: require('../assets/groups/glutes.jpg'),
+  thighs: require('../assets/groups/thighs.jpg'),
+  hamstrings: require('../assets/groups/hamstrings.jpg'),
+  calves: require('../assets/groups/calves.jpg'),
+  relief: require('../assets/groups/relief.jpg'),
+  upperw: require('../assets/groups/upperw.jpg'),
+};
+
+/* Split targets borrow the card of the muscle they lead with. */
+const GROUP_BY_TARGET = {
+  push: 'chest', pull: 'back', legday: 'legs', corework: 'core',
+  lower: 'glutes', glutethigh: 'glutes', toned: 'legs', upperlight: 'back',
+  upper: 'upperw',
+  upperlight: 'upperw',
+  relief10: 'relief', relief15: 'relief', relief20: 'relief',
 };
 
 export function groupPhoto(key) {
-  const byTarget = { push: 'chest', pull: 'back', legday: 'legs', corework: 'core' };
-  return GROUP_PHOTO[GROUP_PHOTO[key] ? key : (byTarget[key] || key)] || GROUP_PHOTO.chest;
+  return GROUP_PHOTO[key] || GROUP_PHOTO[GROUP_BY_TARGET[key]] || GROUP_PHOTO.chest;
 }

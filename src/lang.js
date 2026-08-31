@@ -508,6 +508,67 @@ const HI = {
   'That question costs': 'Us sawaal ka kharcha hai',
   'You have': 'Aapke paas hain',
   'Could not send': 'Bheja nahi ja saka',
+
+  /* ---------- men and women ---------- */
+  'Men': 'Mard',
+  'Women': 'Aurat',
+
+  /* Muscle and target names stay in English on purpose. Everybody at
+     a gym in India says "glutes" and "core"; translating them would
+     make the app harder to read, not easier. Only the sentences
+     around them change. */
+  'Glutes & Thighs': 'Glutes & Thighs',
+  'Lower Body': 'Lower Body',
+  'Upper Body': 'Upper Body',
+  'Arms & Back': 'Arms & Back',
+  'Glutes · Legs · Upper': 'Glutes · Legs · Upper',
+  'Lower · Upper': 'Lower · Upper',
+  'One Area a Day': 'Ek Din Ek Hissa',
+  'Glutes, thighs, hamstrings and calves': 'Glutes, thighs, hamstrings aur calves',
+  'The one most people come here for': 'Zyadatar log isi ke liye aate hain',
+  'Everything, lower body first': 'Sab kuch, lower body pehle',
+  'Back, shoulders and arms — lighter': 'Back, shoulders aur arms — halka',
+  'Glutes, thighs, lower body — or one muscle':
+    'Glutes, thighs, lower body — ya ek muscle',
+  'Bodyweight, a band, or one dumbbell':
+    'Apna wazan, ek band, ya ek dumbbell',
+  'Two lower-body days, one for thighs and calves, one upper, one core. The one most people want.':
+    'Do din lower body, ek thighs aur calves, ek upper, ek core. Jo zyadatar log chahte hain.',
+  'Three lower-body days against one upper. The easiest one to stick to.':
+    'Teen din lower body, ek din upper. Isko nibhana sabse aasan hai.',
+  'Everything below the waist, three times a week. Short on days, not on results.':
+    'Kamar se neeche sab kuch, hafte mein teen baar. Din kam, natija poora.',
+  'Everything, every session, lower body first. Best if you are new.':
+    'Har session mein sab kuch, lower body pehle. Naye log isse shuru karein.',
+  'Glutes, thighs, hamstrings, core, calves, arms. Twenty-five minutes each.':
+    'Glutes, thighs, hamstrings, core, calves, arms. Har ek pachees minute.',
+
+  /* ---------- period pain ---------- */
+  'Menstrual Exercises': 'Period Ke Exercises',
+  'Ten to twenty minutes for period pain': 'Period dard ke liye das se bees minute',
+  'Ten to twenty minutes for period pain.': 'Period dard ke liye das se bees minute.',
+  'Cramp Relief': 'Cramp Se Raahat',
+  'For the worst day. All of it on the floor.':
+    'Sabse bure din ke liye. Poora zameen pe.',
+  'Lower Back & Hips': 'Kamar Aur Kulhe',
+  'For the ache that sits in your back rather than your front.':
+    'Jab dard aage nahi, peeche kamar mein baithta hai.',
+  'Whole Body Ease': 'Poore Badan Ko Aaram',
+  'For the heavy, bloated, worn-out days.':
+    'Un dino ke liye jab badan bhaari aur thaka hua lage.',
+  'Movement helps most ordinary period pain. It is not a treatment. Pain that stops your day, pain that is getting worse, or bleeding that soaks a pad in an hour is worth seeing a doctor about — that is not something to stretch through.':
+    'Halki harkat aam period dard mein madad karti hai. Yeh ilaaj nahi hai. Agar dard itna hai ki din ruk jaata hai, ya badhta ja raha hai, ya ek ghante mein pad bhar jaata hai — toh doctor ko dikhao. Usse stretch se theek nahi kiya jaata.',
+  'min': 'min',
+  'Lower back': 'Kamar',
+  'Hips': 'Kulhe',
+  'Inner thigh': 'Andar ki jaangh',
+  'Upper back': 'Upar ki kamar',
+  'Ribs': 'Pasliyan',
+  'Hold for': 'Itni der roko',
+  'Go only as far as is comfortable and breathe out slowly into it. Nothing here should hurt — if it does, come out of it.':
+    'Utna hi jao jitna aaram se ho jaye, aur dheere se saans chhodo. Yahan kuch bhi dard nahi karna chahiye — agar kare toh ruk jao.',
+  'There is no rush and nothing to count. Move to the next one when you are ready.':
+    'Koi jaldi nahi, kuch ginna nahi. Jab taiyaar ho tab agle pe jao.',
 };
 
 const Ctx = createContext(null);

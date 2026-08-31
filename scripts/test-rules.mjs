@@ -2,7 +2,25 @@
 /* Checks on the challenge rules — the ones that decide whether a
    ninety-day streak survives. Run with: node scripts/test-rules.mjs */
 import { progress, dayKey } from '../src/challengeRules.js';
-import { buildRoutine, sizeFor } from '../src/routines.js';
+import {
+  buildRoutine, buildInstant, sizeFor, poolFor,
+  TARGETS, SPLIT_TARGETS, WOMEN_TARGETS, WOMEN_SPLIT_TARGETS,
+  targetsFor, splitTargetsFor,
+} from '../src/routines.js';
+import { EX } from '../src/exercises.js';
+import { RELIEF } from '../src/menstrual.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+/* src/exercisePhotos.js is a list of require() calls, which Metro
+   resolves and node cannot. Reading it as text is enough to answer
+   the only question asked of it here: is this exercise in there? */
+const PHOTOS_SRC = fs.readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'exercisePhotos.js'),
+  'utf8',
+);
+const hasPhoto = (name) => PHOTOS_SRC.includes(JSON.stringify(name));
 import { dailyTarget, bmr } from '../src/tdee.js';
 
 let pass = 0, fail = 0;
@@ -70,6 +88,83 @@ const t2 = dailyTarget({ sex: 'male', kg: 70, cm: 175, age: 24, experience: 'int
 is('cutting is lower', t2 < t1, true);
 is('never below the floor',
   dailyTarget({ sex: 'female', kg: 40, cm: 140, age: 70, experience: 'beginner', goal: 'lose' }) >= 1200, true);
+
+/* ---------------------------------------------------------------
+   The women's side.
+
+   Two things have to hold at once and they pull against each other:
+   a woman's session must genuinely lead with the lower body, and the
+   men's side must come out of this change bit-identical.
+   --------------------------------------------------------------- */
+console.log('the women’s side');
+
+const LOWER = ['Glutes', 'Thighs', 'Quads', 'Hamstrings', 'Calves'];
+const lowerCount = (r) => r.exercises.filter((x) => LOWER.includes(x.m)).length;
+
+is('women get their own targets', targetsFor('women') === WOMEN_TARGETS, true);
+is('men keep theirs', targetsFor('men') === TARGETS, true);
+is('women get their own splits', splitTargetsFor('women') === WOMEN_SPLIT_TARGETS, true);
+is('men keep theirs', splitTargetsFor('men') === SPLIT_TARGETS, true);
+
+/* the men's side is untouched — same target, same level, same list */
+for (const tg of SPLIT_TARGETS.concat(TARGETS)) {
+  const before = buildRoutine({ target: tg, place: 'gym', level: 'intermediate' });
+  const after = buildRoutine({ target: tg, place: 'gym', level: 'intermediate', side: 'men' });
+  is(`men unchanged: ${tg.key}`,
+    before.exercises.map((x) => x.n), after.exercises.map((x) => x.n));
+}
+
+/* every women's target fills up, at every level */
+for (const lvl of ['beginner', 'intermediate', 'advanced']) {
+  for (const tg of WOMEN_SPLIT_TARGETS.concat(WOMEN_TARGETS)) {
+    const r = buildRoutine({ target: tg, place: 'gym', level: lvl, side: 'women' });
+    is(`${tg.key} ${lvl} is full`, r.exercises.length, sizeFor(lvl));
+  }
+}
+
+/* "Full Body" has to actually include the upper body — the bug this
+   catches is a weighted share giving the back zero slots */
+const wFull = buildRoutine({ target: 'toned', place: 'gym', level: 'intermediate', side: 'women' });
+is('full body reaches the upper body',
+  wFull.exercises.some((x) => ['Back', 'Shoulders', 'Chest'].includes(x.m)), true);
+
+/* the lower body leads */
+const wLower = buildRoutine({ target: 'lower', place: 'gym', level: 'advanced', side: 'women' });
+is('lower body day is all lower body', lowerCount(wLower), wLower.exercises.length);
+is('women’s instant work is lower-body heavy',
+  lowerCount(buildInstant(20, 'women')) > lowerCount(buildInstant(20, 'men')), true);
+
+/* tagged-out lifts stay out, and nothing vanishes that should not */
+is('no men-only lifts in a women’s pool',
+  poolFor('Chest', 'gym', 'women').some((x) => x.x), false);
+is('a women’s chest day still exists',
+  buildRoutine({ target: 'upperlight', place: 'gym', level: 'intermediate', side: 'women' })
+    .exercises.length > 0, true);
+
+/* home has to stay home */
+for (const tg of WOMEN_TARGETS) {
+  const h = buildRoutine({ target: tg, place: 'home', level: 'beginner', side: 'women' });
+  is(`${tg.key} at home needs no gym`,
+    h.exercises.every((x) => ['None', 'Band', 'Dumbbell'].includes(x.e)), true);
+  is(`${tg.key} at home is not empty`, h.exercises.length > 0, true);
+}
+
+console.log('period pain');
+is('three sessions', RELIEF.length, 3);
+is('all between ten and twenty minutes',
+  RELIEF.every((r) => r.mins >= 10 && r.mins <= 20), true);
+is('every move has a photograph',
+  RELIEF.every((r) => r.exercises.every((x) => hasPhoto(x.n))), true);
+is('nothing needs equipment',
+  RELIEF.every((r) => r.exercises.every((x) => x.e === 'None')), true);
+is('every move is marked as a hold, not a lift',
+  RELIEF.every((r) => r.exercises.every((x) => x.r === 1)), true);
+
+console.log('the library itself');
+is('every exercise has a photograph',
+  EX.filter((x) => !hasPhoto(x.n)).map((x) => x.n), []);
+is('nothing is both preferred and excluded',
+  EX.filter((x) => x.w && x.x).map((x) => x.n), []);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
