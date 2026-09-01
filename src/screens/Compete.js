@@ -11,12 +11,14 @@
    is watching.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator, Vibration, Platform } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Vibration, Platform } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
 import { Btn, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
+import { framesFor } from '../exercisePhotos';
+import { photoForMuscle } from '../photos';
 import { MOVES, ROUND_SECONDS, joinRound, sendScore, leaveRound, watchRound, sidesOf } from '../compete';
 import { makeCounter } from '../pose';
 import { poseAvailable, startPose } from '../ui/poseCam';
@@ -136,14 +138,18 @@ export default function Compete({ user, profile }) {
         <FadeIn style={{ padding: S.lg }}>
           <Text style={styles.h1}>{t('One minute. Someone else.')}</Text>
           <Text style={[T.small, { marginTop: 6 }]}>
-            {t('Pick a move and you are matched with whoever else is waiting. Both scores show on both screens.')}
+            {t('Pick one. You are matched with whoever is waiting.')}
           </Text>
 
           {MOVES.map((m, i) => (
             <FadeIn key={m.key} delay={40 + i * 24}>
               <Pressable onPress={() => start(m)} disabled={busy}
                 style={({ pressed }) => [styles.pick, pressed && { opacity: 0.85 }]}>
-                <View style={{ flex: 1 }}>
+                <Image
+                  source={(framesFor({ n: m.key === 'pushups' ? 'Push-up' : 'Bodyweight Squat' })
+                    || [photoForMuscle('Chest')])[0]}
+                  style={styles.pickImg} resizeMode="cover" />
+                <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.pickName}>{t(m.name)}</Text>
                   <Text style={T.tiny}>{t(m.hint)}</Text>
                 </View>
@@ -156,8 +162,8 @@ export default function Compete({ user, profile }) {
 
           <Text style={[T.tiny, { marginTop: S.xl, lineHeight: 17 }]}>
             {canWatch
-              ? t('The camera counts your reps. Nothing is recorded and no video leaves the phone.')
-              : t('Reps are counted by tapping. The camera counter needs the web app.')}
+              ? t('The camera counts. No video is saved or sent.')
+              : t('Tap to count. Camera counting is on the website.')}
           </Text>
         </FadeIn>
       </View>
@@ -250,6 +256,7 @@ const makeStyles = (C, T) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
     borderRadius: R.md, padding: S.md, marginTop: S.md,
   },
+  pickImg: { width: 58, height: 58, borderRadius: R.sm, backgroundColor: C.raised },
   pickName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, color: C.text },
   pickGo: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20 },
 

@@ -142,20 +142,20 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
             <Text style={styles.scheme}>{exercise.s}</Text>
             <Text style={[T.small, { marginTop: S.sm }]}>
               {exercise.senior
-                ? t('There is no rush and nothing to prove. Doing it slowly is doing it properly.')
+                ? t('Slow is right.')
                 : exercise.r
-                  ? t('Go only as far as is comfortable and breathe out slowly into it. Nothing here should hurt — if it does, come out of it.')
+                  ? t('Only as far as is comfortable. Breathe out into it.')
                   : exercise.e === 'None'
-                    ? t('Slow down rather than rushing. Three seconds down, one up — when that feels easy, add reps before you add anything else.')
-                    : t('Pick a weight you can move cleanly for every rep. When all of them feel controlled, add a little next time — 2.5 kg is plenty.')}
+                    ? t('Three seconds down, one up.')
+                    : t('Pick a weight you control. Add 2.5 kg when it feels easy.')}
             </Text>
           </View>
 
           <Text style={[T.tiny, { marginTop: S.md, textAlign: 'center' }]}>
             {exercise.senior
-              ? t('Take as long as you like between movements.')
+              ? t('Rest as long as you like.')
               : exercise.r
-              ? t('There is no rush and nothing to count. Move to the next one when you are ready.')
+              ? t('Move on when you are ready.')
                 : t('Rest a minute or two between sets.')}
           </Text>
         </FadeIn>

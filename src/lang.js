@@ -734,6 +734,54 @@ const HI = {
   'I can see you': 'Aap dikh rahe ho',
   'Step back until you are all in frame': 'Thoda peeche hato taaki poore dikho',
   'Camera problem': 'Camera mein dikkat',
+  /* ---------- yoga ---------- */
+  'Yoga': 'Yoga',
+  'Slow, on the floor': 'Dheere, zameen pe',
+  'Slow, on the floor.': 'Dheere, zameen pe.',
+  'Morning Flow': 'Subah ka Flow',
+  'Ten minutes before anything else.': 'Sab kuch se pehle das minute.',
+  'Evening Unwind': 'Shaam ka Aaram',
+  'For the end of a long day.': 'Lambe din ke aakhir mein.',
+  'Deep Stretch': 'Gehra Stretch',
+  'For hips and shoulders that have been sitting.':
+    'Un kulhon aur kandhon ke liye jo din bhar baithe rahe.',
+
+  /* ---------- trainer, said shorter ---------- */
+  'Ask a real person': 'Kisi asli insaan se poocho',
+  'Not a bot. Answers in a few hours.': 'Bot nahi. Kuch ghanton mein jawab.',
+  'Credits': 'Credits',
+  '1 credit = 1 line': '1 credit = 1 line',
+  'Paid by Razorpay.': 'Razorpay se payment.',
+  'Payments are off. Nothing here can charge you.':
+    'Payment band hai. Yahan se kuch nahi katega.',
+  'Ask anything. Form, a plan, an injury, food.':
+    'Kuch bhi poocho. Form, plan, chot, khana.',
+  'Type your question': 'Apna sawaal likho',
+  'Nothing was charged.': 'Kuch nahi kata.',
+  'Credits arrive in a minute.': 'Credits ek minute mein aa jaate hain.',
+  'Max': 'Zyada se zyada',
+  'Tap to count.': 'Ginne ke liye tap karo.',
+  'Pick one. You are matched with whoever is waiting.':
+    'Ek chuno. Jo wait kar raha hai usse match ho jaoge.',
+  'The camera counts. No video is saved or sent.':
+    'Camera ginta hai. Koi video save ya bheji nahi jaati.',
+  'Slow is right.': 'Dheere karna hi sahi hai.',
+  'Move on when you are ready.': 'Jab taiyaar ho tab aage badho.',
+  'Rest as long as you like.': 'Jitna chaho aaram karo.',
+  'Three seconds down, one up.': 'Teen second neeche, ek upar.',
+  'Only as far as is comfortable. Breathe out into it.':
+    'Utna hi jitna aaram se ho. Saans chhodte hue.',
+  'Sized to your level.': 'Aapke level ke hisaab se.',
+  'No gym needed. A chair, a band, one dumbbell.':
+    'Gym ki zaroorat nahi. Ek kursi, ek band, ek dumbbell.',
+  'How long have you got?': 'Kitna time hai?',
+  'For period pain.': 'Period dard ke liye.',
+  'A chair, a wall, the floor.': 'Ek kursi, ek deewar, zameen.',
+  'The floor, a chair, a band': 'Zameen, ek kursi, ek band',
+  'Five ready-made sessions': 'Paanch taiyaar sessions',
+  'Two questions, then your workouts': 'Do sawaal, phir aapke workouts',
+  '10 to 30 minutes, no equipment': '10 se 30 minute, kuch nahi chahiye',
+  'For period pain': 'Period dard ke liye',
 };
 
 const Ctx = createContext(null);

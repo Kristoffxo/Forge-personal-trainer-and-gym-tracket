@@ -89,7 +89,7 @@ export default function Onboarding({ profile, onDone }) {
             <FadeIn>
               <Text style={styles.q}>{t('Are you male or female?')}</Text>
               <Text style={[T.small, { marginBottom: S.lg }]}>
-                {t('Men and women burn energy at different rates. This changes the number, nothing else.')}
+                {t('This changes the calorie number, nothing else.')}
               </Text>
               {SEXES.map((o) => (
                 <Choice key={o.key} on={sex === o.key} name={t(o.name)}
@@ -125,7 +125,7 @@ export default function Onboarding({ profile, onDone }) {
             <FadeIn>
               <Text style={styles.q}>{t('How much have you trained before?')}</Text>
               <Text style={[T.small, { marginBottom: S.lg }]}>
-                {t('This sets how long your sessions are. Be honest — too much, too early is why people stop.')}
+                {t('This sets how long your sessions are.')}
               </Text>
               {EXPERIENCE.map((o) => (
                 <Choice key={o.key} on={experience === o.key} name={t(o.name)} sub={t(o.sub)}
@@ -160,7 +160,7 @@ export default function Onboarding({ profile, onDone }) {
                   {protein} g {t('of protein a day')}
                 </Text>
                 <Text style={[T.tiny, { marginTop: S.sm }]}>
-                  {t('An estimate, not a rule. The Food tab counts down from it, and you can change it any time in Challenges → Numbers.')}
+                  {t('An estimate. Change it any time in Challenges → Numbers.')}
                 </Text>
               </View>
             </FadeIn>

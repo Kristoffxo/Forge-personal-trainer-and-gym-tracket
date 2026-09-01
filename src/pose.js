@@ -43,6 +43,41 @@ export const L = {
   leftAnkle: 27, rightAnkle: 28,
 };
 
+/* ---------------------------------------------------------------
+   Two models, one shape.
+
+   The web uses MediaPipe, which returns BlazePose's 33 points in the
+   order above. A phone uses MoveNet, which returns 17 in COCO's
+   order. Rather than teach the counter about both, MoveNet's output
+   is rewritten into the 33-slot shape — the twelve joints that
+   matter land in the right slots and the rest stay empty, which the
+   counter already handles because it checks visibility anyway.
+
+   MoveNet gives (y, x, score) normalised, in that order.
+   --------------------------------------------------------------- */
+const COCO_TO_BLAZE = {
+  5: L.leftShoulder, 6: L.rightShoulder,
+  7: L.leftElbow, 8: L.rightElbow,
+  9: L.leftWrist, 10: L.rightWrist,
+  11: L.leftHip, 12: L.rightHip,
+  13: L.leftKnee, 14: L.rightKnee,
+  15: L.leftAnkle, 16: L.rightAnkle,
+};
+
+export function fromMoveNet(out) {
+  if (!out || out.length < 51) return null;
+  const pts = new Array(33).fill(null);
+  for (const coco of Object.keys(COCO_TO_BLAZE)) {
+    const i = Number(coco) * 3;
+    pts[COCO_TO_BLAZE[coco]] = {
+      y: out[i],
+      x: out[i + 1],
+      visibility: out[i + 2],
+    };
+  }
+  return pts;
+}
+
 /* The angle at `b`, in degrees, between a-b and c-b. */
 export function angleAt(a, b, c) {
   if (!a || !b || !c) return null;

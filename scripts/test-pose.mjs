@@ -3,7 +3,7 @@
 
    Every one of these is a way the obvious implementation miscounts.
    Run with: node scripts/test-pose.mjs */
-import { makeCounter, angleAt, MOVES, L } from '../src/pose.js';
+import { makeCounter, angleAt, MOVES, L, fromMoveNet } from '../src/pose.js';
 
 let pass = 0, fail = 0;
 const is = (name, got, want) => {
@@ -216,6 +216,63 @@ console.log('housekeeping');
 is('unknown move throws', (() => { try { makeCounter('nope'); return false; } catch (e) { return true; } })(), true);
 is('nothing in, nothing out', makeCounter('squats').push(null, 0).visible, false);
 is('both moves are described', Object.keys(MOVES).sort(), ['pushups', 'squats']);
+
+/* ---------------------------------------------------------------
+   The other model.
+
+   A phone runs MoveNet, which speaks COCO's seventeen points in
+   (y, x, score) order. The counter only ever sees BlazePose's
+   thirty-three. If this mapping is wrong the phone counts nothing
+   and says it cannot see you, which is a maddening thing to debug on
+   a device — so it is checked here instead.
+   --------------------------------------------------------------- */
+console.log('MoveNet to BlazePose');
+{
+  /* a flat array of 17 * (y, x, score), each point marked so its
+     origin is recoverable */
+  const raw = [];
+  for (let i = 0; i < 17; i++) raw.push(i / 100, 1 - i / 100, 0.9);
+  const pts = fromMoveNet(raw);
+
+  is('thirty-three slots out', pts.length, 33);
+  const pairs = [
+    [5, 'leftShoulder'], [6, 'rightShoulder'], [7, 'leftElbow'], [8, 'rightElbow'],
+    [9, 'leftWrist'], [10, 'rightWrist'], [11, 'leftHip'], [12, 'rightHip'],
+    [13, 'leftKnee'], [14, 'rightKnee'], [15, 'leftAnkle'], [16, 'rightAnkle'],
+  ];
+  for (const [coco, name] of pairs) {
+    is(`coco ${coco} lands on ${name}`,
+      [pts[L[name]].y, pts[L[name]].x], [coco / 100, 1 - coco / 100]);
+  }
+  is('score becomes visibility', pts[L.leftShoulder].visibility, 0.9);
+  is('unused slots stay empty', pts[0], null);
+  is('a short array is nothing', fromMoveNet([1, 2, 3]), null);
+  is('nothing is nothing', fromMoveNet(null), null);
+}
+{
+  /* and the whole chain: MoveNet numbers in, reps out */
+  const c = makeCounter('squats');
+  const frame = (kneeDeg) => {
+    const raw = new Array(51).fill(0);
+    const put = (coco, x, y) => {
+      raw[coco * 3] = y; raw[coco * 3 + 1] = x; raw[coco * 3 + 2] = 0.9;
+    };
+    const t = (kneeDeg * Math.PI) / 180;
+    put(11, 0, 0.2); put(12, 0.1, 0.2);            // hips
+    put(13, 0, 0.5); put(14, 0.1, 0.5);            // knees
+    /* ankle swung from the knee so hip-knee-ankle is kneeDeg */
+    /* y grows downward, so knee->hip is (0,-1) and swinging it by t
+       gives (sin t, -cos t) */
+    put(15, Math.sin(t) * 0.3, 0.5 - Math.cos(t) * 0.3);
+    put(16, 0.1 + Math.sin(t) * 0.3, 0.5 - Math.cos(t) * 0.3);
+    return fromMoveNet(raw);
+  };
+  let t = 0;
+  for (let i = 0; i < 3; i++) {
+    for (const a of [175, 80, 80, 175]) { c.push(frame(a), t); t += 300; }
+  }
+  is('MoveNet frames count reps', c.reps, 3);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

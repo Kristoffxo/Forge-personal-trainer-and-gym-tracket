@@ -22,6 +22,7 @@ import { targetsFor, splitTargetsFor, buildRoutine, minutesFor, INSTANT, buildIn
 import { useSide } from '../side';
 import { RELIEF, RELIEF_NOTE } from '../menstrual';
 import { SENIOR_SESSIONS, SENIOR_NOTE } from '../seniors';
+import { yogaFor } from '../yoga';
 import { kitLabel } from '../exercises';
 import Session from './Session';
 import Exercise from './Exercise';
@@ -40,7 +41,8 @@ export default function Library({ place, user, profile, onBack }) {
   const level = (profile && profile.experience) || 'intermediate';
   const accent = place === 'relief' ? C.gold
     : place === 'senior' ? C.lime
-      : place === 'home' ? C.teal : C.ember;
+      : place === 'yoga' ? C.violet
+        : place === 'home' ? C.teal : C.ember;
 
   const SPLITS = splitTargetsFor(side);
   const SINGLES = targetsFor(side);
@@ -85,7 +87,8 @@ export default function Library({ place, user, profile, onBack }) {
             pull-up in it. */}
         <ImageBackground
           source={place === 'gym' ? photoForTarget(picked.key)
-            : place === 'senior' ? PHOTO.rest : PHOTO.home}
+            : place === 'senior' ? PHOTO.rest
+              : place === 'yoga' || place === 'relief' ? PHOTO.calm : PHOTO.home}
           style={styles.hero} imageStyle={{ opacity: 0.55 }}>
           <View style={styles.heroVeil} />
           <View style={styles.heroBody}>
@@ -136,7 +139,7 @@ export default function Library({ place, user, profile, onBack }) {
                level — there are tests for it — but a Start button on
                an empty list would start nothing and say nothing. */
             <Text style={[T.small, { marginTop: S.lg, textAlign: 'center' }]}>
-              {t('Nothing here fits what you have to train with. Try the gym version, or pick another muscle.')}
+              {t('Nothing here fits your kit. Try another muscle.')}
             </Text>
           )}
         </View>
@@ -146,6 +149,47 @@ export default function Library({ place, user, profile, onBack }) {
 
   /* ---------- the menu ---------- */
   const open = (target) => setPicked(buildRoutine({ target, place, level, side }));
+
+  /* ---------- yoga ----------
+     Fixed flows rather than anything generated, and the same row as
+     the other timed lists so nothing new has to be learnt. */
+  if (place === 'yoga') {
+    const flows = yogaFor(side);
+    return (
+      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
+        <ImageBackground source={PHOTO.calm} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
+          <View style={styles.heroVeil} />
+          <View style={styles.heroBody}>
+            <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
+            </Press>
+            <Text style={styles.heroTitle}>{t('Yoga')}</Text>
+            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>{t('Slow, on the floor.')}</Text>
+          </View>
+        </ImageBackground>
+
+        <View style={{ padding: S.lg }}>
+          {flows.map((r, i) => (
+            <FadeIn key={r.key} delay={i * 24} from={8}>
+              <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
+                <View style={[styles.timeBadge, { borderColor: accent }]}>
+                  <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
+                  <Text style={T.tiny}>{t('min')}</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 14 }}>
+                  <Text style={styles.planName}>{t(r.name)}</Text>
+                  <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
+                </View>
+                <View style={[styles.go, { backgroundColor: accent }]}>
+                  <Text style={styles.goTxt}>{'→'}</Text>
+                </View>
+              </Press>
+            </FadeIn>
+          ))}
+        </View>
+      </ScrollView>
+    );
+  }
 
   /* ---------- the seniors side ----------
      Five fixed sessions and nothing generated. What is right for a
@@ -162,7 +206,7 @@ export default function Library({ place, user, profile, onBack }) {
             </Press>
             <Text style={styles.heroTitle}>{t('Gentle Workouts')}</Text>
             <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
-              {t('A chair, a wall, the floor. Nothing that strains a joint.')}
+              {t('A chair, a wall, the floor.')}
             </Text>
           </View>
         </ImageBackground>
@@ -208,7 +252,7 @@ export default function Library({ place, user, profile, onBack }) {
             </Press>
             <Text style={styles.heroTitle}>{t('Menstrual Exercises')}</Text>
             <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
-              {t('Ten to twenty minutes for period pain.')}
+              {t('For period pain.')}
             </Text>
           </View>
         </ImageBackground>
@@ -253,7 +297,7 @@ export default function Library({ place, user, profile, onBack }) {
             </Press>
             <Text style={styles.heroTitle}>{t('Instant Workouts')}</Text>
             <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
-              {t('Say how long you have. No equipment needed.')}
+              {t('How long have you got?')}
             </Text>
           </View>
         </ImageBackground>
@@ -293,7 +337,7 @@ export default function Library({ place, user, profile, onBack }) {
         </Text>
         <Text style={[T.small, { marginTop: 2 }]}>
           {place === 'home'
-            ? t('Nothing here needs a gym. A chair, a band, or one dumbbell — and a water can is a dumbbell.')
+            ? t('No gym needed. A chair, a band, one dumbbell.')
             : t('Everything the gym has.')}
         </Text>
       </View>
@@ -342,8 +386,8 @@ export default function Library({ place, user, profile, onBack }) {
 
       <Text style={[T.tiny, { textAlign: 'center', marginTop: S.lg, paddingHorizontal: S.lg }]}>
         {place === 'instant'
-          ? t('No equipment at all. Rest 30 seconds between moves.')
-          : t('Sessions are sized to your level. Change it in Challenges → Numbers.')}
+          ? t('Rest 30 seconds between moves.')
+          : t('Sized to your level.')}
       </Text>
     </ScrollView>
   );

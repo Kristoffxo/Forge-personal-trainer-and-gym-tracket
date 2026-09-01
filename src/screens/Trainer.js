@@ -10,7 +10,7 @@
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, ScrollView, TextInput, StyleSheet, ActivityIndicator,
+  View, Text, Image, ScrollView, TextInput, StyleSheet, ActivityIndicator,
   Platform, KeyboardAvoidingView,
 } from 'react-native';
 
@@ -18,6 +18,7 @@ import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
+import { PHOTO } from '../photos';
 import { PACK, MAX_LINES, costOf, myCredits, loadThread, ask, payConfig, buy } from '../trainer';
 
 export default function Trainer({ user, profile }) {
@@ -69,7 +70,7 @@ export default function Trainer({ user, profile }) {
     if (!pay.enabled) {
       await sheet.tell({
         title: t('Payments are not switched on yet'),
-        message: t('Nothing has been charged. The gateway needs its keys setting on the server first.'),
+        message: t('Nothing was charged.'),
       });
       return;
     }
@@ -89,7 +90,7 @@ export default function Trainer({ user, profile }) {
     if (r.pending) {
       await sheet.tell({
         title: t('Payment received'),
-        message: t('Your credits are on their way and usually land within a minute. Pull the screen to refresh.'),
+        message: t('Credits arrive in a minute.'),
       });
       load();
       return;
@@ -113,13 +114,13 @@ export default function Trainer({ user, profile }) {
       <ScrollView ref={scroller} contentContainerStyle={{ padding: S.lg, paddingBottom: 30 }}
         keyboardShouldPersistTaps="handled">
 
-        {/* who is on the other end */}
+        {/* Who is on the other end, in as few words as it can be said
+            in. This screen was three paragraphs of explaining. */}
         <FadeIn>
+          <Image source={PHOTO.bench} style={styles.hero} resizeMode="cover" />
           <View style={styles.human}>
-            <Text style={styles.humanTitle}>{t('A real trainer answers')}</Text>
-            <Text style={[T.small, { marginTop: 4 }]}>
-              {t('Not a bot, and not a model pretending to be one. A person reads your question and writes back, so give it a few hours.')}
-            </Text>
+            <Text style={styles.humanTitle}>{t('Ask a real person')}</Text>
+            <Text style={[T.small, { marginTop: 2 }]}>{t('Not a bot. Answers in a few hours.')}</Text>
           </View>
         </FadeIn>
 
@@ -127,11 +128,9 @@ export default function Trainer({ user, profile }) {
         <FadeIn delay={50}>
           <View style={styles.wallet}>
             <View style={{ flex: 1 }}>
-              <Label>{t('Your credits')}</Label>
+              <Label>{t('Credits')}</Label>
               <Text style={styles.balance}>{credits}</Text>
-              <Text style={T.tiny}>
-                {t('One credit per line. Ten credits is a ten-line question.')}
-              </Text>
+              <Text style={T.tiny}>{t('1 credit = 1 line')}</Text>
             </View>
             <Press onPress={topUp} disabled={buying} scaleTo={0.95}
               style={[styles.buy, buying && { opacity: 0.5 }]}>
@@ -140,9 +139,7 @@ export default function Trainer({ user, profile }) {
             </Press>
           </View>
           <Text style={[T.tiny, { marginTop: 6 }]}>
-            {pay.enabled
-              ? t('Paid securely through Razorpay. Credits arrive on their own.')
-              : t('Payments are not switched on yet — nothing on this screen can charge you.')}
+            {pay.enabled ? t('Paid by Razorpay.') : t('Payments are off. Nothing here can charge you.')}
           </Text>
         </FadeIn>
 
@@ -150,9 +147,7 @@ export default function Trainer({ user, profile }) {
         <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Your questions')}</Label>
 
         {thread.length === 0 ? (
-          <Text style={T.small}>
-            {t('Nothing yet. Ask anything — form, a plan, an injury, what to eat.')}
-          </Text>
+          <Text style={T.small}>{t('Ask anything. Form, a plan, an injury, food.')}</Text>
         ) : (
           thread.map((m) => {
             const mine = m.sender === 'client';
@@ -173,7 +168,7 @@ export default function Trainer({ user, profile }) {
         <TextInput
           value={draft}
           onChangeText={setDraft}
-          placeholder={t('Ask the trainer something')}
+          placeholder={t('Type your question')}
           placeholderTextColor={C.faint}
           multiline
           maxLength={900}
@@ -182,7 +177,7 @@ export default function Trainer({ user, profile }) {
         <View style={styles.composerFoot}>
           <Text style={T.tiny}>
             {cost === 0
-              ? `${t('Up to')} ${MAX_LINES} ${t('lines')}`
+              ? `${t('Max')} ${MAX_LINES} ${t('lines')}`
               : `${cost} ${cost === 1 ? t('credit') : t('credits')}`}
           </Text>
           <View style={{ flex: 1 }} />
@@ -203,11 +198,12 @@ export default function Trainer({ user, profile }) {
 const makeStyles = (C, T) => StyleSheet.create({
   boot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
 
+  hero: { width: '100%', height: 128, borderRadius: R.md, backgroundColor: C.raised },
   human: {
-    backgroundColor: C.surface, borderRadius: R.md, padding: S.md,
+    backgroundColor: C.surface, borderRadius: R.md, padding: S.md, marginTop: S.sm,
     borderLeftWidth: 4, borderLeftColor: C.teal,
   },
-  humanTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: C.text },
+  humanTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, color: C.text },
 
   wallet: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,

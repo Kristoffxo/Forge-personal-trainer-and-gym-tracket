@@ -49,7 +49,7 @@ export default function AddFood({ meal, onDone, onCancel, user }) {
           <Label style={{ paddingHorizontal:S.lg, paddingTop:S.md }}>{t('Common foods')}</Label> : null}
         ListEmptyComponent={
           <Text style={[T.small, { padding:S.lg }]}>
-            {t('Nothing matched. Try a simpler word — "chicken", not "grilled chicken breast".')}
+            {t('Nothing matched. Try a simpler word.')}
           </Text>}
         renderItem={({ item, index }) => (
           <FadeIn delay={Math.min(index, 10) * 28} from={8} duration={360}>

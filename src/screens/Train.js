@@ -41,12 +41,17 @@ function boxesFor(women, senior) {
       {
         key: 'plan', photo: 'hero', colorKey: 'lime',
         name: 'Build My Plan',
-        sub: 'Two questions, then one workout for each part of you',
+        sub: 'Two questions, then your workouts',
       },
       {
         key: 'senior', photo: 'rest', colorKey: 'ember',
         name: 'Gentle Workouts',
-        sub: 'Five ready-made sessions. A chair, a wall, the floor.',
+        sub: 'Five ready-made sessions',
+      },
+      {
+        key: 'yoga', photo: 'calm', colorKey: 'violet',
+        name: 'Yoga',
+        sub: 'Slow, on the floor',
       },
       /* No Instant Workouts here. It builds from the bodyweight pool,
          which still has press-ups and mountain climbers in it — fine
@@ -63,23 +68,28 @@ function boxesFor(women, senior) {
     {
       key: 'gym', photo: 'hero', colorKey: 'amber',
       name: 'Gym Workouts',
-      sub: women ? 'Glutes, thighs, lower body — or one muscle'
+      sub: women ? 'Glutes, thighs, legs — or one muscle'
                  : 'Push, pull, legs — or one muscle',
     },
     {
       key: 'home', photo: 'kit', colorKey: 'teal',
       name: 'Home Workouts',
-      sub: 'The floor, a chair, a band — nothing you need to buy',
+      sub: 'The floor, a chair, a band',
     },
     {
       key: 'instant', photo: 'home', colorKey: 'lime',
       name: 'Instant Workouts',
-      sub: '10, 15, 20 or 30 minutes — no equipment',
+      sub: '10 to 30 minutes, no equipment',
+    },
+    {
+      key: 'yoga', photo: 'calm', colorKey: 'violet',
+      name: 'Yoga',
+      sub: 'Slow, on the floor',
     },
     ...(women ? [{
       key: 'relief', photo: 'calm', colorKey: 'gold',
       name: 'Menstrual Exercises',
-      sub: 'Ten to twenty minutes for period pain',
+      sub: 'For period pain',
     }] : []),
   ];
 }
@@ -120,6 +130,9 @@ export default function Train({ user, profile }) {
     return <Library place="senior" user={user} profile={profile} onBack={() => setOpen(null)} />;
   }
   if (open === 'plan') return <SeniorPlan onBack={() => setOpen(null)} />;
+  if (open === 'yoga') {
+    return <Library place="yoga" user={user} profile={profile} onBack={() => setOpen(null)} />;
+  }
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
