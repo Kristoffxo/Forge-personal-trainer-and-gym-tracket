@@ -23,7 +23,7 @@ import { useLang } from '../lang';
 import { RankCard, MedalRow } from '../ui/medals';
 import { myStanding } from '../challenge';
 
-const WKEY = 'nemea:weights';
+const WKEY = 'nemea:weights';     // see the note in src/lang.js
 const DAYS = 14;
 
 /* ---------- weight log, kept on the device ---------- */

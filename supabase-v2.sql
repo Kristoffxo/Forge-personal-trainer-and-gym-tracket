@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA v2 — challenges, likes, onboarding, notifications.
+--  REPPO v2 — challenges, likes, onboarding, notifications.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.
 --  Additive. Drops nothing. Safe to run twice.

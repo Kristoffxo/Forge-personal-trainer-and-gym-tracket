@@ -1,13 +1,14 @@
-# Nemea
+# Reppo
 
 A training and nutrition app. One Expo codebase that runs as an Android app, an
 iOS app, and an installable web app you can add to a phone home screen.
 
-Named for Nemea, which hosted one of the four Panhellenic games alongside
-Olympia, and for the lion Herakles fought there — the one whose hide no blade
-could cut, and which he wore afterwards as armour.
+**Performance, redefined.**
 
-Live at **https://nemea.thearyanbasantani.workers.dev**
+Live at **https://nemea.thearyanbasantani.workers.dev** — the URL still says the
+old name because renaming the Cloudflare Worker would abandon it rather than
+rename it, taking its secrets, its cron and every installed copy of the app with
+it. It moves when a real domain does.
 
 ## The four tabs
 
@@ -165,7 +166,7 @@ To install on an iPhone: open the URL in Safari, Share, **Add to Home Screen**.
 
 ## Artwork
 
-The logo lives at `brand/nemea-logo-source.png` — the full lockup on its cream
+The logo lives at `brand/reppo-logo-source.png` — the full lockup on its cream
 field. Every icon, favicon and launch screen is cut from that one file:
 
 ```bash
@@ -242,7 +243,7 @@ migration.
    and now photographs. Needs a public URL before the Data safety form.
 2. **Account deletion.** Required for any app that lets you create an account.
 3. **Ads.** No ad SDK is integrated.
-4. `com.nemea.app` is the package name and is permanent from the first upload.
+4. `com.reppo.app` is the package name and is permanent from the first upload.
 5. The feed is user-generated content. Report and block exist; someone still has
    to read the `reports` table.
 

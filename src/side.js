@@ -18,7 +18,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const KEY = 'nemea:side';
+const KEY = 'nemea:side';         // see the note in src/lang.js
 
 export const MEN = 'men';
 export const WOMEN = 'women';

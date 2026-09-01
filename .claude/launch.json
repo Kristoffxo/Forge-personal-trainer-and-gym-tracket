@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "nemea-web",
+      "name": "reppo-web",
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve-web.mjs"],
       "port": 8090

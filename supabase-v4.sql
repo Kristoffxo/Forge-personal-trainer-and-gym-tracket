@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA v4 — the trainer, credits, and account deletion.
+--  REPPO v4 — the trainer, credits, and account deletion.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.
 --  Additive. Drops nothing. Safe to run twice.

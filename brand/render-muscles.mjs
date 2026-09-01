@@ -12,7 +12,7 @@ import { muscleSvg, MUSCLE_KEYS } from './muscles.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'assets', 'muscles');
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'nemea-muscles-'));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'reppo-muscles-'));
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 fs.mkdirSync(OUT, { recursive: true });

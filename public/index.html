@@ -12,7 +12,7 @@
 
     <!-- installable -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#F9F4EF" />
+    <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark light" />
     <meta name="mobile-web-app-capable" content="yes" />
 
@@ -23,7 +23,7 @@
          leaves a dead strip under the tab bar. With "black" iOS reserves the status
          bar itself, safe-area-inset-top is 0, and the page fills everything below. -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="Nemea" />
+    <meta name="apple-mobile-web-app-title" content="Reppo" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
@@ -32,7 +32,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
 
-    <!-- launch screens, one per iPhone. A device with no match just gets #12110F. -->
+    <!-- launch screens, one per iPhone. A device with no match just gets black. -->
     <link rel="apple-touch-startup-image" href="/splash/launch-375x667-2x.jpg" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" />
     <link rel="apple-touch-startup-image" href="/splash/launch-414x736-3x.jpg" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
     <link rel="apple-touch-startup-image" href="/splash/launch-375x812-3x.jpg" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" />
@@ -66,16 +66,16 @@
 
     <!-- Makes the page behave like an app rather than a document: no tap flash,
          no rubber-band, no long-press callout, no text selection outside inputs. -->
-    <style id="nemea-shell">
+    <style id="reppo-shell">
       * { -webkit-tap-highlight-color: transparent; }
       html {
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
-        background-color: #0E0D0C;
+        background-color: #000000;
       }
       body {
         margin: 0;
-        background-color: #0E0D0C;
+        background-color: #000000;
         overscroll-behavior: none;
         touch-action: manipulation;
         -webkit-user-select: none;
@@ -87,16 +87,15 @@
         user-select: text;
       }
 
-      /* Boot screen. Same artwork as the iOS launch image, so the hand-off from
-         the launch image to the page is invisible. Removed once React is up. */
-      /* The boot screen. It is the first thing anyone sees, so it shows the
-         logo itself rather than a letter standing in for it, on the cream
-         the mark was drawn on. */
+      /* The boot screen. Same artwork as the iOS launch image, so the
+         hand-off from the launch image to the page is invisible — black
+         to black, with the same mark in the same place. Removed once
+         React is up. */
       #boot {
         position: fixed;
         inset: 0;
         z-index: 9999;
-        background-color: #F9F4EF;
+        background-color: #000000;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -111,33 +110,35 @@
         left: 50%; top: 44%;
         width: 128vw; height: 128vw;
         transform: translate(-50%, -50%);
-        background: radial-gradient(circle, rgba(201,154,62,0.14) 0%, rgba(201,154,62,0.05) 42%, rgba(201,154,62,0) 68%);
+        background: radial-gradient(circle, rgba(254,78,2,0.16) 0%, rgba(250,10,18,0.05) 42%, rgba(250,10,18,0) 68%);
       }
       #boot .mark {
         position: relative;
         display: block;
-        width: 44vw; max-width: 200px; height: auto;
+        width: 44vw; max-width: 190px; height: auto;
         opacity: 0;
         animation: bootIn 900ms cubic-bezier(0.22,1,0.36,1) 60ms forwards;
       }
       #boot .word {
         position: relative;
-        margin-top: 3.6vh;
-        font-family: Forum, Georgia, 'Times New Roman', serif;
-        font-size: 10.5vw;
+        margin-top: 3.4vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 500;
+        font-size: 9vw;
         line-height: 1;
-        letter-spacing: 0.30em;
-        text-indent: 0.30em;
-        color: #2A2724;
+        letter-spacing: 0.34em;
+        text-indent: 0.34em;
+        color: #FFFFFF;
         text-transform: uppercase;
         opacity: 0;
         animation: bootIn 900ms cubic-bezier(0.22,1,0.36,1) 220ms forwards;
       }
       #boot .rule {
         position: relative;
-        width: 26vw; max-width: 128px; height: 1px;
+        width: 26vw; max-width: 120px; height: 3px;
+        border-radius: 3px;
         margin: 2.6vh 0 2.4vh;
-        background: linear-gradient(90deg, rgba(201,154,62,0) 0%, #C99A3E 50%, rgba(201,154,62,0) 100%);
+        background: linear-gradient(90deg, #FE4E02 0%, #FA0A12 100%);
         opacity: 0;
         animation: bootIn 900ms cubic-bezier(0.22,1,0.36,1) 360ms forwards;
       }
@@ -145,22 +146,22 @@
         position: relative;
         margin: 0;
         max-width: 26em;
-        font-family: Forum, Georgia, 'Times New Roman', serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 4.1vw;
         line-height: 1.66;
+        letter-spacing: 0.02em;
         text-align: center;
-        color: #6B655C;
+        color: #9C9CA4;
         opacity: 0;
         animation: bootIn 1000ms cubic-bezier(0.22,1,0.36,1) 460ms forwards;
       }
-      #boot .meaning em { color: #A8801F; font-style: normal; }
       @keyframes bootIn {
         from { opacity: 0; transform: translateY(10px); }
         to   { opacity: 1; transform: translateY(0); }
       }
       @media (min-width: 620px) {
-        #boot .word { font-size: 46px; }
-        #boot .meaning { font-size: 17px; }
+        #boot .word { font-size: 40px; }
+        #boot .meaning { font-size: 16px; }
       }
 </style>
   </head>
@@ -176,13 +177,9 @@
     <div id="boot">
       <div class="glow"></div>
       <img class="mark" src="/icons/mark.png" alt="" width="512" height="512" />
-      <div class="word">Nemea</div>
+      <div class="word">Reppo</div>
       <div class="rule"></div>
-      <p class="meaning">
-        A valley in Greece that held one of the four great games — and the lion
-        whose hide no blade could cut. <em>Herakles killed it with his bare
-        hands, and wore the hide as armour ever after.</em>
-      </p>
+      <p class="meaning">Performance, redefined.</p>
     </div>
 
     <script>
@@ -196,8 +193,8 @@
           boot.className = 'gone';
           setTimeout(function () { if (boot && boot.parentNode) boot.parentNode.removeChild(boot); }, 320);
         }
-        window.__nemeaReady = hideBoot;
-        /* App.js calls __nemeaReady once fonts and the session check are done.
+        window.__reppoReady = hideBoot;
+        /* App.js calls __reppoReady once fonts and the session check are done.
            These are the belts and braces in case it never gets that far. */
         var obs = new MutationObserver(function () {
           var root = document.getElementById('root');
@@ -218,11 +215,11 @@
             var reloading = false;
             navigator.serviceWorker.addEventListener('controllerchange', function () {
               if (reloading || !navigator.serviceWorker.controller) return;
-              if (!window.__nemeaHadController) return;
+              if (!window.__reppoHadController) return;
               reloading = true;
               window.location.reload();
             });
-            window.__nemeaHadController = !!navigator.serviceWorker.controller;
+            window.__reppoHadController = !!navigator.serviceWorker.controller;
           });
         }
       })();

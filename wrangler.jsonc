@@ -15,6 +15,11 @@
   //   curl -X POST -H "x-admin-key: <that key>" \
   //        https://nemea.thearyanbasantani.workers.dev/api/send-daily
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Still "nemea": this is the Worker's identity on Cloudflare, and
+  // renaming it does not rename anything — it creates a second Worker
+  // at reppo.*.workers.dev and abandons this one, along with its
+  // secrets, its cron and every phone that has the app installed. The
+  // name goes when a real domain does, not before.
   "name": "nemea",
   "main": "worker/index.js",
   "compatibility_date": "2026-08-29",

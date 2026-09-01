@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA v6 — the daily reminder, at a time you choose.
+--  REPPO v6 — the daily reminder, at a time you choose.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.
 --  Additive. Drops nothing. Safe to run twice.

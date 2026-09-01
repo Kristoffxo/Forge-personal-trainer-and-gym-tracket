@@ -208,7 +208,7 @@ async function createOrder(request, env) {
     body: JSON.stringify({
       amount: pack.paise,
       currency: 'INR',
-      receipt: 'nemea-' + user.id.slice(0, 8) + '-' + Date.now(),
+      receipt: 'reppo-' + user.id.slice(0, 8) + '-' + Date.now(),
       notes: { user_id: user.id, credits: String(pack.credits) },
     }),
   });
@@ -427,7 +427,7 @@ async function vapidHeader(endpoint, key, env) {
     aud,
     // twelve hours; push services reject anything longer than 24
     exp: Math.floor(Date.now() / 1000) + 12 * 3600,
-    sub: env.VAPID_SUBJECT || 'mailto:admin@nemea.app',
+    sub: env.VAPID_SUBJECT || 'mailto:admin@reppo.app',
   }));
 
   const signature = await crypto.subtle.sign(

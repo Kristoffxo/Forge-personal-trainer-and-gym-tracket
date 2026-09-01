@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA — moderation and a feed that clears itself.
+--  REPPO — moderation and a feed that clears itself.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.
 --  Additive and safe to run twice.
@@ -106,6 +106,8 @@ do $$
 begin
   create extension if not exists pg_cron;
 
+  -- the job name stays as it is: it has to match what is already
+  -- scheduled in the live database, or this creates a second copy
   perform cron.unschedule('nemea-purge-old-posts')
    where exists (select 1 from cron.job where jobname = 'nemea-purge-old-posts');
 

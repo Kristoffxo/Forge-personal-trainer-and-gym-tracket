@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA v5 — payments, so credits arrive on their own.
+--  REPPO v5 — payments, so credits arrive on their own.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.
 --  Additive. Drops nothing. Safe to run twice.

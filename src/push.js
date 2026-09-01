@@ -30,7 +30,7 @@ import { supabase } from './supabase';
      WANT  'off' once you have turned them off. Anything else is on.
      ASKED set once we have put the question to you, so we never
            put it twice. */
-const WANT = 'nemea:push';
+const WANT = 'nemea:push';        // see the note in src/lang.js
 const ASKED = 'nemea:push-asked';
 
 export const DEFAULT_HOUR = 18;          // six in the evening, India time
@@ -81,7 +81,7 @@ export function whyNot() {
   if (!isWeb) return 'Notifications need the web app.';
   const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   if (iOS && !isInstalled()) {
-    return 'On iPhone, add Nemea to your home screen first — Share, then Add to Home Screen. '
+    return 'On iPhone, add Reppo to your home screen first — Share, then Add to Home Screen. '
       + 'Apple only allows notifications for installed apps.';
   }
   if (!canPush()) return 'This browser cannot do notifications.';

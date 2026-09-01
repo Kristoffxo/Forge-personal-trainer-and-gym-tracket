@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA — full setup with real email/password accounts
+--  REPPO — full setup with real email/password accounts
 --  Supabase -> SQL Editor -> New query -> paste all -> Run
 --  Safe to run more than once.
 -- ============================================================
@@ -118,7 +118,7 @@ create policy plans_update    on public.plans for update
 alter publication supabase_realtime add table public.messages;
 
 -- ============================================================
---  Kept for reference. Nemea has no coach role in the app any more,
+--  Kept for reference. Reppo has no coach role in the app any more,
 --  the coach (change the email to whichever he registered with):
 --
 --    update public.profiles set role = 'coach'

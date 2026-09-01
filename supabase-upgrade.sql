@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA — upgrade: the feed, workout logging, and the extra
+--  REPPO — upgrade: the feed, workout logging, and the extra
 --  profile fields the calorie target is worked out from.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.

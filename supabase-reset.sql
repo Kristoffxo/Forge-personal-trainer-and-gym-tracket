@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA — wipe everyone, and make one email the admin.
+--  REPPO — wipe everyone, and make one email the admin.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.
 --

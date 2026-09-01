@@ -1,5 +1,5 @@
 -- ============================================================
---  NEMEA v3 — medals, levels, public profiles, leaderboard.
+--  REPPO v3 — medals, levels, public profiles, leaderboard.
 --
 --  Supabase -> SQL Editor -> New query -> paste all -> Run.
 --  Additive. Drops nothing. Safe to run twice.

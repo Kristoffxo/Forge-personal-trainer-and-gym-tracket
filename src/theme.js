@@ -16,12 +16,18 @@ import { useSide } from './side';
 export const SIDE_BLUE = '#3B82F6';
 export const SIDE_PINK = '#FF4D8D';
 
+/* The logo's own gradient, sampled out of brand/reppo-logo-source.png
+   rather than picked to look similar. `ember` below is the middle of
+   it, which is why the app and the mark sit together. */
+export const REPPO_ORANGE = '#FE4E02';
+export const REPPO_RED = '#FA0A12';
+
 export const DARK = {
   mode:'dark',
   bg:'#0B0B0E', surface:'#16161B', raised:'#1F1F26', line:'#2A2A32',
   text:'#FFFFFF', dim:'#9CA3AF', faint:'#6B7280', onAccent:'#0B0B0E',
-  ember:'#FF6B1A', amber:'#FBBF24', teal:'#22D3EE', violet:'#8B5CF6', lime:'#4ADE80',
-  gold:'#C99A3E', taupe:'#CFC1AA',   // the logo's own two
+  ember:'#FE4E02', amber:'#FBBF24', teal:'#22D3EE', violet:'#8B5CF6', lime:'#4ADE80',
+  gold:'#FF7A2E', taupe:'#F0A882',   // the mark's lighter end
   protein:'#EF4444', carbs:'#FBBF24', fat:'#22D3EE',
   danger:'#EF4444', white:'#FFFFFF',
   veil:'rgba(14,13,12,0.62)',      // over photographs
@@ -32,8 +38,8 @@ export const LIGHT = {
   mode:'light',
   bg:'#F6F6F8', surface:'#FFFFFF', raised:'#EFEFF3', line:'#E1E1E8',
   text:'#0B0B0E', dim:'#5B6270', faint:'#8A90A0', onAccent:'#FFFFFF',
-  ember:'#EA5A0B', amber:'#C98A0A', teal:'#0E9BB5', violet:'#6D40E0', lime:'#2FA45C',
-  gold:'#B0801F', taupe:'#B9A88C',
+  ember:'#D93F00', amber:'#C98A0A', teal:'#0E9BB5', violet:'#6D40E0', lime:'#2FA45C',
+  gold:'#C4500A', taupe:'#A8664A',
   protein:'#D32F2F', carbs:'#C98A0A', fat:'#0E9BB5',
   danger:'#D32F2F', white:'#FFFFFF',
   veil:'rgba(14,13,12,0.44)',
@@ -93,7 +99,7 @@ export const R = { sm:12, md:18, lg:24, pill:999 };
 /* ---------- the switch ----------
    Dark is the standard. Light is there for anybody who wants it,
    and is remembered once they do. */
-const KEY = 'nemea:theme';
+const KEY = 'nemea:theme';        // see the note in src/lang.js
 const Ctx = createContext(null);
 
 export function ThemeProvider({ children }) {

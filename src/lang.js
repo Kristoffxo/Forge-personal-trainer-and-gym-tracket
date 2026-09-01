@@ -19,6 +19,9 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+/* Still 'nemea:' — these are the keys people's saved settings are
+   already under. Renaming them does not migrate anything, it just
+   loses everybody's language, theme and side on next open. */
 const KEY = 'nemea:lang';
 
 /* english: hinglish */
@@ -43,8 +46,9 @@ const HI = {
   'at least 6 characters': 'kam se kam 6 characters',
   'you@email.com': 'aap@email.com',
   'Your password is never stored by this app.': 'Aapka password ye app kabhi save nahi karta.',
-  'Train like the': 'Aise train karo',
-  'lion was real.': 'jaise sher asli tha.',
+  'Performance, redefined.': 'Performance, nayi paribhasha.',
+  'Almost there — confirm the link in your email, then sign in.':
+    'Bas ho gaya — apne email ka link confirm karo, phir sign in karo.',
   'Wrong email or password.': 'Email ya password galat hai.',
   'That email already has an account. Sign in instead.':
     'Is email ka account pehle se hai. Sign in karo.',

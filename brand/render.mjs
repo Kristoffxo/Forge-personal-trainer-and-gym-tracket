@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 /* ---------------------------------------------------------------
    Cuts every icon, favicon and launch screen the app ships out of
-   one source file: brand/nemea-logo-source.png.
+   one source file: brand/reppo-logo-source.png.
 
      node brand/render.mjs
 
-   The source is the full lockup — ring-and-N mark, NEMEA wordmark,
-   FUEL · TRACK · PROGRESS strap — on its cream field. Different
-   slots want different parts of it, so everything here is a crop of
-   that one artwork placed on a canvas. Nothing is redrawn.
+   The source is the supplied lockup — the orange triangle mark and
+   the REPPO wordmark — on black. Different slots want different
+   parts of it, so everything here is a crop of that one artwork
+   placed on a canvas. Nothing is redrawn: the pixels the app ships
+   are the pixels that were handed over.
 
    Measured once out of the source (see BOX below); re-measure if the
    artwork is ever replaced.
@@ -25,22 +26,27 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SRC = path.join(ROOT, 'brand', 'nemea-logo-source.png');
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'nemea-brand-'));
+const SRC = path.join(ROOT, 'brand', 'reppo-logo-source.png');
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'reppo-brand-'));
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 if (!fs.existsSync(CHROME)) throw new Error('Google Chrome is required, not found at ' + CHROME);
 if (!fs.existsSync(SRC)) throw new Error('missing ' + SRC);
 
-/* The cream the artwork sits on, sampled from its own top-left pixel. */
-export const CREAM = '#F9F4EF';
+/* The field the artwork sits on, sampled from its own corner. */
+export const INK = '#000000';
 
-/* Regions of the source, in source pixels. The source is 1254 square. */
+/* And the two ends of the mark's gradient, sampled out of it. These
+   are the app's accent colours — src/theme.js reads the same two. */
+export const ORANGE = '#FE4E02';
+export const RED = '#FA0A12';
+
+/* Regions of the source, in source pixels. The source is 1254 square,
+   and these were measured off it rather than guessed: the mark is the
+   orange triangle alone, the lockup is triangle plus wordmark. */
 const BOX = {
-  //  the ring, the N and the dumbbell — everything above the wordmark
-  mark: { x: 397, y: 247, w: 460, h: 460 },
-  //  mark + wordmark + strapline
-  lockup: { x: 180, y: 243, w: 894, h: 694 },
+  mark: { x: 378, y: 306, w: 498, h: 435 },
+  lockup: { x: 316, y: 306, w: 618, h: 594 },
 };
 
 /* ---------------------------------------------------------------
@@ -52,7 +58,7 @@ const BOX = {
                  mark can sit on the app's dark surfaces
    --------------------------------------------------------------- */
 let seq = 0;
-function compose(region, size, out, { fill = 0.74, bg = CREAM, knockout = false, height } = {}) {
+function compose(region, size, out, { fill = 0.74, bg = INK, knockout = false, height } = {}) {
   const H = height || size;
   const w = size * fill;
   const h = (w * region.h) / region.w;
@@ -73,9 +79,11 @@ function compose(region, size, out, { fill = 0.74, bg = CREAM, knockout = false,
   </style>
   <div id="stage">${knockout ? '' : `<img src="${SRC}">`}</div>
   ${knockout ? `<script>
-    // Chroma-key the cream away. The artwork's own strokes are gold and
-    // taupe, both far from the background, so a generous tolerance is
-    // safe and it keeps the anti-aliased edges from fringing.
+    // Chroma-key the black field away. Everything drawn is either a
+    // bright orange or white, both a long way from the background, so
+    // a generous tolerance is safe and it stops the anti-aliased edges
+    // fringing. The gaps *inside* the mark go transparent too, which is
+    // right — they are meant to show whatever is behind them.
     const img = new Image();
     img.onload = () => {
       const c = document.createElement('canvas');
@@ -86,9 +94,9 @@ function compose(region, size, out, { fill = 0.74, bg = CREAM, knockout = false,
       const d = g.getImageData(0, 0, c.width, c.height);
       const p = d.data;
       for (let i = 0; i < p.length; i += 4) {
-        const dist = Math.max(Math.abs(p[i]-249), Math.abs(p[i+1]-244), Math.abs(p[i+2]-239));
-        if (dist < 10) p[i+3] = 0;
-        else if (dist < 34) p[i+3] = Math.round(255 * (dist - 10) / 24);
+        const lum = Math.max(p[i], p[i+1], p[i+2]);
+        if (lum < 14) p[i+3] = 0;
+        else if (lum < 48) p[i+3] = Math.round(255 * (lum - 14) / 34);
       }
       g.putImageData(d, 0, 0);
       document.getElementById('stage').appendChild(c);
@@ -149,8 +157,8 @@ const I = (f) => path.join(ROOT, 'public', 'icons', f);
    ================================================================= */
 console.log('compositing masters…');
 
-//  the home-screen icon: mark on cream, with the breathing room a
-//  rounded app tile needs so the ring is not clipped by the corners
+//  the home-screen icon: mark on black, with the breathing room a
+//  rounded app tile needs so the triangle is not clipped by the corners
 const ICON = compose(BOX.mark, 1024, path.join(TMP, 'icon.png'), { fill: 0.76, knockout: true });
 
 //  small sizes cannot afford the padding — at 16 px it would leave
@@ -180,8 +188,8 @@ resize(ICON, 1024, note(A('icon.png')));
 resize(ICON_TIGHT, 48, note(A('favicon.png')));
 resize(FG, 1024, note(A('android-icon-foreground.png')));
 
-//  a flat cream plate behind the adaptive foreground
-flat(1024, 1024, CREAM, note(A('android-icon-background.png')));
+//  a flat black plate behind the adaptive foreground
+flat(1024, 1024, INK, note(A('android-icon-background.png')));
 
 //  Android 13 themed icons want a single-colour silhouette. The mark
 //  knocked out of its field is exactly that once the system tints it.
@@ -226,9 +234,9 @@ for (const [name, w, h] of DEVICES) {
 /* =================================================================
    5. Loose copies, for a store listing or a landing page
    ================================================================= */
-compose(BOX.lockup, 1600, note(path.join(ROOT, 'brand', 'nemea-lockup.png')),
+compose(BOX.lockup, 1600, note(path.join(ROOT, 'brand', 'reppo-lockup.png')),
   { fill: 0.9, knockout: true, height: Math.round((1600 * 0.9 * BOX.lockup.h) / BOX.lockup.w) + 160 });
-compose(BOX.mark, 1024, note(path.join(ROOT, 'brand', 'nemea-mark.png')),
+compose(BOX.mark, 1024, note(path.join(ROOT, 'brand', 'reppo-mark.png')),
   { fill: 0.9, knockout: true });
 
 fs.rmSync(TMP, { recursive: true, force: true });

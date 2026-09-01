@@ -42,6 +42,6 @@ export function useWebChrome({ bg, mode, ready }) {
 
   useEffect(() => {
     if (!isWeb || !ready) return;
-    if (typeof window.__nemeaReady === 'function') window.__nemeaReady();
+    if (typeof window.__reppoReady === 'function') window.__reppoReady();
   }, [ready]);
 }

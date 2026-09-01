@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Nemea",
-  "short_name": "Nemea",
+  "name": "Reppo",
+  "short_name": "Reppo",
   "description": "Train, eat and track in one place. Pick a split and get a week you can tick off, count calories against 44,000 foods including Indian ones, and watch your streak build.",
   "start_url": "/",
   "scope": "/",
@@ -11,8 +11,8 @@
     "minimal-ui"
   ],
   "orientation": "portrait",
-  "background_color": "#12110F",
-  "theme_color": "#0E0D0C",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "lang": "en",
   "dir": "ltr",
   "categories": [

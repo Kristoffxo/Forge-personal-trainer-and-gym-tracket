@@ -161,7 +161,7 @@ export async function buy({ userId, pack = 'p10', name, email }) {
       amount: order.amount,
       currency: order.currency,
       order_id: order.orderId,
-      name: 'Nemea',
+      name: 'Reppo',
       description: order.credits + ' credits',
       prefill: { name: name || '', email: email || '' },
       theme: { color: '#FF6B1A' },
