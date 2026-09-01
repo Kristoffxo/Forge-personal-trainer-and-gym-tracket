@@ -25,8 +25,16 @@
       "permissions": [
         "CAMERA",
         "READ_MEDIA_IMAGES",
-        "POST_NOTIFICATIONS"
-      ]
+        "POST_NOTIFICATIONS",
+        "VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ],
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png",

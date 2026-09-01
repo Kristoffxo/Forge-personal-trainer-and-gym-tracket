@@ -45,3 +45,9 @@ yarn-error.*
 
 # push keys — the private half must not be committed
 brand/vapid.txt
+android-signing.md
+
+# never
+*.jks
+*.keystore
+password.txt

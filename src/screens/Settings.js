@@ -11,7 +11,7 @@
        you out and leaving your data behind
    --------------------------------------------------------------- */
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
@@ -22,6 +22,13 @@ import { api } from '../api';
 import { saveProfile, signOut } from '../auth';
 import * as push from '../push';
 import { EXPERIENCE, GOALS } from '../tdee';
+import { API_ORIGIN } from '../api';
+
+/* Opens a page in the browser, wherever the app is running. */
+function openLink(path) {
+  const url = API_ORIGIN + path;
+  Linking.openURL(url).catch(() => {});
+}
 
 export default function Settings({ user, profile, onProfile }) {
   const { C, T, mode, toggle } = useTheme();
@@ -219,6 +226,27 @@ export default function Settings({ user, profile, onProfile }) {
             <Text style={[styles.optValue, { color: C.gold }]}>{push.hourLabel(hour)}</Text>
           </Press>
         ) : null}
+      </FadeIn>
+
+      {/* ---- the legal bits ----
+          Reachable from inside the app, which both stores expect, and
+          from a browser for anybody who has not installed it. */}
+      <FadeIn delay={100}>
+        <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('About')}</Label>
+
+        <Press onPress={() => openLink('/privacy')} scaleTo={0.98} style={styles.opt}>
+          <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('Privacy policy')}</Text>
+          <Text style={[styles.optValue, { color: C.dim }]}>{'›'}</Text>
+        </Press>
+        <Press onPress={() => openLink('/terms')} scaleTo={0.98} style={styles.opt}>
+          <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('Terms of use')}</Text>
+          <Text style={[styles.optValue, { color: C.dim }]}>{'›'}</Text>
+        </Press>
+
+        <View style={styles.row}>
+          <Text style={[T.small, { flex: 1 }]}>{t('Version')}</Text>
+          <Text style={[T.bodyOn, { fontSize: 14 }]}>1.0.0</Text>
+        </View>
       </FadeIn>
 
       {/* ---- account ---- */}

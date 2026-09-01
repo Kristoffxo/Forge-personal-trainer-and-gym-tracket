@@ -22,7 +22,15 @@
      npx wrangler secret put VAPID_PRIVATE_JWK
    --------------------------------------------------------------- */
 
+import { privacy } from './legal/privacy.js';
+import { terms } from './legal/terms.js';
+import { deleteAccount as deletePage } from './legal/deleteAccount.js';
+
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
+const HTML = {
+  'content-type': 'text/html; charset=utf-8',
+  'cache-control': 'public, max-age=600',
+};
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 
@@ -59,6 +67,14 @@ export default {
         return json({ error: 'failed' }, 500);
       });
     }
+
+    /* ---- the pages Google Play checks ----
+       Served as real HTML before the single-page fallback gets a look
+       at them. A reviewer following the privacy policy link does not
+       run JavaScript, and would otherwise be handed the app shell. */
+    if (url.pathname === '/privacy') return new Response(privacy(), { headers: HTML });
+    if (url.pathname === '/terms') return new Response(terms(), { headers: HTML });
+    if (url.pathname === '/delete-account') return new Response(deletePage(), { headers: HTML });
 
     /* ---- payments ---- */
     if (url.pathname === '/api/pay-config') return payConfig(env);

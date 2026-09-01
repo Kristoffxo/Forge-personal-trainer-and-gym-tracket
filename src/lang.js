@@ -782,6 +782,20 @@ const HI = {
   'Two questions, then your workouts': 'Do sawaal, phir aapke workouts',
   '10 to 30 minutes, no equipment': '10 se 30 minute, kuch nahi chahiye',
   'For period pain': 'Period dard ke liye',
+  /* ---------- trainer, not yet ---------- */
+  'Coming soon': 'Jald aa raha hai',
+  'Send a question. A person answers.': 'Sawaal bhejo. Ek insaan jawab deta hai.',
+  'Your form, from a photo or a video': 'Aapki form, photo ya video se',
+  'A plan for your week': 'Aapke hafte ka plan',
+  'An old injury to train around': 'Purani chot ke saath kaise train karein',
+  'Not a bot': 'Bot nahi',
+  'A real person reads it and writes back.': 'Ek asli insaan padhta hai aur jawab likhta hai.',
+
+  /* ---------- about ---------- */
+  'About': 'App ke baare mein',
+  'Privacy policy': 'Privacy policy',
+  'Terms of use': 'Terms of use',
+  'Version': 'Version',
 };
 
 const Ctx = createContext(null);
