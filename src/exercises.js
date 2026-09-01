@@ -2,7 +2,23 @@
    Exercise library, grouped by muscle.
      t: 'c' compound (moves most weight, goes first)
         'i' isolation (finishes the muscle off)
-     e: kit needed — used to filter a home/gym plan
+     e: what it actually needs. This has to be honest, because it is
+        the only thing standing between "Home Workouts" and a list of
+        exercises you cannot do at home:
+
+          None      the floor and you, nothing else
+          Chair     a chair, a sofa, a bed, a step — every home has one
+          Band      a resistance band
+          Dumbbell  one dumbbell, or a water can with a handle
+          Bar       something to hang from. Most homes have nothing
+          Wheel     an ab wheel
+          Partner   somebody to hold your ankles
+          Barbell / Machine / Cable — a gym
+
+        Pull-ups, dips, hanging raises and the ab wheel were all
+        filed under None. They are bodyweight, which is not the same
+        as needing nothing, and they are why a home session used to
+        open with an exercise nobody at home could start.
      w: 1 if the women's side leads with it
      x: 1 if the women's side leaves it out
 
@@ -19,14 +35,14 @@ export const EX = [
   { n:'Flat Dumbbell Press',        m:'Chest', t:'c', e:'Dumbbell', s:'4 × 8–10' },
   { n:'Machine Chest Press',        m:'Chest', t:'c', e:'Machine',  s:'3 × 10–12', w:1 },
   { n:'Push-up',                    m:'Chest', t:'c', e:'None',     s:'4 × max' },
-  { n:'Dips (chest lean)',          m:'Chest', t:'c', e:'None',     s:'3 × 8–12', x:1 },
+  { n:'Dips (chest lean)',          m:'Chest', t:'c', e:'Bar',     s:'3 × 8–12', x:1 },
   { n:'Cable Fly',                  m:'Chest', t:'i', e:'Cable',    s:'3 × 12–15', w:1 },
   { n:'Dumbbell Fly',               m:'Chest', t:'i', e:'Dumbbell', s:'3 × 12–15' },
   { n:'Pec Deck',                   m:'Chest', t:'i', e:'Machine',  s:'3 × 12–15' },
 
   /* ---- Back ---- */
   { n:'Deadlift',                   m:'Back', t:'c', e:'Barbell',  s:'4 × 5', x:1 },
-  { n:'Pull-up',                    m:'Back', t:'c', e:'None',     s:'4 × 6–10' },
+  { n:'Pull-up',                    m:'Back', t:'c', e:'Bar',     s:'4 × 6–10' },
   { n:'Lat Pulldown',               m:'Back', t:'c', e:'Machine',  s:'4 × 8–12', w:1 },
   { n:'Barbell Row',                m:'Back', t:'c', e:'Barbell',  s:'4 × 8–10' },
   { n:'Chest-Supported Row',        m:'Back', t:'c', e:'Machine',  s:'3 × 10–12' },
@@ -34,7 +50,7 @@ export const EX = [
   { n:'Seated Cable Row',           m:'Back', t:'c', e:'Cable',    s:'3 × 10–12', w:1 },
   { n:'Straight-Arm Pulldown',      m:'Back', t:'i', e:'Cable',    s:'3 × 12–15' },
   { n:'Face Pull',                  m:'Back', t:'i', e:'Cable',    s:'3 × 15', w:1 },
-  { n:'Inverted Row',               m:'Back', t:'c', e:'None',     s:'4 × 10–12' },
+  { n:'Inverted Row',               m:'Back', t:'c', e:'Bar',     s:'4 × 10–12' },
 
   /* ---- Shoulders ---- */
   { n:'Overhead Press',             m:'Shoulders', t:'c', e:'Barbell',  s:'4 × 6–8' },
@@ -52,7 +68,7 @@ export const EX = [
   { n:'Hammer Curl',                m:'Biceps', t:'i', e:'Dumbbell', s:'3 × 10–12', w:1 },
   { n:'Incline Dumbbell Curl',      m:'Biceps', t:'i', e:'Dumbbell', s:'3 × 12' },
   { n:'Cable Curl',                 m:'Biceps', t:'i', e:'Cable',    s:'3 × 12–15', w:1 },
-  { n:'Chin-up',                    m:'Biceps', t:'c', e:'None',     s:'3 × 6–10' },
+  { n:'Chin-up',                    m:'Biceps', t:'c', e:'Bar',     s:'3 × 6–10' },
 
   /* ---- Triceps ---- */
   { n:'Close-Grip Bench Press',     m:'Triceps', t:'c', e:'Barbell',  s:'4 × 8', x:1 },
@@ -60,7 +76,7 @@ export const EX = [
   { n:'Overhead Cable Extension',   m:'Triceps', t:'i', e:'Cable',    s:'3 × 12' },
   { n:'Skull Crusher',              m:'Triceps', t:'i', e:'Barbell',  s:'3 × 10–12', x:1 },
   { n:'Dumbbell Kickback',          m:'Triceps', t:'i', e:'Dumbbell', s:'3 × 15', w:1 },
-  { n:'Bench Dip',                  m:'Triceps', t:'c', e:'None',     s:'3 × 12–15' },
+  { n:'Bench Dip',                  m:'Triceps', t:'c', e:'Chair',     s:'3 × 12–15' },
 
   /* ---- Quads ---- */
   { n:'Back Squat',                 m:'Quads', t:'c', e:'Barbell',  s:'4 × 6–8' },
@@ -78,12 +94,12 @@ export const EX = [
   { n:'Lying Leg Curl',             m:'Hamstrings', t:'i', e:'Machine',  s:'3 × 12', w:1 },
   { n:'Seated Leg Curl',            m:'Hamstrings', t:'i', e:'Machine',  s:'3 × 12–15', w:1 },
   { n:'Good Morning',               m:'Hamstrings', t:'c', e:'Barbell',  s:'3 × 10', x:1 },
-  { n:'Nordic Curl',                m:'Hamstrings', t:'i', e:'None',     s:'3 × 6', x:1 },
+  { n:'Nordic Curl',                m:'Hamstrings', t:'i', e:'Partner',     s:'3 × 6', x:1 },
 
   /* ---- Glutes ---- */
   { n:'Hip Thrust',                 m:'Glutes', t:'c', e:'Barbell',  s:'4 × 8–10', w:1 },
   { n:'Glute Bridge',               m:'Glutes', t:'c', e:'None',     s:'3 × 15', w:1 },
-  { n:'Cable Kickback',             m:'Glutes', t:'i', e:'Cable',    s:'3 × 15 each', w:1 },
+  { n:'Glute Kickback',             m:'Glutes', t:'i', e:'None',     s:'3 × 15 each', w:1 },
   { n:'Sumo Deadlift',              m:'Glutes', t:'c', e:'Barbell',  s:'4 × 6–8', w:1 },
   { n:'Step-up',                    m:'Glutes', t:'c', e:'Dumbbell', s:'3 × 10 each', w:1 },
 
@@ -93,12 +109,12 @@ export const EX = [
   { n:'Dumbbell Calf Raise',        m:'Calves', t:'i', e:'Dumbbell', s:'4 × 15–20', w:1 },
 
   /* ---- Core ---- */
-  { n:'Hanging Knee Raise',         m:'Core', t:'c', e:'None',     s:'3 × 12' },
+  { n:'Hanging Knee Raise',         m:'Core', t:'c', e:'Bar',     s:'3 × 12' },
   { n:'Plank',                      m:'Core', t:'i', e:'None',     s:'3 × 45 s', w:1 },
   { n:'Cable Crunch',               m:'Core', t:'i', e:'Cable',    s:'3 × 15' },
   { n:'Dead Bug',                   m:'Core', t:'i', e:'None',     s:'3 × 10 each', w:1 },
   { n:'Russian Twist',              m:'Core', t:'i', e:'None',     s:'3 × 20', w:1 },
-  { n:'Ab Wheel Rollout',           m:'Core', t:'c', e:'None',     s:'3 × 10', x:1 },
+  { n:'Ab Wheel Rollout',           m:'Core', t:'c', e:'Wheel',     s:'3 × 10', x:1 },
   { n:'Side Plank',                 m:'Core', t:'i', e:'None',     s:'3 × 30 s each', w:1 },
 
   /* ---- Bodyweight, so a home session is not a gym session with the
@@ -106,18 +122,18 @@ export const EX = [
      muscle before, which is why Home and Gym looked alike. Every one
      has a photograph in the library. ---- */
   { n:'Wide Push-up',               m:'Chest', t:'c', e:'None',     s:'4 × 10–15' },
-  { n:'Incline Push-up',            m:'Chest', t:'c', e:'None',     s:'4 × 12–15', w:1 },
-  { n:'Decline Push-up',            m:'Chest', t:'c', e:'None',     s:'3 × 10–12', x:1 },
+  { n:'Incline Push-up',            m:'Chest', t:'c', e:'Chair',     s:'4 × 12–15', w:1 },
+  { n:'Decline Push-up',            m:'Chest', t:'c', e:'Chair',     s:'3 × 10–12', x:1 },
   { n:'Plyo Push-up',               m:'Chest', t:'c', e:'None',     s:'3 × 6–8', x:1 },
 
   { n:'Superman',                   m:'Back', t:'i', e:'None',      s:'3 × 12–15', w:1 },
-  { n:'Wide-Grip Pull-up',          m:'Back', t:'c', e:'None',      s:'4 × 6–10', x:1 },
+  { n:'Wide-Grip Pull-up',          m:'Back', t:'c', e:'Bar',      s:'4 × 6–10', x:1 },
 
   { n:'Handstand Push-up',          m:'Shoulders', t:'c', e:'None', s:'3 × 5–8', x:1 },
   { n:'Seated Front Raise',         m:'Shoulders', t:'i', e:'None', s:'3 × 15' },
 
   { n:'Close-Grip Push-up',         m:'Triceps', t:'c', e:'None',   s:'3 × 10–15' },
-  { n:'Triceps Dip',                m:'Triceps', t:'c', e:'None',   s:'3 × 10–15' },
+  { n:'Triceps Dip',                m:'Triceps', t:'c', e:'Chair',   s:'3 × 10–15' },
 
   { n:'Jump Squat',                 m:'Quads', t:'c', e:'None',     s:'3 × 12' },
   { n:'Reverse Lunge',              m:'Quads', t:'c', e:'None',     s:'3 × 12 each', w:1 },
@@ -178,16 +194,42 @@ export const EX = [
   { n:'Banded Calf Raise',          m:'Calves', t:'i', e:'Band',     s:'3 × 20', w:1 },
 
   /* ---- Legs, gentler ways in ---- */
-  { n:'Chair Squat',                m:'Quads', t:'c', e:'None',      s:'3 × 15', w:1 },
+  { n:'Chair Squat',                m:'Quads', t:'c', e:'Chair',      s:'3 × 15', w:1 },
   { n:'Dumbbell Reverse Lunge',     m:'Quads', t:'c', e:'Dumbbell',  s:'3 × 12 each', w:1 },
   { n:'Bodyweight Walking Lunge',   m:'Quads', t:'c', e:'None',      s:'3 × 14 each', w:1 },
   { n:'Banded Hamstring Curl',      m:'Hamstrings', t:'i', e:'Band', s:'3 × 15', w:1 },
-  { n:'Floor Glute-Ham Raise',      m:'Hamstrings', t:'i', e:'None', s:'3 × 8', w:1 },
+  { n:'Floor Glute-Ham Raise',      m:'Hamstrings', t:'i', e:'Partner', s:'3 × 8', w:1 },
 
   /* ---- Core ---- */
   { n:'Scissor Kick',               m:'Core', t:'i', e:'None',       s:'3 × 30 s', w:1 },
   { n:'Bent-Knee Hip Raise',        m:'Core', t:'i', e:'None',       s:'3 × 15', w:1 },
   { n:'Leg Pull-In',                m:'Core', t:'i', e:'None',       s:'3 × 15', w:1 },
+
+  /* ------------------------------------------------------------
+     A home session that is actually a home session.
+
+     Once pull-ups, dips and hanging raises stopped pretending to
+     need nothing, whole muscles had almost nothing left to train on
+     a floor — home back was one exercise. These fill it: a band,
+     which costs less than a month of the gym, and a handful of
+     things that need only the ground.
+     ------------------------------------------------------------ */
+  { n:'Floor Back Extension',       m:'Back', t:'c', e:'None',      s:'3 × 15', w:1 },
+  { n:'Band Pull Apart',            m:'Back', t:'i', e:'Band',      s:'3 × 20', w:1 },
+  { n:'Banded Rear Fly',            m:'Back', t:'i', e:'Band',      s:'3 × 15', w:1 },
+  { n:'Banded Upright Row',         m:'Back', t:'c', e:'Band',      s:'3 × 12', w:1 },
+
+  { n:'Self-Resisted Curl',         m:'Biceps', t:'i', e:'None',    s:'3 × 15', w:1 },
+
+  { n:'Banded Shoulder Press',      m:'Shoulders', t:'c', e:'Band', s:'3 × 12', w:1 },
+  { n:'Banded Lateral Raise',       m:'Shoulders', t:'i', e:'Band', s:'3 × 15', w:1 },
+
+  { n:'Banded Chest Fly',           m:'Chest', t:'i', e:'Band',     s:'3 × 15', w:1 },
+  { n:'Banded Triceps Extension',   m:'Triceps', t:'i', e:'Band',   s:'3 × 15', w:1 },
+
+  { n:'Banded Squat',               m:'Quads', t:'c', e:'Band',     s:'3 × 15', w:1 },
+  { n:'Banded Good Morning',        m:'Hamstrings', t:'c', e:'Band', s:'3 × 12', w:1 },
+  { n:'Monster Walk',               m:'Thighs', t:'i', e:'Band',    s:'3 × 20 steps', w:1 },
 ];
 
 /* The men's side, unchanged — 'Thighs' is a women's group and adding
@@ -201,6 +243,26 @@ export const MUSCLES = ['Chest','Back','Shoulders','Biceps','Triceps',
    switch. The upper body is still here, with less of it. */
 export const WOMEN_MUSCLES = ['Glutes','Thighs','Quads','Hamstrings','Calves',
                               'Core','Back','Shoulders','Biceps','Triceps','Chest'];
+
+/* What to call the kit on screen. "Back · None" is a shrug; "Back ·
+   No equipment" is an answer to the question somebody is actually
+   asking, which is whether they can do this one right now. */
+const KIT_LABEL = {
+  None: 'No equipment',
+  Chair: 'A chair',
+  Band: 'A band',
+  Dumbbell: 'Dumbbell',
+  Bar: 'Pull-up bar',
+  Wheel: 'Ab wheel',
+  Partner: 'A partner',
+  Barbell: 'Barbell',
+  Machine: 'Machine',
+  Cable: 'Cable',
+};
+
+export function kitLabel(e) {
+  return KIT_LABEL[e] || e;
+}
 
 export function byMuscle(m, kitOnly) {
   let list = EX.filter((x) => x.m === m);

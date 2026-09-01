@@ -5,7 +5,7 @@ import { progress, dayKey } from '../src/challengeRules.js';
 import {
   buildRoutine, buildInstant, sizeFor, poolFor,
   TARGETS, SPLIT_TARGETS, WOMEN_TARGETS, WOMEN_SPLIT_TARGETS,
-  targetsFor, splitTargetsFor,
+  targetsFor, splitTargetsFor, HOME_KIT, FLOOR_ONLY,
 } from '../src/routines.js';
 import { EX } from '../src/exercises.js';
 import { RELIEF } from '../src/menstrual.js';
@@ -75,7 +75,7 @@ is('push, gym, 5 moves', gym.exercises.length, 5);
 const home = buildRoutine({ target: 'push', place: 'home', level: 'intermediate' });
 is('push, home, 5 moves', home.exercises.length, 5);
 is('home uses no machines or cables',
-  home.exercises.every((x) => x.e === 'None' || x.e === 'Dumbbell'), true);
+  home.exercises.every((x) => HOME_KIT.includes(x.e)), true);
 is('legs at home still works',
   buildRoutine({ target: 'legday', place: 'home', level: 'beginner' }).exercises.length > 0, true);
 
@@ -145,7 +145,7 @@ is('a women’s chest day still exists',
 for (const tg of WOMEN_TARGETS) {
   const h = buildRoutine({ target: tg, place: 'home', level: 'beginner', side: 'women' });
   is(`${tg.key} at home needs no gym`,
-    h.exercises.every((x) => ['None', 'Band', 'Dumbbell'].includes(x.e)), true);
+    h.exercises.every((x) => HOME_KIT.includes(x.e)), true);
   is(`${tg.key} at home is not empty`, h.exercises.length > 0, true);
 }
 
@@ -160,11 +160,64 @@ is('nothing needs equipment',
 is('every move is marked as a hold, not a lift',
   RELIEF.every((r) => r.exercises.every((x) => x.r === 1)), true);
 
+/* ---------------------------------------------------------------
+   Home has to mean home.
+
+   This is the one that would have caught the original bug: a home
+   session opening with a hanging knee raise, because bodyweight was
+   being read as "needs nothing".
+   --------------------------------------------------------------- */
+console.log('home is home');
+
+const NOT_AT_HOME = ['Bar', 'Wheel', 'Partner', 'Barbell', 'Machine', 'Cable'];
+is('the two lists do not overlap',
+  HOME_KIT.some((k) => NOT_AT_HOME.includes(k)), false);
+is('floor-only is a subset of home',
+  FLOOR_ONLY.every((k) => HOME_KIT.includes(k)), true);
+
+for (const side of ['men', 'women']) {
+  for (const tg of splitTargetsFor(side).concat(targetsFor(side))) {
+    for (const level of ['beginner', 'intermediate', 'advanced']) {
+      const h = buildRoutine({ target: tg, place: 'home', level, side });
+      const bad = h.exercises.filter((x) => !HOME_KIT.includes(x.e));
+      is(`${side} ${tg.key} ${level} at home needs nothing you lack`,
+        bad.map((x) => `${x.n} (${x.e})`), []);
+    }
+    is(`${side} ${tg.key} at home is not empty`,
+      buildRoutine({ target: tg, place: 'home', level: 'beginner', side }).exercises.length > 0,
+      true);
+  }
+}
+
+for (const mins of [10, 15, 20, 30]) {
+  for (const side of ['men', 'women']) {
+    const i = buildInstant(mins, side);
+    is(`${side} ${mins}-minute needs only a floor`,
+      i.exercises.filter((x) => !FLOOR_ONLY.includes(x.e)).map((x) => x.n), []);
+    is(`${side} ${mins}-minute is not empty`, i.exercises.length > 0, true);
+  }
+}
+
 console.log('the library itself');
-is('every exercise has a photograph',
-  EX.filter((x) => !hasPhoto(x.n)).map((x) => x.n), []);
+
+/* The database has no honest picture of these three, and the near
+   matches are a standing squat, a leg press and a handstand. They
+   fall back to a photograph of the muscle on purpose. */
+const NO_PHOTO = ['Wall Sit', 'Calf Raise', 'Pike Push-up'];
+
+is('every exercise has a photograph, or is a known exception',
+  EX.filter((x) => !hasPhoto(x.n) && !NO_PHOTO.includes(x.n)).map((x) => x.n), []);
+is('the exception list has not gone stale',
+  NO_PHOTO.filter((n) => hasPhoto(n)), []);
 is('nothing is both preferred and excluded',
   EX.filter((x) => x.w && x.x).map((x) => x.n), []);
+is('no two exercises share a name',
+  EX.map((x) => x.n).filter((n, i, a) => a.indexOf(n) !== i), []);
+
+const KNOWN_KIT = ['None', 'Chair', 'Band', 'Dumbbell', 'Bar', 'Wheel', 'Partner',
+  'Barbell', 'Machine', 'Cable'];
+is('every exercise names kit we understand',
+  EX.filter((x) => !KNOWN_KIT.includes(x.e)).map((x) => `${x.n} (${x.e})`), []);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

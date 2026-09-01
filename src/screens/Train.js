@@ -47,8 +47,7 @@ function boxesFor(women) {
     {
       key: 'home', photo: 'kit', colorKey: 'teal',
       name: 'Home Workouts',
-      sub: women ? 'Bodyweight, a band, or one dumbbell'
-                 : 'Bodyweight, or one dumbbell',
+      sub: 'The floor, a chair, a band — nothing you need to buy',
     },
     {
       key: 'instant', photo: 'home', colorKey: 'lime',
@@ -139,7 +138,7 @@ export default function Train({ user, profile }) {
       {BOXES.map((b, i) => {
         const c = C[b.colorKey];
         return (
-          <FadeIn key={b.key} delay={i * 40} from={8}>
+          <FadeIn key={b.key} delay={i * 24} from={8}>
             <Press onPress={() => setOpen(b.key)} scaleTo={0.98} style={styles.box}>
               <ImageBackground source={PHOTO[b.photo]} style={styles.boxImg}
                 imageStyle={{ borderRadius: R.lg }}>

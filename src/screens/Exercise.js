@@ -15,6 +15,7 @@ import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-n
 
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
+import { kitLabel } from '../exercises';
 import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
 
@@ -39,7 +40,7 @@ export default function Exercise({ exercise, index, total, onDone, onBack, previ
             </View>
             {exercise.r ? null : (
               <View style={styles.pill}>
-                <Text style={[T.tiny, { color: C.text }]}>{exercise.e}</Text>
+                <Text style={[T.tiny, { color: C.text }]}>{t(kitLabel(exercise.e))}</Text>
               </View>
             )}
             <View style={{ flex: 1 }} />

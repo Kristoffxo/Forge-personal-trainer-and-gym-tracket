@@ -63,13 +63,21 @@ export function Card({ children, style, color }) {
   );
 }
 
+/* Staggered entrances read as polish on four items and as a slow app
+   on fifteen — a list with delay={i*40} was still arriving most of a
+   second after it had loaded. The delay is capped so no screen ever
+   takes longer than about a third of a second to finish appearing,
+   however long the list is. */
+const MAX_STAGGER = 200;
+
 export function FadeIn({ children, delay = 0, from = 14, style }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
   const a = useRef(new Animated.Value(0)).current;
+  const wait = Math.min(delay, MAX_STAGGER);
   useEffect(() => {
-    Animated.timing(a, { toValue:1, duration:260, delay, easing:EASE, useNativeDriver:true }).start();
-  }, [a, delay]);
+    Animated.timing(a, { toValue:1, duration:190, delay:wait, easing:EASE, useNativeDriver:true }).start();
+  }, [a, wait]);
   return (
     <Animated.View style={[style, { opacity:a,
       transform:[{ translateY: a.interpolate({ inputRange:[0,1], outputRange:[from,0] }) }] }]}>

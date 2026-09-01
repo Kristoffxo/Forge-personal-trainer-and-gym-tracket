@@ -37,7 +37,9 @@ const fromHtml = [...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)].map((m) => m[1]
 
 // The three fonts the app actually asks for. The @expo-google-fonts packages
 // ship every weight, and precaching all of them would cost 3 MB for nothing.
-const usedFonts = ['Forum_400Regular', 'WorkSans_400Regular', 'WorkSans_500Medium'];
+// Forum was dropped from the design and 600SemiBold — which every heading on
+// every screen is set in — was never in this list.
+const usedFonts = ['WorkSans_400Regular', 'WorkSans_500Medium', 'WorkSans_600SemiBold'];
 const walk = (dir) =>
   fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const p = path.join(dir, e.name);
@@ -52,10 +54,29 @@ const fonts = assets
   .filter((p) => usedFonts.some((f) => path.basename(p).startsWith(f + '.')))
   .map(rel);
 
-// Every photograph the app renders — they are the slow part on a bad line.
-// The launch images under /splash are not in here: iOS reads those itself,
-// the page never requests them, and they are 800 kB.
-const images = assets.filter((p) => /\.(webp|png|jpg|jpeg|gif|svg)$/i.test(p)).map(rel);
+/* Photographs, in two tiers.
+
+   Everything used to go in here, which meant installing the service
+   worker downloaded every one of the three hundred exercise frames —
+   fifteen megabytes — before the app had finished starting, on a
+   connection the app was also trying to use. On Indian mobile data
+   that is the difference between a fast app and a slow one.
+
+   So: the pictures the first screens actually show are precached, and
+   the exercise frames are left to the runtime cache in public/sw.js,
+   which stores each one the first time it is looked at. The cost is
+   that an exercise you have never opened is not available offline.
+   That is a fair trade for not spending fifteen megabytes on a
+   library most people will see a tenth of. */
+const isImage = (p) => /\.(webp|png|jpg|jpeg|gif|svg)$/i.test(p);
+const images = assets
+  .filter(isImage)
+  .filter((p) => !p.includes(`${path.sep}exercises${path.sep}`))
+  .map(rel);
+const lazyImages = assets
+  .filter(isImage)
+  .filter((p) => p.includes(`${path.sep}exercises${path.sep}`))
+  .map(rel);
 
 const precache = [
   ...new Set([
@@ -97,5 +118,11 @@ const bytes = precache.reduce((n, u) => {
 
 console.log(`\n  service worker stamped`);
 console.log(`  build      ${buildId}`);
+const lazyBytes = lazyImages.reduce((n2, u) => {
+  const p = path.join(OUT, u.slice(1));
+  return n2 + (fs.existsSync(p) ? fs.statSync(p).size : 0);
+}, 0);
+
 console.log(`  precaching ${precache.length} files, ${(bytes / 1024 / 1024).toFixed(1)} MB`);
+console.log(`  on demand  ${lazyImages.length} exercise photos, ${(lazyBytes / 1024 / 1024).toFixed(1)} MB`);
 console.log(`\n  deploy:  ${path.relative(process.cwd(), OUT) || 'web-build'}\n`);

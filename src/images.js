@@ -12,8 +12,6 @@
 export const IMG = {
   /* sign-in screen, and the head of the Tools tab */
   hero:   require('../assets/img/hero.jpg'),
-  /* the band across the top of a generated week */
-  banner: require('../assets/img/banner.jpg'),
   /* behind the quote card at the foot of Tools */
   quote:  require('../assets/img/quote.jpg'),
 };

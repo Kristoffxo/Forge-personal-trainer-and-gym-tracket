@@ -16,12 +16,12 @@ import { View, Text, ScrollView, StyleSheet, Image, ImageBackground } from 'reac
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { useLang } from '../lang';
-import { artForTarget } from '../muscleArt';
 import { photoForTarget, photoForMuscle, groupPhoto, PHOTO } from '../photos';
 import { framesFor } from '../exercisePhotos';
 import { targetsFor, splitTargetsFor, buildRoutine, minutesFor, INSTANT, buildInstant } from '../routines';
 import { useSide } from '../side';
 import { RELIEF, RELIEF_NOTE } from '../menstrual';
+import { kitLabel } from '../exercises';
 import Session from './Session';
 import Exercise from './Exercise';
 
@@ -74,8 +74,12 @@ export default function Library({ place, user, profile, onBack }) {
   if (picked) {
     return (
       <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
-        <ImageBackground source={photoForTarget(picked.key)} style={styles.hero}
-          imageStyle={{ opacity: 0.55 }}>
+        {/* A home session must not open with a photograph of a gym.
+            It was showing a man on a pull-up bar above a list with no
+            pull-up in it. */}
+        <ImageBackground
+          source={place === 'gym' ? photoForTarget(picked.key) : PHOTO.home}
+          style={styles.hero} imageStyle={{ opacity: 0.55 }}>
           <View style={styles.heroVeil} />
           <View style={styles.heroBody}>
             <Press onPress={() => setPicked(null)} hitSlop={12} scaleTo={0.94}
@@ -93,7 +97,7 @@ export default function Library({ place, user, profile, onBack }) {
 
         <View style={{ paddingHorizontal: S.lg, marginTop: S.md }}>
           {picked.exercises.map((x, i) => (
-            <FadeIn key={x.n + i} delay={i * 18} from={6}>
+            <FadeIn key={x.n + i} delay={i * 12} from={6}>
               <Press onPress={() => setPeek(i)} scaleTo={0.99} style={styles.exRow}>
                 <View style={[styles.exNum, { backgroundColor: MUSCLE_C[x.m] || accent }]}>
                   <Text style={styles.exNumTxt}>{i + 1}</Text>
@@ -105,7 +109,7 @@ export default function Library({ place, user, profile, onBack }) {
                       goes on this line rather than squeezing the name into
                       half a row. */}
                   <Text style={T.tiny}>
-                    {x.r ? `${x.m} · ${x.s}` : `${x.m} · ${x.e}`}
+                    {x.r ? `${t(x.m)} · ${x.s}` : `${t(x.m)} · ${t(kitLabel(x.e))}`}
                   </Text>
                 </View>
                 {x.r ? null : <Text style={[styles.setsTxt, { color: accent }]}>{x.s}</Text>}
@@ -145,7 +149,7 @@ export default function Library({ place, user, profile, onBack }) {
 
         <View style={{ padding: S.lg }}>
           {RELIEF.map((r, i) => (
-            <FadeIn key={r.key} delay={i * 40} from={8}>
+            <FadeIn key={r.key} delay={i * 24} from={8}>
               <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
                 <View style={[styles.timeBadge, { borderColor: accent }]}>
                   <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
@@ -190,7 +194,7 @@ export default function Library({ place, user, profile, onBack }) {
 
         <View style={{ padding: S.lg }}>
           {INSTANT.map((o, i) => (
-            <FadeIn key={o.mins} delay={i * 40} from={8}>
+            <FadeIn key={o.mins} delay={i * 24} from={8}>
               <Press onPress={() => setPicked(buildInstant(o.mins))} scaleTo={0.985}
                 style={styles.timeRow}>
                 <View style={[styles.timeBadge, { borderColor: accent }]}>
@@ -223,7 +227,7 @@ export default function Library({ place, user, profile, onBack }) {
         </Text>
         <Text style={[T.small, { marginTop: 2 }]}>
           {place === 'home'
-            ? t('Bodyweight, or one dumbbell — a water can works too.')
+            ? t('Nothing here needs a gym. A chair, a band, or one dumbbell — and a water can is a dumbbell.')
             : t('Everything the gym has.')}
         </Text>
       </View>

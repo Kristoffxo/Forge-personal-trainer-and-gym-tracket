@@ -102,7 +102,7 @@ export default function Session({ title, exercises, user, profile, kind, name, o
           const on = !!done[i];
           const isNext = i === nextIdx;
           return (
-            <FadeIn key={x.n + i} delay={i * 18} from={6}>
+            <FadeIn key={x.n + i} delay={i * 12} from={6}>
               <Press
                 scaleTo={0.985}
                 onPress={() => setOpenIdx(i)}

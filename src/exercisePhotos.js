@@ -8,6 +8,13 @@
    From free-exercise-db, which is public domain. Regenerate with
    brand/match-exercises.mjs then brand/fetch-exercise-photos.mjs.
    This file is written by that second script — do not hand-edit.
+
+   Some exercises are deliberately absent. The database has no honest
+   picture of a wall sit, a bodyweight calf raise or a pike push-up,
+   and the near-matches are a standing squat, a leg press machine and
+   a handstand. Those screens fall back to a photograph of the muscle,
+   which tells you less but does not tell you something untrue.
+   brand/match-exercises.mjs lists them in NO_PHOTO.
    --------------------------------------------------------------- */
 export const EXERCISE_FRAMES = {
   "Barbell Bench Press": [require('../assets/exercises/barbell-bench-press-0.jpg'), require('../assets/exercises/barbell-bench-press-1.jpg')],
@@ -36,7 +43,6 @@ export const EXERCISE_FRAMES = {
   "Lateral Raise": [require('../assets/exercises/lateral-raise-0.jpg'), require('../assets/exercises/lateral-raise-1.jpg')],
   "Cable Lateral Raise": [require('../assets/exercises/cable-lateral-raise-0.jpg'), require('../assets/exercises/cable-lateral-raise-1.jpg')],
   "Rear Delt Fly": [require('../assets/exercises/rear-delt-fly-0.jpg'), require('../assets/exercises/rear-delt-fly-1.jpg')],
-  "Pike Push-up": [require('../assets/exercises/pike-push-up-0.jpg'), require('../assets/exercises/pike-push-up-1.jpg')],
   "Barbell Curl": [require('../assets/exercises/barbell-curl-0.jpg'), require('../assets/exercises/barbell-curl-1.jpg')],
   "Dumbbell Curl": [require('../assets/exercises/dumbbell-curl-0.jpg'), require('../assets/exercises/dumbbell-curl-1.jpg')],
   "Hammer Curl": [require('../assets/exercises/hammer-curl-0.jpg'), require('../assets/exercises/hammer-curl-1.jpg')],
@@ -65,7 +71,6 @@ export const EXERCISE_FRAMES = {
   "Nordic Curl": [require('../assets/exercises/nordic-curl-0.jpg'), require('../assets/exercises/nordic-curl-1.jpg')],
   "Hip Thrust": [require('../assets/exercises/hip-thrust-0.jpg'), require('../assets/exercises/hip-thrust-1.jpg')],
   "Glute Bridge": [require('../assets/exercises/glute-bridge-0.jpg'), require('../assets/exercises/glute-bridge-1.jpg')],
-  "Cable Kickback": [require('../assets/exercises/cable-kickback-0.jpg'), require('../assets/exercises/cable-kickback-1.jpg')],
   "Sumo Deadlift": [require('../assets/exercises/sumo-deadlift-0.jpg'), require('../assets/exercises/sumo-deadlift-1.jpg')],
   "Step-up": [require('../assets/exercises/step-up-0.jpg'), require('../assets/exercises/step-up-1.jpg')],
   "Standing Calf Raise": [require('../assets/exercises/standing-calf-raise-0.jpg'), require('../assets/exercises/standing-calf-raise-1.jpg')],
@@ -90,12 +95,10 @@ export const EXERCISE_FRAMES = {
   "Triceps Dip": [require('../assets/exercises/triceps-dip-0.jpg'), require('../assets/exercises/triceps-dip-1.jpg')],
   "Jump Squat": [require('../assets/exercises/jump-squat-0.jpg'), require('../assets/exercises/jump-squat-1.jpg')],
   "Reverse Lunge": [require('../assets/exercises/reverse-lunge-0.jpg'), require('../assets/exercises/reverse-lunge-1.jpg')],
-  "Wall Sit": [require('../assets/exercises/wall-sit-0.jpg'), require('../assets/exercises/wall-sit-1.jpg')],
   "Single-Leg Glute Bridge": [require('../assets/exercises/single-leg-glute-bridge-0.jpg'), require('../assets/exercises/single-leg-glute-bridge-1.jpg')],
   "Flutter Kicks": [require('../assets/exercises/flutter-kicks-0.jpg'), require('../assets/exercises/flutter-kicks-1.jpg')],
   "Inchworm": [require('../assets/exercises/inchworm-0.jpg'), require('../assets/exercises/inchworm-1.jpg')],
   "Front Leg Raise": [require('../assets/exercises/front-leg-raise-0.jpg'), require('../assets/exercises/front-leg-raise-1.jpg')],
-  "Calf Raise": [require('../assets/exercises/calf-raise-0.jpg'), require('../assets/exercises/calf-raise-1.jpg')],
   "Air Bike": [require('../assets/exercises/air-bike-0.jpg'), require('../assets/exercises/air-bike-1.jpg')],
   "Cross-Body Crunch": [require('../assets/exercises/cross-body-crunch-0.jpg'), require('../assets/exercises/cross-body-crunch-1.jpg')],
   "Mountain Climber": [require('../assets/exercises/mountain-climber-0.jpg'), require('../assets/exercises/mountain-climber-1.jpg')],
@@ -154,6 +157,19 @@ export const EXERCISE_FRAMES = {
   "Upper Back Stretch": [require('../assets/exercises/upper-back-stretch-0.jpg'), require('../assets/exercises/upper-back-stretch-1.jpg')],
   "Chair Lower Back Stretch": [require('../assets/exercises/chair-lower-back-stretch-0.jpg'), require('../assets/exercises/chair-lower-back-stretch-1.jpg')],
   "Quad Stretch": [require('../assets/exercises/quad-stretch-0.jpg'), require('../assets/exercises/quad-stretch-1.jpg')],
+  "Glute Kickback": [require('../assets/exercises/glute-kickback-0.jpg'), require('../assets/exercises/glute-kickback-1.jpg')],
+  "Floor Back Extension": [require('../assets/exercises/floor-back-extension-0.jpg'), require('../assets/exercises/floor-back-extension-1.jpg')],
+  "Band Pull Apart": [require('../assets/exercises/band-pull-apart-0.jpg'), require('../assets/exercises/band-pull-apart-1.jpg')],
+  "Banded Rear Fly": [require('../assets/exercises/banded-rear-fly-0.jpg'), require('../assets/exercises/banded-rear-fly-1.jpg')],
+  "Banded Upright Row": [require('../assets/exercises/banded-upright-row-0.jpg'), require('../assets/exercises/banded-upright-row-1.jpg')],
+  "Self-Resisted Curl": [require('../assets/exercises/self-resisted-curl-0.jpg'), require('../assets/exercises/self-resisted-curl-1.jpg')],
+  "Banded Shoulder Press": [require('../assets/exercises/banded-shoulder-press-0.jpg'), require('../assets/exercises/banded-shoulder-press-1.jpg')],
+  "Banded Lateral Raise": [require('../assets/exercises/banded-lateral-raise-0.jpg'), require('../assets/exercises/banded-lateral-raise-1.jpg')],
+  "Banded Chest Fly": [require('../assets/exercises/banded-chest-fly-0.jpg'), require('../assets/exercises/banded-chest-fly-1.jpg')],
+  "Banded Triceps Extension": [require('../assets/exercises/banded-triceps-extension-0.jpg'), require('../assets/exercises/banded-triceps-extension-1.jpg')],
+  "Banded Squat": [require('../assets/exercises/banded-squat-0.jpg'), require('../assets/exercises/banded-squat-1.jpg')],
+  "Banded Good Morning": [require('../assets/exercises/banded-good-morning-0.jpg'), require('../assets/exercises/banded-good-morning-1.jpg')],
+  "Monster Walk": [require('../assets/exercises/monster-walk-0.jpg'), require('../assets/exercises/monster-walk-1.jpg')],
 };
 
 export function framesFor(exercise) {

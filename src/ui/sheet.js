@@ -80,7 +80,7 @@ function SheetHost({ req, settle }) {
   useEffect(() => {
     Animated.timing(slide, {
       toValue: req ? 1 : 0,
-      duration: req ? 240 : 140,
+      duration: req ? 170 : 110,
       easing: EASE,
       useNativeDriver: true,
     }).start();

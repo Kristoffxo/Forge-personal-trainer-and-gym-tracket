@@ -2,6 +2,7 @@
    Turns "how do you want to train?" into an actual week.
    ============================================================ */
 import { EX } from './exercises';
+import { HOME_KIT } from './routines';
 
 const D = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
@@ -129,8 +130,11 @@ export function buildSession(muscles, perSession, kit, side) {
     if (side === 'women') {
       pool = pool.filter((x) => !x.x).sort((a, b) => (b.w ? 1 : 0) - (a.w ? 1 : 0));
     }
+    /* Same rule as src/routines.js: what a home session may use is
+       decided by what the exercise needs, not by whether it happens
+       to be bodyweight. */
     if (kit === 'None') {
-      const home = pool.filter((x) => x.e === 'None' || x.e === 'Band');
+      const home = pool.filter((x) => HOME_KIT.includes(x.e));
       if (home.length) pool = home;
     }
     const compounds  = pool.filter((x) => x.t === 'c');

@@ -134,7 +134,7 @@ function Root() {
 
   useEffect(() => {
     const i = Math.max(0, TABS.findIndex((t) => t.key === tab));
-    Animated.timing(slide, { toValue:i, duration:170,
+    Animated.timing(slide, { toValue:i, duration:140,
       easing:Easing.bezier(0.22,1,0.36,1), useNativeDriver:true }).start();
   }, [tab, slide]);
 
@@ -267,9 +267,15 @@ function TitleBar({ tab, accent }) {
    whole app — everywhere else is the same palette on both sides,
    because a screen tinted end to end was too much of it.
 
-   Changing sides says what changed. Somebody who taps this by accident
-   should find out immediately, not three screens later when the
-   workout is not the one they expected. */
+   The thumb springs across and overshoots slightly on the way, which
+   is most of the reason to animate it at all: you see which way it
+   went, so a glance is enough to know which side you are on.
+
+   Changing sides also says what changed. Somebody who taps this by
+   accident should find out immediately, not three screens later when
+   the workout is not the one they expected. */
+const HALF = 62;
+
 function SideSwitch() {
   const { C, T } = useTheme();
   const { t } = useLang();
@@ -277,6 +283,16 @@ function SideSwitch() {
   const sheet = useSheet();
   const styles = makeStyles(C, T);
   const women = side === WOMEN;
+
+  const slide = useRef(new Animated.Value(women ? 1 : 0)).current;
+  useEffect(() => {
+    Animated.spring(slide, {
+      toValue: women ? 1 : 0,
+      useNativeDriver: true,
+      speed: 16,
+      bounciness: 11,        // enough bounce to see, not enough to wobble
+    }).start();
+  }, [women, slide]);
 
   async function pick(next) {
     if (next === side) return;          // nothing changed, say nothing
@@ -289,17 +305,37 @@ function SideSwitch() {
     });
   }
 
-  const half = (key, label, colour, on) => (
-    <Press key={key} onPress={() => pick(key)} scaleTo={0.94}
-      style={[styles.sideHalf, on && { backgroundColor: colour }]}>
-      <Text style={[styles.sideTxt, { color: on ? '#FFFFFF' : C.faint }]}>{t(label)}</Text>
+  const lit = slide.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+  const litWomen = slide.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+
+  /* Each label is drawn twice, unlit and lit, and cross-faded on the
+     same value that moves the thumb. One animation, no colour maths,
+     and it all runs on the native driver. */
+  const half = (key, label, on) => (
+    <Press key={key} onPress={() => pick(key)} scaleTo={0.96} style={styles.sideHalf}>
+      <Text style={[styles.sideTxt, { color: C.faint }]}>{t(label)}</Text>
+      <Animated.Text style={[styles.sideTxt, styles.sideTxtOn, { opacity: on }]}>
+        {t(label)}
+      </Animated.Text>
     </Press>
   );
 
   return (
     <View style={[styles.sideWrap, { borderColor: women ? SIDE_PINK : SIDE_BLUE }]}>
-      {half('men', 'Men', SIDE_BLUE, !women)}
-      {half(WOMEN, 'Women', SIDE_PINK, women)}
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.sideThumb, {
+          transform: [{
+            translateX: slide.interpolate({ inputRange: [0, 1], outputRange: [0, HALF] }),
+          }],
+        }]}
+      >
+        <Animated.View style={[styles.sideFill, { backgroundColor: SIDE_BLUE, opacity: lit }]} />
+        <Animated.View style={[styles.sideFill, { backgroundColor: SIDE_PINK, opacity: litWomen }]} />
+      </Animated.View>
+
+      {half('men', 'Men', lit)}
+      {half(WOMEN, 'Women', litWomen)}
     </View>
   );
 }
@@ -314,9 +350,14 @@ const makeStyles = (C, T) => StyleSheet.create({
              backgroundColor:C.surface, borderBottomWidth:2 },
   sideWrap:{ flexDirection:'row', borderRadius:999, borderWidth:1.5,
              backgroundColor:C.raised, padding:2, overflow:'hidden' },
-  sideHalf:{ paddingHorizontal:11, paddingVertical:6, borderRadius:999 },
+  sideThumb:{ position:'absolute', left:2, top:2, bottom:2, width:HALF,
+              borderRadius:999, overflow:'hidden' },
+  sideFill:{ ...StyleSheet.absoluteFillObject, borderRadius:999 },
+  sideHalf:{ width:HALF, paddingVertical:6, alignItems:'center', justifyContent:'center' },
   sideTxt:{ fontFamily:'WorkSans_500Medium', fontSize:11, letterSpacing:0.7,
-            textTransform:'uppercase' },
+            textTransform:'uppercase', textAlign:'center' },
+  sideTxtOn:{ ...StyleSheet.absoluteFillObject, color:'#FFFFFF',
+              paddingVertical:6 },
   titleTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:21, color:C.text },
   subTxt:{ fontFamily:'WorkSans_400Regular', fontSize:12, color:C.dim, marginTop:1 },
 

@@ -591,6 +591,21 @@ const HI = {
     'Roz shaam chhe baje ek line, kisi philosopher ki. Settings mein time badal sakte ho ya band kar sakte ho.',
   'Yes, remind me': 'Haan, yaad dilao',
   'Not now': 'Abhi nahi',
+  'The floor, a chair, a band — nothing you need to buy':
+    'Zameen, ek kursi, ek band — kuch khareedna nahi padega',
+  'Nothing here needs a gym. A chair, a band, or one dumbbell — and a water can is a dumbbell.':
+    'Yahan kisi cheez ke liye gym nahi chahiye. Ek kursi, ek band, ya ek dumbbell — aur paani ki can bhi dumbbell hai.',
+  'Chair': 'Kursi',
+  'Band': 'Band',
+  'Bar': 'Bar',
+  'Partner': 'Saathi',
+  'Wheel': 'Wheel',
+  'No equipment': 'Kuch nahi chahiye',
+  'A chair': 'Ek kursi',
+  'A band': 'Ek band',
+  'A partner': 'Ek saathi',
+  'Pull-up bar': 'Pull-up bar',
+  'Ab wheel': 'Ab wheel',
 };
 
 const Ctx = createContext(null);

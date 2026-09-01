@@ -15,8 +15,27 @@ const norm = (s) => String(s).toLowerCase()
   .replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 
 /* A few the plain words never get to, because the database names them
-   differently from the way anybody says them out loud. */
+   differently from the way anybody says them out loud.
+
+   Anything absent from here on purpose is listed in NO_PHOTO below:
+   the database has no honest picture of it, and the app falls back to
+   a photograph of the muscle rather than showing a different exercise
+   and calling it this one.
+
+   Every key must appear once. A duplicate key silently wins, which is
+   how Pike Push-up came to show a handstand and Dumbbell RDL a
+   barbell — both of them for weeks. */
+export const NO_PHOTO = [
+  'Wall Sit',            // the database has squats, none of them static
+  'Calf Raise',          // every calf photo in it is on a machine
+  'Pike Push-up',        // the near-matches are all handstands
+];
+
 const ALIAS = {
+  'Glute Kickback': 'Glute Kickback',
+  'Walking Lunge': 'Dumbbell Lunges',
+  'Dumbbell RDL': 'Stiff-Legged Dumbbell Deadlift',
+  'Bulgarian Split Squat': 'Split Squat with Dumbbells',
   'Barbell Bench Press': 'Barbell Bench Press - Medium Grip',
   'Flat Dumbbell Press': 'Dumbbell Bench Press',
   'Machine Chest Press': 'Leverage Chest Press',
@@ -33,7 +52,6 @@ const ALIAS = {
   'Machine Shoulder Press': 'Leverage Shoulder Press',
   'Lateral Raise': 'Side Lateral Raise',
   'Rear Delt Fly': 'Reverse Flyes',
-  'Pike Push-up': 'Pushups - Close Triceps Position',
   'Barbell Curl': 'Barbell Curl',
   'Dumbbell Curl': 'Dumbbell Bicep Curl',
   'Cable Curl': 'Standing Biceps Cable Curl',
@@ -44,16 +62,12 @@ const ALIAS = {
   'Bench Dip': 'Bench Dips',
   'Back Squat': 'Barbell Squat',
   'Goblet Squat': 'Dumbbell Squat',
-  'Bulgarian Split Squat': 'Bulgarian Squat',
-  'Walking Lunge': 'Dumbbell Walking Lunge',
   'Bodyweight Squat': 'Bodyweight Squat',
   'Romanian Deadlift': 'Romanian Deadlift',
-  'Dumbbell RDL': 'Romanian Deadlift With Dumbbells',
   'Lying Leg Curl': 'Lying Leg Curls',
   'Seated Leg Curl': 'Seated Leg Curl',
   'Nordic Curl': 'Natural Glute Ham Raise',
   'Hip Thrust': 'Barbell Hip Thrust',
-  'Cable Kickback': 'Glute Kickback',
   'Step-up': 'Dumbbell Step Ups',
   'Standing Calf Raise': 'Standing Calf Raises',
   'Seated Calf Raise': 'Seated Calf Raise',
@@ -85,9 +99,6 @@ const ALIAS = {
   'Lat Pulldown': 'Wide-Grip Lat Pulldown',
   'Arnold Press': 'Arnold Dumbbell Press',
   'Cable Lateral Raise': 'Cable Seated Lateral Raise',
-  'Pike Push-up': 'Handstand Push-Ups',
-  'Bulgarian Split Squat': 'Smith Single-Leg Split Squat',
-  'Dumbbell RDL': 'Romanian Deadlift',
 
   /* the bodyweight additions */
   'Wide Push-up': 'Push-Up Wide',
@@ -103,12 +114,10 @@ const ALIAS = {
   'Jump Squat': 'Freehand Jump Squat',
   'Reverse Lunge': 'Bodyweight Walking Lunge',
   /* no wall sit in the database; the isometric squat is the same hold */
-  'Wall Sit': 'Bodyweight Squat',
   'Single-Leg Glute Bridge': 'Single Leg Glute Bridge',
   'Flutter Kicks': 'Flutter Kicks',
   'Inchworm': 'Inchworm',
   'Front Leg Raise': 'Front Leg Raises',
-  'Calf Raise': 'Calf Press',
   'Air Bike': 'Air Bike',
   'Cross-Body Crunch': 'Cross-Body Crunch',
   'Mountain Climber': 'Mountain Climbers',

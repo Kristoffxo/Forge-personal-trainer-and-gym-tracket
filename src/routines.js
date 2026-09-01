@@ -9,9 +9,11 @@
    the compound movements first, which is the only ordering rule
    that really matters.
 
-   `place` is 'gym' or 'home'. Home means bodyweight or a single
-   dumbbell — and a dumbbell can be a water can, a filled bag, or
-   anything else with a handle and some weight in it.
+   `place` is 'gym', 'home' or 'instant', and it is enforced by what
+   each exercise actually needs rather than by whether it happens to
+   be bodyweight. A pull-up needs a bar; a dip needs something to dip
+   on; an ab wheel needs an ab wheel. None of those belong in a home
+   session, and all of them used to be in one.
 
    `side` is 'men' or 'women'. It changes three things and nothing
    else: which targets are offered, how the work is shared out
@@ -126,15 +128,25 @@ export function sizeFor(level) {
   return VOLUME[level] || VOLUME.intermediate;
 }
 
-/* Home is bodyweight first.
+/* ---------------------------------------------------------------
+   What you can actually do, where you are.
 
-   Allowing a dumbbell alongside meant every home session filled up
-   with dumbbell work and looked exactly like the gym one. So the
-   pool is bodyweight only, and a dumbbell is brought in for a muscle
-   only when the floor genuinely cannot cover it.
+     HOME_KIT     the floor, the furniture already in the room, a
+                  band, and one dumbbell — which can be a water can
+     FLOOR_ONLY   the floor and nothing else, for a hotel room
 
-   A band counts as home kit. One costs less than a month of the gym
-   and it is what half the women's glute work is done with. */
+   A bar, an ab wheel and a partner to hold your ankles are none of
+   those, however bodyweight the movement is. That distinction is the
+   whole of this file's contribution to "home workouts are home
+   workouts".
+   --------------------------------------------------------------- */
+export const HOME_KIT = ['None', 'Chair', 'Band', 'Dumbbell'];
+export const FLOOR_ONLY = ['None'];
+
+/* Least kit first, so a home session opens with something you can
+   start right now and only reaches for the dumbbell further down. */
+const KIT_ORDER = { None: 0, Chair: 1, Band: 2, Dumbbell: 3 };
+
 export function poolFor(muscle, place, side) {
   let all = EX.filter((x) => x.m === muscle);
 
@@ -147,16 +159,18 @@ export function poolFor(muscle, place, side) {
     all = all.slice().sort((a, b) => (b.w ? 1 : 0) - (a.w ? 1 : 0));
   }
 
+  if (place === 'instant') return all.filter((x) => FLOOR_ONLY.includes(x.e));
   if (place !== 'home') return all;
 
-  const floor = all.filter((x) => x.e === 'None' || x.e === 'Band');
-  if (floor.length >= 3) return floor;
-  return floor.concat(all.filter((x) => x.e === 'Dumbbell'));
+  return all
+    .filter((x) => HOME_KIT.includes(x.e))
+    .sort((a, b) => KIT_ORDER[a.e] - KIT_ORDER[b.e]);
 }
 
 function usable(x, place) {
+  if (place === 'instant') return FLOOR_ONLY.includes(x.e);
   if (place !== 'home') return true;
-  return x.e === 'None' || x.e === 'Band' || x.e === 'Dumbbell';
+  return HOME_KIT.includes(x.e);
 }
 
 /* ---------------------------------------------------------------
@@ -278,10 +292,6 @@ const INSTANT_ORDER_WOMEN = ['Glutes', 'Thighs', 'Core', 'Quads', 'Calves',
                              'Hamstrings', 'Back', 'Glutes', 'Thighs', 'Shoulders',
                              'Core', 'Biceps', 'Chest', 'Triceps'];
 
-/* "No equipment" has to mean it. These are bodyweight but still need
-   a bar, a bench or a partner, so they are no use in a hotel room. */
-const NEEDS_A_BAR = /pull-?up|chin-?up|dip|inverted row|hanging|nordic|ab wheel/i;
-
 export function buildInstant(mins, side = 'men') {
   const want = Math.max(4, Math.round(mins / 2.6));
   const order = isWomen(side) ? INSTANT_ORDER_WOMEN : INSTANT_ORDER;
@@ -289,11 +299,7 @@ export function buildInstant(mins, side = 'men') {
   const pools = {};
   order.forEach((m) => {
     if (pools[m]) return;
-    let pool = EX.filter((x) => x.m === m && x.e === 'None' && !NEEDS_A_BAR.test(x.n));
-    if (isWomen(side)) {
-      pool = pool.filter((x) => !x.x).sort((a, b) => (b.w ? 1 : 0) - (a.w ? 1 : 0));
-    }
-    pools[m] = pool;
+    pools[m] = poolFor(m, 'instant', side).slice();
   });
 
   const out = [];
