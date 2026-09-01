@@ -18,6 +18,7 @@ import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { supabase } from '../supabase';
+import { api } from '../api';
 import { saveProfile, signOut } from '../auth';
 import * as push from '../push';
 import { EXPERIENCE, GOALS } from '../tdee';
@@ -116,7 +117,7 @@ export default function Settings({ user, profile, onProfile }) {
 
     let ok = false;
     try {
-      const res = await fetch('/api/delete-account', {
+      const res = await fetch(api('/api/delete-account'), {
         method: 'POST',
         headers: { authorization: 'Bearer ' + token },
       });

@@ -11,7 +11,9 @@
    database so two questions asked at once cannot both pass the
    same balance check.
    --------------------------------------------------------------- */
+import { Platform } from 'react-native';
 import { supabase } from './supabase';
+import { api } from './api';
 
 /* What a pack costs. Nothing here takes the money — see buyCredits. */
 export const PACK = { credits: 10, rupees: 39 };
@@ -105,7 +107,7 @@ const CHECKOUT_JS = 'https://checkout.razorpay.com/v1/checkout.js';
 
 export async function payConfig() {
   try {
-    const res = await fetch('/api/pay-config');
+    const res = await fetch(api('/api/pay-config'));
     if (!res.ok) return { enabled: false };
     return res.json();
   } catch (e) {
@@ -113,8 +115,16 @@ export async function payConfig() {
   }
 }
 
+/* Razorpay's checkout is a script tag on a page. React Native has a
+   `window` (it is the global object) but no `document`, so the old
+   guard let this through and then threw on createElement. Checking
+   the platform is the honest test. */
 function loadCheckout() {
-  if (typeof window === 'undefined') return Promise.reject(new Error('web only'));
+  if (Platform.OS !== 'web' || typeof document === 'undefined') {
+    return Promise.reject(new Error(
+      'Credits can be bought on the website — open Reppo in a browser and sign in.',
+    ));
+  }
   if (window.Razorpay) return Promise.resolve();
   return new Promise((resolve, reject) => {
     const tag = document.createElement('script');
@@ -145,7 +155,7 @@ export async function buy({ userId, pack = 'p10', name, email }) {
   const jwt = await token();
   if (!jwt) return { error: 'Sign in first.' };
 
-  const made = await fetch('/api/create-order', {
+  const made = await fetch(api('/api/create-order'), {
     method: 'POST',
     headers: { authorization: 'Bearer ' + jwt, 'content-type': 'application/json' },
     body: JSON.stringify({ pack }),
