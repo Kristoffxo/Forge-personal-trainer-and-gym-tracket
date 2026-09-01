@@ -1,22 +1,30 @@
 /* ---------------------------------------------------------------
    Getting a photo out of the phone.
 
-   This is the web path deliberately. `<input type="file" accept="image/*">`
-   with `capture` opens the camera directly on iOS Safari and Android
-   Chrome, which means the feed and the food camera need no native
-   module, no permissions plumbing and no rebuild of the APK. The app
-   is shipping as an installable web app first, so this is the whole
-   story for now; a native build would add expo-image-picker here and
-   nothing above this file would change.
+   Two paths, one signature. Every caller gets back the same shape
+   whichever it took, so nothing above this file knows the difference.
 
-   Everything is downscaled before it leaves the device. A modern phone
-   camera produces 4-6 MB per shot, which is slow to upload, expensive
-   to store and far more than a 400 px feed image or a vision model
-   needs. 1400 px on the long edge at q0.82 lands around 200-300 kB.
+     web       <input type="file" accept="image/*">, which opens the
+               camera directly on iOS Safari and Android Chrome
+     native    expo-image-picker, and expo-image-manipulator to do the
+               resizing that a canvas does on the web
+
+   Everything is downscaled before it leaves the device. A modern
+   phone camera produces 4-6 MB per shot, which is slow to upload,
+   expensive to store and far more than a 400 px feed image needs.
+   1400 px on the long edge at q0.82 lands around 200-300 kB.
+
+   Both paths re-encode, which also drops the EXIF block. That is
+   worth having on a public feed: phone photos carry GPS coordinates
+   and this app promises no location.
    --------------------------------------------------------------- */
 import { Platform } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 
-export const CAN_TAKE_PHOTOS = Platform.OS === 'web' && typeof document !== 'undefined';
+const isWeb = Platform.OS === 'web';
+
+export const CAN_TAKE_PHOTOS = isWeb ? typeof document !== 'undefined' : true;
 
 const MAX_EDGE = 1400;
 const QUALITY = 0.82;
@@ -33,8 +41,9 @@ const QUALITY = 0.82;
    --------------------------------------------------------------- */
 export function pickPhoto({ camera = false, maxEdge = MAX_EDGE } = {}) {
   if (!CAN_TAKE_PHOTOS) {
-    return Promise.reject(new Error('Photos need the web app for now.'));
+    return Promise.reject(new Error('This device cannot open the camera.'));
   }
+  if (!isWeb) return pickNative({ camera, maxEdge });
 
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
@@ -70,6 +79,74 @@ export function pickPhoto({ camera = false, maxEdge = MAX_EDGE } = {}) {
 
     input.click();
   });
+}
+
+/* ---------------------------------------------------------------
+   The native path.
+
+   Supabase Storage cannot take a file:// URI, and React Native has no
+   Blob worth uploading, so the resized photo comes back as base64 and
+   is decoded to an ArrayBuffer here. That is what the storage client
+   wants on a phone.
+   --------------------------------------------------------------- */
+async function pickNative({ camera, maxEdge }) {
+  const ask = camera
+    ? ImagePicker.requestCameraPermissionsAsync
+    : ImagePicker.requestMediaLibraryPermissionsAsync;
+
+  const perm = await ask();
+  if (!perm.granted) {
+    throw new Error(camera
+      ? 'Reppo needs permission to use the camera. Turn it on in Settings.'
+      : 'Reppo needs permission to open your photos. Turn it on in Settings.');
+  }
+
+  const open = camera ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync;
+  const res = await open({
+    mediaTypes: ['images'],
+    allowsEditing: false,
+    quality: 1,          // resized and re-compressed below, so take it whole
+  });
+
+  if (res.canceled || !res.assets || !res.assets.length) return null;
+  const shot = res.assets[0];
+
+  const scale = Math.min(1, (maxEdge || MAX_EDGE) / Math.max(shot.width || 0, shot.height || 0) || 1);
+  const w = Math.max(1, Math.round((shot.width || maxEdge) * scale));
+
+  const out = await ImageManipulator.manipulateAsync(
+    shot.uri,
+    scale < 1 ? [{ resize: { width: w } }] : [],
+    { compress: QUALITY, format: ImageManipulator.SaveFormat.JPEG, base64: true },
+  );
+
+  return {
+    uri: out.uri,
+    blob: bytesOf(out.base64),
+    width: out.width,
+    height: out.height,
+  };
+}
+
+/* base64 -> ArrayBuffer, without atob, which React Native does not
+   reliably have. */
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+function bytesOf(b64) {
+  /* The '=' padding is stripped by the regex above, so the byte count
+     comes straight from what is left — subtracting for the padding as
+     well undercounts, and goes negative on a one-byte payload. */
+  const clean = String(b64 || '').replace(/[^A-Za-z0-9+/]/g, '');
+  const out = new Uint8Array((clean.length * 3) >> 2);
+  let bits = 0, held = 0, at = 0;
+  for (let i = 0; i < clean.length; i++) {
+    held = (held << 6) | B64.indexOf(clean[i]);
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      out[at++] = (held >> bits) & 0xff;
+    }
+  }
+  return out.buffer;
 }
 
 /* Draw the file into a canvas at a sane size and re-encode it. Also

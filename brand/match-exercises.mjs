@@ -32,6 +32,22 @@ export const NO_PHOTO = [
 ];
 
 const ALIAS = {
+  /* ---- home work with a band, and the floor moves that replaced the
+     pull-ups when 'no equipment' was made to mean it. These were
+     fetched by hand once and never written down here, which meant the
+     pipeline could not rebuild them. ---- */
+  'Floor Back Extension': 'Hyperextensions With No Hyperextension Bench',
+  'Band Pull Apart': 'Band Pull Apart',
+  'Banded Rear Fly': 'Back Flyes - With Bands',
+  'Banded Upright Row': 'Upright Row - With Bands',
+  'Self-Resisted Curl': 'Seated Biceps',
+  'Banded Shoulder Press': 'Shoulder Press - With Bands',
+  'Banded Lateral Raise': 'Lateral Raise - With Bands',
+  'Banded Chest Fly': 'Cross Over - With Bands',
+  'Banded Triceps Extension': 'Speed Band Overhead Triceps',
+  'Banded Squat': 'Squats - With Bands',
+  'Banded Good Morning': 'Band Good Morning',
+  'Monster Walk': 'Monster Walk',
   'Glute Kickback': 'Glute Kickback',
   'Walking Lunge': 'Dumbbell Lunges',
   'Dumbbell RDL': 'Stiff-Legged Dumbbell Deadlift',

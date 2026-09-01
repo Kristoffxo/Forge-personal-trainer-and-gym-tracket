@@ -103,10 +103,6 @@
   "rear-delt-fly-0.jpg",
   "rear-delt-fly-1.jpg"
  ],
- "Pike Push-up": [
-  "pike-push-up-0.jpg",
-  "pike-push-up-1.jpg"
- ],
  "Barbell Curl": [
   "barbell-curl-0.jpg",
   "barbell-curl-1.jpg"
@@ -219,9 +215,9 @@
   "glute-bridge-0.jpg",
   "glute-bridge-1.jpg"
  ],
- "Cable Kickback": [
-  "cable-kickback-0.jpg",
-  "cable-kickback-1.jpg"
+ "Glute Kickback": [
+  "glute-kickback-0.jpg",
+  "glute-kickback-1.jpg"
  ],
  "Sumo Deadlift": [
   "sumo-deadlift-0.jpg",
@@ -319,10 +315,6 @@
   "reverse-lunge-0.jpg",
   "reverse-lunge-1.jpg"
  ],
- "Wall Sit": [
-  "wall-sit-0.jpg",
-  "wall-sit-1.jpg"
- ],
  "Single-Leg Glute Bridge": [
   "single-leg-glute-bridge-0.jpg",
   "single-leg-glute-bridge-1.jpg"
@@ -339,10 +331,6 @@
   "front-leg-raise-0.jpg",
   "front-leg-raise-1.jpg"
  ],
- "Calf Raise": [
-  "calf-raise-0.jpg",
-  "calf-raise-1.jpg"
- ],
  "Air Bike": [
   "air-bike-0.jpg",
   "air-bike-1.jpg"
@@ -358,5 +346,245 @@
  "Butt-Ups": [
   "butt-ups-0.jpg",
   "butt-ups-1.jpg"
+ ],
+ "Barbell Glute Bridge": [
+  "barbell-glute-bridge-0.jpg",
+  "barbell-glute-bridge-1.jpg"
+ ],
+ "Butt Lift Bridge": [
+  "butt-lift-bridge-0.jpg",
+  "butt-lift-bridge-1.jpg"
+ ],
+ "Banded Hip Extension": [
+  "banded-hip-extension-0.jpg",
+  "banded-hip-extension-1.jpg"
+ ],
+ "Banded Hip Lift": [
+  "banded-hip-lift-0.jpg",
+  "banded-hip-lift-1.jpg"
+ ],
+ "Cable Glute Kickback": [
+  "cable-glute-kickback-0.jpg",
+  "cable-glute-kickback-1.jpg"
+ ],
+ "Rear Leg Raise": [
+  "rear-leg-raise-0.jpg",
+  "rear-leg-raise-1.jpg"
+ ],
+ "Lying Leg Lift": [
+  "lying-leg-lift-0.jpg",
+  "lying-leg-lift-1.jpg"
+ ],
+ "Kneeling Squat": [
+  "kneeling-squat-0.jpg",
+  "kneeling-squat-1.jpg"
+ ],
+ "Sumo Squat": [
+  "sumo-squat-0.jpg",
+  "sumo-squat-1.jpg"
+ ],
+ "Inner Thigh Machine": [
+  "inner-thigh-machine-0.jpg",
+  "inner-thigh-machine-1.jpg"
+ ],
+ "Outer Thigh Machine": [
+  "outer-thigh-machine-0.jpg",
+  "outer-thigh-machine-1.jpg"
+ ],
+ "Cable Hip Adduction": [
+  "cable-hip-adduction-0.jpg",
+  "cable-hip-adduction-1.jpg"
+ ],
+ "Banded Hip Adduction": [
+  "banded-hip-adduction-0.jpg",
+  "banded-hip-adduction-1.jpg"
+ ],
+ "Side Split Squat": [
+  "side-split-squat-0.jpg",
+  "side-split-squat-1.jpg"
+ ],
+ "Prone Hip Circles": [
+  "prone-hip-circles-0.jpg",
+  "prone-hip-circles-1.jpg"
+ ],
+ "Standing Hip Circles": [
+  "standing-hip-circles-0.jpg",
+  "standing-hip-circles-1.jpg"
+ ],
+ "Groiners": [
+  "groiners-0.jpg",
+  "groiners-1.jpg"
+ ],
+ "Calf Press": [
+  "calf-press-0.jpg",
+  "calf-press-1.jpg"
+ ],
+ "Donkey Calf Raise": [
+  "donkey-calf-raise-0.jpg",
+  "donkey-calf-raise-1.jpg"
+ ],
+ "Single-Leg Calf Raise": [
+  "single-leg-calf-raise-0.jpg",
+  "single-leg-calf-raise-1.jpg"
+ ],
+ "Banded Calf Raise": [
+  "banded-calf-raise-0.jpg",
+  "banded-calf-raise-1.jpg"
+ ],
+ "Chair Squat": [
+  "chair-squat-0.jpg",
+  "chair-squat-1.jpg"
+ ],
+ "Dumbbell Reverse Lunge": [
+  "dumbbell-reverse-lunge-0.jpg",
+  "dumbbell-reverse-lunge-1.jpg"
+ ],
+ "Bodyweight Walking Lunge": [
+  "bodyweight-walking-lunge-0.jpg",
+  "bodyweight-walking-lunge-1.jpg"
+ ],
+ "Banded Hamstring Curl": [
+  "banded-hamstring-curl-0.jpg",
+  "banded-hamstring-curl-1.jpg"
+ ],
+ "Floor Glute-Ham Raise": [
+  "floor-glute-ham-raise-0.jpg",
+  "floor-glute-ham-raise-1.jpg"
+ ],
+ "Scissor Kick": [
+  "scissor-kick-0.jpg",
+  "scissor-kick-1.jpg"
+ ],
+ "Bent-Knee Hip Raise": [
+  "bent-knee-hip-raise-0.jpg",
+  "bent-knee-hip-raise-1.jpg"
+ ],
+ "Leg Pull-In": [
+  "leg-pull-in-0.jpg",
+  "leg-pull-in-1.jpg"
+ ],
+ "Floor Back Extension": [
+  "floor-back-extension-0.jpg",
+  "floor-back-extension-1.jpg"
+ ],
+ "Band Pull Apart": [
+  "band-pull-apart-0.jpg",
+  "band-pull-apart-1.jpg"
+ ],
+ "Banded Rear Fly": [
+  "banded-rear-fly-0.jpg",
+  "banded-rear-fly-1.jpg"
+ ],
+ "Banded Upright Row": [
+  "banded-upright-row-0.jpg",
+  "banded-upright-row-1.jpg"
+ ],
+ "Self-Resisted Curl": [
+  "self-resisted-curl-0.jpg",
+  "self-resisted-curl-1.jpg"
+ ],
+ "Banded Shoulder Press": [
+  "banded-shoulder-press-0.jpg",
+  "banded-shoulder-press-1.jpg"
+ ],
+ "Banded Lateral Raise": [
+  "banded-lateral-raise-0.jpg",
+  "banded-lateral-raise-1.jpg"
+ ],
+ "Banded Chest Fly": [
+  "banded-chest-fly-0.jpg",
+  "banded-chest-fly-1.jpg"
+ ],
+ "Banded Triceps Extension": [
+  "banded-triceps-extension-0.jpg",
+  "banded-triceps-extension-1.jpg"
+ ],
+ "Banded Squat": [
+  "banded-squat-0.jpg",
+  "banded-squat-1.jpg"
+ ],
+ "Banded Good Morning": [
+  "banded-good-morning-0.jpg",
+  "banded-good-morning-1.jpg"
+ ],
+ "Monster Walk": [
+  "monster-walk-0.jpg",
+  "monster-walk-1.jpg"
+ ],
+ "Child’s Pose": [
+  "child-s-pose-0.jpg",
+  "child-s-pose-1.jpg"
+ ],
+ "Cat Cow": [
+  "cat-cow-0.jpg",
+  "cat-cow-1.jpg"
+ ],
+ "One Knee To Chest": [
+  "one-knee-to-chest-0.jpg",
+  "one-knee-to-chest-1.jpg"
+ ],
+ "Reclined Butterfly": [
+  "reclined-butterfly-0.jpg",
+  "reclined-butterfly-1.jpg"
+ ],
+ "Supine Spinal Twist": [
+  "supine-spinal-twist-0.jpg",
+  "supine-spinal-twist-1.jpg"
+ ],
+ "Pelvic Tilt Into Bridge": [
+  "pelvic-tilt-into-bridge-0.jpg",
+  "pelvic-tilt-into-bridge-1.jpg"
+ ],
+ "Standing Pelvic Tilt": [
+  "standing-pelvic-tilt-0.jpg",
+  "standing-pelvic-tilt-1.jpg"
+ ],
+ "Kneeling Hip Flexor Stretch": [
+  "kneeling-hip-flexor-stretch-0.jpg",
+  "kneeling-hip-flexor-stretch-1.jpg"
+ ],
+ "Seated Glute Stretch": [
+  "seated-glute-stretch-0.jpg",
+  "seated-glute-stretch-1.jpg"
+ ],
+ "Groin and Back Stretch": [
+  "groin-and-back-stretch-0.jpg",
+  "groin-and-back-stretch-1.jpg"
+ ],
+ "Side Lying Groin Stretch": [
+  "side-lying-groin-stretch-0.jpg",
+  "side-lying-groin-stretch-1.jpg"
+ ],
+ "Lying Glute Stretch": [
+  "lying-glute-stretch-0.jpg",
+  "lying-glute-stretch-1.jpg"
+ ],
+ "Overhead Stretch": [
+  "overhead-stretch-0.jpg",
+  "overhead-stretch-1.jpg"
+ ],
+ "Standing Side Stretch": [
+  "standing-side-stretch-0.jpg",
+  "standing-side-stretch-1.jpg"
+ ],
+ "Seated Hamstring Stretch": [
+  "seated-hamstring-stretch-0.jpg",
+  "seated-hamstring-stretch-1.jpg"
+ ],
+ "Lower Back Curl": [
+  "lower-back-curl-0.jpg",
+  "lower-back-curl-1.jpg"
+ ],
+ "Upper Back Stretch": [
+  "upper-back-stretch-0.jpg",
+  "upper-back-stretch-1.jpg"
+ ],
+ "Middle Back Stretch": [
+  "middle-back-stretch-0.jpg",
+  "middle-back-stretch-1.jpg"
+ ],
+ "Chair Lower Back Stretch": [
+  "chair-lower-back-stretch-0.jpg",
+  "chair-lower-back-stretch-1.jpg"
  ]
 }

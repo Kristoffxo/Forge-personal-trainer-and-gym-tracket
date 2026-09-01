@@ -59,15 +59,27 @@ export function Press({ children, onPress, onLongPress, style, scaleTo = 0.98, d
   const styles = makeStyles(C, T);
   const s = useRef(new Animated.Value(1)).current;
   const to = (v) => Animated.spring(s, { toValue:v, useNativeDriver:true, speed:40, bounciness:5 }).start();
+  /* Anything about how this sits in its parent belongs on the
+     Pressable, and has to come off the inner view.
+
+     Leaving `flex: 1` on both looks fine on the web — a flex child
+     with no definite height falls back to its content — and collapses
+     to nothing on Android, which distributes zero of an unknown
+     height. That is why the Progress / Numbers / Settings switcher
+     rendered as an empty coloured strip on a phone and read perfectly
+     in a browser. */
   const flat = StyleSheet.flatten(style) || {};
-  // a flex on the caller's style has to live on the Pressable, not the inner view,
-  // or the row it sits in collapses
-  const outer = flat.flex !== undefined ? { flex: flat.flex } : null;
+  const { flex, flexGrow, flexShrink, flexBasis, alignSelf, ...inner } = flat;
+  const outer = (flex !== undefined || alignSelf !== undefined
+    || flexGrow !== undefined || flexShrink !== undefined || flexBasis !== undefined)
+    ? { flex, flexGrow, flexShrink, flexBasis, alignSelf }
+    : null;
+
   return (
     <Pressable onPress={onPress} onLongPress={onLongPress} disabled={disabled}
       style={outer}
       onPressIn={() => to(scaleTo)} onPressOut={() => to(1)}>
-      <Animated.View style={[style, { transform:[{ scale:s }] }]}>{children}</Animated.View>
+      <Animated.View style={[inner, { transform:[{ scale:s }] }]}>{children}</Animated.View>
     </Pressable>
   );
 }

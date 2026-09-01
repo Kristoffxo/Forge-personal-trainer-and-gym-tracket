@@ -54,6 +54,8 @@ export default function Session({ title, exercises, user, profile, kind, name, o
         exercise={exercises[openIdx]}
         index={openIdx}
         total={total}
+        list={exercises}
+        onGo={setOpenIdx}
         onBack={() => setOpenIdx(null)}
         onDone={() => {
           const next = { ...done, [openIdx]: true };

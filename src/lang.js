@@ -618,6 +618,17 @@ const HI = {
   'New here?': 'Naye ho?',
   'Create one': 'Ek banao',
   'Already have an account?': 'Account pehle se hai?',
+  /* ---------- the countdown ---------- */
+  'Tap to start': 'Shuru karne ke liye tap karo',
+  'Tap to pause': 'Rokne ke liye tap karo',
+  'Tap to go again': 'Phir se karne ke liye tap karo',
+  'Hold it': 'Roke rakho',
+  'Hold each side': 'Dono taraf roko',
+  'Run it once for each side.': 'Ek baar dayein, ek baar bayein.',
+  'Breathe. Stop if anything sharpens.': 'Saans lo. Agar dard tez ho toh ruk jao.',
+  'Reset': 'Reset',
+  'Before': 'Pehle',
+  'Next': 'Aage',
 };
 
 const Ctx = createContext(null);

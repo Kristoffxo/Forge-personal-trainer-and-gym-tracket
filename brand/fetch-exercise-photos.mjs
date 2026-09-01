@@ -6,19 +6,29 @@
      node brand/match-exercises.mjs      (writes the pairing)
      node brand/fetch-exercise-photos.mjs
 
-   They ship inside the bundle, so they are cut to 340px and
-   compressed hard. Quality past that is wasted on a phone. */
+   These used to be cut to 340px and compressed hard, which was a
+   mistake: the demonstration is shown full-width, so on a 1080px
+   phone every one of them was being blown up three times over and
+   looked it. They now ship exactly as the database has them —
+   850px, untouched, no second JPEG generation. It costs about 15 MB
+   across three hundred files, which the app loads one at a time. */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+/* Downloaded into a staging folder and only swapped in once every
+   file has arrived. Emptying the real folder first and then fetching
+   three hundred files over a network means one dropped connection
+   leaves the app with no photographs at all. */
 const OUT = path.join(ROOT, 'assets', 'exercises');
+const STAGE = OUT + '.new';
 const BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
 const map = JSON.parse(fs.readFileSync(path.join(ROOT, 'brand', 'exercise-photos.json'), 'utf8'));
 
-fs.mkdirSync(OUT, { recursive: true });
+fs.rmSync(STAGE, { recursive: true, force: true });
+fs.mkdirSync(STAGE, { recursive: true });
 
 const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const index = {};
@@ -28,16 +38,24 @@ for (const [name, images] of Object.entries(map)) {
   const key = slug(name);
   const frames = [];
   for (let i = 0; i < Math.min(2, images.length); i++) {
-    const file = path.join(OUT, `${key}-${i}.jpg`);
-    execFileSync('curl', ['-sS', '-m', '40', '-o', file, BASE + images[i]]);
+    const file = path.join(STAGE, `${key}-${i}.jpg`);
+    execFileSync('curl', ['-sS', '-m', '60', '-o', file, BASE + images[i]]);
     if (fs.statSync(file).size < 3000) throw new Error('too small: ' + images[i]);
-    execFileSync('sips', ['-Z', '340', '-s', 'format', 'jpeg', '-s', 'formatOptions', '55',
-      file, '--out', file], { stdio: 'ignore' });
     bytes += fs.statSync(file).size;
     frames.push(`${key}-${i}.jpg`);
   }
   index[name] = frames;
 }
 
+const want = Object.values(index).flat().length;
+const got = fs.readdirSync(STAGE).filter((f) => f.endsWith('.jpg')).length;
+if (got !== want) {
+  throw new Error(`only ${got} of ${want} files arrived — the old photographs are untouched, run it again`);
+}
+
+/* everything is here: swap it in */
+fs.rmSync(OUT, { recursive: true, force: true });
+fs.renameSync(STAGE, OUT);
+
 fs.writeFileSync(path.join(ROOT, 'brand', 'exercise-index.json'), JSON.stringify(index, null, 1));
-console.log(`${Object.keys(index).length} exercises, ${Math.round(bytes / 1024)} kB total`);
+console.log(`${Object.keys(index).length} exercises, ${got} files, ${Math.round(bytes / 1024 / 1024)} MB total`);

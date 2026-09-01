@@ -50,6 +50,8 @@ export default function Library({ place, user, profile, onBack }) {
         exercise={picked.exercises[peek]}
         index={peek}
         total={picked.exercises.length}
+        list={picked.exercises}
+        onGo={setPeek}
         onBack={() => setPeek(null)}
         onDone={() => setPeek(null)}
         previewOnly
