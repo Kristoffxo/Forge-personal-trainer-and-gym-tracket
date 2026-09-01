@@ -33,14 +33,20 @@ import { useSide } from '../side';
 
 import Planner from './Training';
 import Library from './Library';
+import SeniorPlan from './SeniorPlan';
 
 function boxesFor(women, senior) {
   if (senior) {
     return [
       {
+        key: 'plan', photo: 'hero', colorKey: 'lime',
+        name: 'Build My Plan',
+        sub: 'Two questions, then one workout for each part of you',
+      },
+      {
         key: 'senior', photo: 'rest', colorKey: 'ember',
         name: 'Gentle Workouts',
-        sub: 'Five sessions. A chair, a wall, the floor.',
+        sub: 'Five ready-made sessions. A chair, a wall, the floor.',
       },
       /* No Instant Workouts here. It builds from the bodyweight pool,
          which still has press-ups and mountain climbers in it — fine
@@ -113,6 +119,7 @@ export default function Train({ user, profile }) {
   if (open === 'senior') {
     return <Library place="senior" user={user} profile={profile} onBack={() => setOpen(null)} />;
   }
+  if (open === 'plan') return <SeniorPlan onBack={() => setOpen(null)} />;
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>

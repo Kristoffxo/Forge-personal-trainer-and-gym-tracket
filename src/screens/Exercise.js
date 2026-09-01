@@ -28,6 +28,7 @@ import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
 import { Timer } from '../ui/timer';
 import { parseDuration } from '../duration';
+import { STEP_NOTE } from '../seniorPlan';
 import { framesFor } from '../exercisePhotos';
 import { photoForMuscle } from '../photos';
 
@@ -123,6 +124,9 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
                   <Text style={[T.bodyOn, styles.stepTxt]}>{t(step)}</Text>
                 </View>
               ))}
+              {/* Repeated on purpose. The person most likely to push
+                  through a warning is the one reading step four. */}
+              <Text style={[T.small, styles.stepNote, { color: C.amber }]}>{t(STEP_NOTE)}</Text>
             </View>
           ) : null}
 
@@ -203,6 +207,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   },
   stepNumTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13 },
   stepTxt: { flex: 1, fontSize: 16, lineHeight: 24 },
+  stepNote: { marginTop: S.md, fontSize: 13.5, lineHeight: 19 },
   care: {
     backgroundColor: C.surface, borderRadius: R.md, padding: S.md,
     borderLeftWidth: 4, marginTop: S.md,

@@ -29,9 +29,12 @@ export const NO_PHOTO = [
   'Wall Sit',            // the database has squats, none of them static
   'Calf Raise',          // every calf photo in it is on a machine
   'Pike Push-up',        // the near-matches are all handstands
+  'Wall Push-up',        // nothing in it is done against a wall
+  'Knee Push-up',        // every press-up in it is on the toes
 ];
 
 const ALIAS = {
+  'Split Squat': 'Split Squats',
   /* ---- the seniors side ---- */
   'Ankle Circles': 'Ankle Circles',
   'Side Leg Raises': 'Side Leg Raises',

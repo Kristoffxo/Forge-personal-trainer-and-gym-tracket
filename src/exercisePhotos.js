@@ -176,6 +176,9 @@ export const EXERCISE_FRAMES = {
   "Side Neck Stretch": [require('../assets/exercises/side-neck-stretch-0.jpg'), require('../assets/exercises/side-neck-stretch-1.jpg')],
   "Chair Upper Body Stretch": [require('../assets/exercises/chair-upper-body-stretch-0.jpg'), require('../assets/exercises/chair-upper-body-stretch-1.jpg')],
   "Hug Knees To Chest": [require('../assets/exercises/hug-knees-to-chest-0.jpg'), require('../assets/exercises/hug-knees-to-chest-1.jpg')],
+
+  /* the seniors ladders */
+  "Split Squat": [require('../assets/exercises/split-squat-0.jpg'), require('../assets/exercises/split-squat-1.jpg')],
 };
 
 export function framesFor(exercise) {

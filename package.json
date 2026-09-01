@@ -6,6 +6,7 @@
     "@expo-google-fonts/forum": "^0.4.1",
     "@expo-google-fonts/work-sans": "^0.4.2",
     "@expo/metro-runtime": "~6.1.2",
+    "@mediapipe/tasks-vision": "^1.0.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.112.3",
     "expo": "^54.0.37",

@@ -103,6 +103,21 @@ const precache = [
 
 // The build id changes whenever the precached set changes, which is what makes
 // the browser fetch a new service worker and drop the old cache.
+/* MediaPipe's WASM and the pose model, served from our own origin so
+   the rep counter has no CDN in its path. Both are left out of the
+   precache: five megabytes of model has no business being downloaded
+   by somebody who never opens Compete. */
+const mpRoot = path.join(ROOT, 'node_modules', '@mediapipe', 'tasks-vision');
+if (fs.existsSync(mpRoot)) {
+  const dest = path.join(OUT, 'mediapipe');
+  fs.mkdirSync(dest, { recursive: true });
+  const wasm = path.join(mpRoot, 'wasm');
+  for (const f of fs.readdirSync(wasm)) fs.copyFileSync(path.join(wasm, f), path.join(dest, f));
+  // the library itself, loaded at runtime by src/ui/poseCam.js
+  fs.copyFileSync(path.join(mpRoot, 'vision_bundle.mjs'), path.join(dest, 'vision_bundle.mjs'));
+  console.log(`  mediapipe  ${fs.readdirSync(dest).length} files`);
+}
+
 const buildId = createHash('sha256').update(precache.join('\n')).digest('hex').slice(0, 12);
 
 let sw = fs.readFileSync(swPath, 'utf8');

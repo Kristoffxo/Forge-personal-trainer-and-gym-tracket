@@ -4,12 +4,11 @@
    Sixty seconds against somebody else who is doing it right now.
    Both scores are on both screens the whole time.
 
-   On counting: the reps are tapped, not seen. Automatic counting
-   needs a pose model running on the camera every frame, which is a
-   piece of work in its own right and not something to pretend at —
-   a counter that misses half the reps is worse than a button. The
-   button is honest, the race is real, and the model can replace the
-   counting without touching anything else on this screen.
+   Reps are counted from the camera where the camera can be read —
+   MediaPipe's pose landmarker, running on the phone, feeding
+   src/pose.js. Where it cannot, they are tapped, and the screen says
+   which one it is doing rather than leaving you to wonder whether it
+   is watching.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, Vibration, Platform } from 'react-native';
@@ -19,6 +18,9 @@ import { Btn, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { MOVES, ROUND_SECONDS, joinRound, sendScore, leaveRound, watchRound, sidesOf } from '../compete';
+import { makeCounter } from '../pose';
+import { poseAvailable, startPose } from '../ui/poseCam';
+import { PoseView } from '../ui/poseView';
 
 export default function Compete({ user, profile }) {
   const { C, T } = useTheme();
@@ -37,6 +39,21 @@ export default function Compete({ user, profile }) {
   const endsAt = useRef(0);
   const pending = useRef(0);
   const roundId = useRef(null);
+
+  /* the camera counter, when there is one */
+  const [seeing, setSeeing] = useState(false);      // body in frame
+  const counter = useRef(null);
+  const canWatch = poseAvailable();
+
+  const onPose = useCallback((pts, tMs) => {
+    if (!counter.current) return;
+    const r = counter.current.push(pts, tMs);
+    setSeeing(r.visible);
+    if (r.counted) {
+      pending.current = r.reps;
+      setScore(r.reps);
+    }
+  }, []);
 
   /* ---- watch the other side ---- */
   useEffect(() => {
@@ -88,6 +105,7 @@ export default function Compete({ user, profile }) {
     setMove(m);
     setScore(0);
     pending.current = 0;
+    counter.current = canWatch ? makeCounter(m.key) : null;
     setLeft(ROUND_SECONDS);
     setRound(r.round);
 
@@ -100,7 +118,7 @@ export default function Compete({ user, profile }) {
   }, [profile, sheet, t]);
 
   function tap() {
-    if (phase !== 'running') return;
+    if (phase !== 'running' || canWatch) return;
     pending.current += 1;
     setScore(pending.current);
   }
@@ -137,7 +155,9 @@ export default function Compete({ user, profile }) {
           {busy ? <ActivityIndicator color={C.ember} style={{ marginTop: S.lg }} /> : null}
 
           <Text style={[T.tiny, { marginTop: S.xl, lineHeight: 17 }]}>
-            {t('Reps are counted by tapping the screen for now. Counting them from the camera is coming.')}
+            {canWatch
+              ? t('The camera counts your reps. Nothing is recorded and no video leaves the phone.')
+              : t('Reps are counted by tapping. The camera counter needs the web app.')}
           </Text>
         </FadeIn>
       </View>
@@ -199,13 +219,23 @@ export default function Compete({ user, profile }) {
             onPress={quit} style={{ marginTop: S.xl }} />
         </View>
       ) : (
-        <Pressable onPress={tap} style={({ pressed }) => [
-          styles.tapArea, pressed && { backgroundColor: C.raised },
-        ]}>
-          <Text style={styles.tapBig}>{score}</Text>
-          <Text style={styles.tapHint}>{t('Tap anywhere for each rep')}</Text>
-          <Text style={[T.tiny, { marginTop: 4 }]}>{t(move.name)}</Text>
-        </Pressable>
+        canWatch ? (
+          <PoseView
+            move={move}
+            score={score}
+            seeing={seeing}
+            onFrame={onPose}
+            onError={(e) => sheet.tell({ title: t('Camera problem'), message: e.message })}
+          />
+        ) : (
+          <Pressable onPress={tap} style={({ pressed }) => [
+            styles.tapArea, pressed && { backgroundColor: C.raised },
+          ]}>
+            <Text style={styles.tapBig}>{score}</Text>
+            <Text style={styles.tapHint}>{t('Tap anywhere for each rep')}</Text>
+            <Text style={[T.tiny, { marginTop: 4 }]}>{t(move.name)}</Text>
+          </Pressable>
+        )
       )}
     </View>
   );

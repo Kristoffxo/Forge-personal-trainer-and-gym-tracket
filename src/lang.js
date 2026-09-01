@@ -690,6 +690,50 @@ const HI = {
   'One reminder, at a time you pick, to keep you going on the days you would rather not. Nothing else — no offers, no chasing. Change the time or switch it off in Settings whenever you like.':
     'Ek reminder, aapke chune hue time pe, un dino ke liye jab mann na kare. Aur kuch nahi — koi offer nahi, koi peecha nahi. Settings mein time badal sakte ho ya band kar sakte ho.',
   'Yes, keep me going': 'Haan, yaad dilate raho',
+  /* ---------- the seniors plan ---------- */
+  'Build My Plan': 'Mera Plan Banao',
+  'Two questions, then one workout for each part of you':
+    'Do sawaal, phir har hisse ke liye ek workout',
+  'Five ready-made sessions. A chair, a wall, the floor.':
+    'Paanch taiyaar sessions. Ek kursi, ek deewar, zameen.',
+  'Which of these describes you best?': 'In mein se aap kaun se hain?',
+  'There is no right answer. It only decides where to start.':
+    'Koi sahi jawab nahi hai. Yeh sirf shuruaat tay karta hai.',
+  'And what is it for?': 'Aur yeh kis liye hai?',
+  'This decides what gets the most work.': 'Isse tay hota hai kis pe sabse zyada kaam hoga.',
+  'I do not move much during the day': 'Din bhar main zyada nahi chalta',
+  'Mostly sitting — a desk, a chair, the car.': 'Zyadatar baithe hue — desk, kursi, gaadi.',
+  'I move a lot and do many tasks during the day':
+    'Din bhar main kaafi chalta hoon aur bahut kaam karta hoon',
+  'On my feet, stairs, shopping, housework, walking.':
+    'Paon pe, seedhiyan, bazaar, ghar ka kaam, chalna.',
+  'I can play sports and even run when I want to':
+    'Main khel sakta hoon aur jab chahoon daud bhi sakta hoon',
+  'Still fit. A game or a run is not a problem.': 'Abhi bhi fit. Khel ya daud koi dikkat nahi.',
+  'To stay healthy': 'Sehatmand rehne ke liye',
+  'Move well, sleep well, keep doing everything I do now.':
+    'Achhe se chalna, achhi neend, jo abhi karta hoon woh karte rehna.',
+  'To be able to jog': 'Jogging kar paane ke liye',
+  'Get the legs and the wind back.': 'Taangein aur saans wapas laane ke liye.',
+  'To build muscle': 'Muscle banane ke liye',
+  'Get stronger and hold on to what I have.': 'Mazboot hona aur jo hai use bachaye rakhna.',
+  'Your plan': 'Aapka plan',
+  'Change': 'Badlo',
+  'One for each part of you': 'Har hisse ke liye ek',
+  'Back a step': 'Ek kadam peeche',
+  'Stop if it hurts. Sore the next day is fine; sharp, now, is not.':
+    'Dard ho toh ruk jao. Agle din akadan theek hai; abhi tez dard nahi.',
+  'Balance': 'Balance',
+
+  /* ---------- the camera counter ---------- */
+  'The camera counts your reps. Nothing is recorded and no video leaves the phone.':
+    'Camera aapke reps ginta hai. Kuch record nahi hota aur koi video phone se bahar nahi jaata.',
+  'Reps are counted by tapping. The camera counter needs the web app.':
+    'Reps tap karke gine jaate hain. Camera se ginna web app pe hota hai.',
+  'Starting the camera': 'Camera chalu ho raha hai',
+  'I can see you': 'Aap dikh rahe ho',
+  'Step back until you are all in frame': 'Thoda peeche hato taaki poore dikho',
+  'Camera problem': 'Camera mein dikkat',
 };
 
 const Ctx = createContext(null);
