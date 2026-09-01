@@ -1,50 +1,39 @@
 /* ---------------------------------------------------------------
    The first screen anybody sees.
 
-   Black, the logo, and the line. No photograph behind it: the mark
-   carries its own gradient, and a stock gym shot underneath was
-   competing with it rather than framing it.
+   Black, the mark, the line, and two fields. Everything else that
+   used to be here has gone: the photograph behind it (the mark
+   carries its own gradient and the photo was competing with it),
+   the segmented Sign in / Create account control (two buttons to
+   decide between before you have typed anything), and the shouted
+   EMAIL / PASSWORD labels above fields that already say what they
+   are.
 
-   The rule under the tagline is the mark's gradient, drawn as a row
-   of thin blocks. React Native has no gradient of its own and this
-   is one screen — not worth a dependency for a strip four pixels
-   tall.
+   What is left instead: room, and a focus state. A field that lights
+   up when you are in it is the cheapest thing on this screen and the
+   one that makes it feel considered.
    --------------------------------------------------------------- */
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView,
-         KeyboardAvoidingView, Platform } from 'react-native';
-import { S, R, useTheme, REPPO_ORANGE, REPPO_RED } from '../theme';
-import { Btn, Press, FadeIn, Label } from '../ui/kit';
+import { View, Text, TextInput, StyleSheet, ScrollView, Pressable,
+         ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { S, R, useTheme, REPPO_ORANGE } from '../theme';
+import { FadeIn } from '../ui/kit';
 import { Lockup } from '../ui/logo';
 import { signIn, signUp } from '../auth';
 import { useLang } from '../lang';
 
-/* orange to red, in `steps` blocks */
-function GradientRule({ width = 132, height = 4, steps = 24, style }) {
-  const a = [0xFE, 0x4E, 0x02];
-  const b = [0xFA, 0x0A, 0x12];
-  const blocks = [];
-  for (let i = 0; i < steps; i++) {
-    const k = i / (steps - 1);
-    const c = a.map((v, j) => Math.round(v + (b[j] - v) * k));
-    blocks.push(
-      <View key={i} style={{
-        flex: 1, height,
-        backgroundColor: `rgb(${c[0]},${c[1]},${c[2]})`,
-      }} />,
-    );
-  }
-  return (
-    <View style={[{ flexDirection: 'row', width, borderRadius: height, overflow: 'hidden' }, style]}>
-      {blocks}
-    </View>
-  );
-}
+/* The screen is always the dark one, whatever the app is set to: it
+   is where the brand is stated, so the colours are literal here
+   rather than read from the palette. */
+const INK = '#000000';
+const FIELD = '#101014';
+const LINE = '#22222A';
+const DIM = '#7E7E88';
+const FAINT = '#5A5A64';
 
 export default function Auth({ onDone }) {
-  const { C, T } = useTheme();
+  const { T } = useTheme();
   const { t, lang, toggle: toggleLang } = useLang();
-  const styles = makeStyles(C, T);
   const [mode, setMode] = useState('in');        // 'in' | 'up'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -57,6 +46,7 @@ export default function Auth({ onDone }) {
   const ready = email.trim().length > 3 && pw.length >= 6 && (!isUp || name.trim().length > 0);
 
   async function go() {
+    if (!ready || busy) return;
     setErr(''); setNote(''); setBusy(true);
     const res = isUp ? await signUp(email, pw, name) : await signIn(email, pw);
     setBusy(false);
@@ -69,64 +59,61 @@ export default function Auth({ onDone }) {
     onDone();
   }
 
+  function swap() {
+    setMode(isUp ? 'in' : 'up');
+    setErr(''); setNote('');
+  }
+
   return (
-    <KeyboardAvoidingView style={{ flex:1, backgroundColor:'#000000' }}
+    <KeyboardAvoidingView style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ flexGrow:1 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.column}>
 
-        <View style={styles.hero}>
-          {/* In the flow, not floating over the artwork — absolutely
-              positioned it landed on top of the mark. */}
-          <View style={styles.topRow}>
-            <Press onPress={toggleLang} scaleTo={0.9} style={styles.langBtn}>
-              <Text style={styles.langTxt}>{lang === 'hi' ? 'HINGLISH' : 'ENGLISH'}</Text>
-            </Press>
-          </View>
+          <Pressable onPress={toggleLang} hitSlop={12} style={styles.lang}>
+            <Text style={styles.langTxt}>{lang === 'hi' ? 'Hinglish' : 'English'}</Text>
+          </Pressable>
 
-          <FadeIn style={{ alignItems:'center' }}>
-            <Lockup width={214} />
-            <GradientRule width={120} height={3} style={{ marginTop:S.lg }} />
+          <FadeIn style={{ alignItems: 'center' }}>
+            <Lockup width={196} />
             <Text style={styles.tagline}>{t('Performance, redefined.')}</Text>
           </FadeIn>
-        </View>
 
-        <View style={styles.sheet}>
-          <FadeIn delay={60}>
-            <View style={styles.toggle}>
-              <Press onPress={() => { setMode('in'); setErr(''); }} scaleTo={0.97}
-                style={[styles.tab, !isUp && { backgroundColor: REPPO_ORANGE }]}>
-                <Text style={[styles.tabTxt, !isUp && styles.tabTxtOn]}>{t('Sign in')}</Text>
-              </Press>
-              <Press onPress={() => { setMode('up'); setErr(''); }} scaleTo={0.97}
-                style={[styles.tab, isUp && { backgroundColor: REPPO_ORANGE }]}>
-                <Text style={[styles.tabTxt, isUp && styles.tabTxtOn]}>{t('Create account')}</Text>
-              </Press>
-            </View>
-          </FadeIn>
+          <FadeIn delay={70} style={{ width: '100%', marginTop: 46 }}>
+            {isUp ? (
+              <Field value={name} onChange={setName} placeholder={t('Your name')}
+                autoCap="words" />
+            ) : null}
+            <Field value={email} onChange={setEmail} placeholder={t('Email')}
+              keyboard="email-address" />
+            <Field value={pw} onChange={setPw} placeholder={t('Password')} secure last />
 
-          {isUp ? (
-            <FadeIn delay={100}>
-              <Field label={t('Your name')} value={name} onChange={setName}
-                placeholder="Aryan" autoCap="words" />
-            </FadeIn>
-          ) : null}
+            {err ? <Text style={styles.err}>{t(err)}</Text> : null}
+            {note ? <Text style={styles.note}>{note}</Text> : null}
 
-          <FadeIn delay={130}>
-            <Field label={t('Email')} value={email} onChange={setEmail}
-              placeholder={t('you@email.com')} keyboard="email-address" />
-          </FadeIn>
-          <FadeIn delay={160}>
-            <Field label={t('Password')} value={pw} onChange={setPw}
-              placeholder={t('at least 6 characters')} secure />
-          </FadeIn>
+            <Pressable onPress={go} disabled={!ready || busy}
+              style={({ pressed }) => [
+                styles.go,
+                !ready && styles.goOff,
+                pressed && ready && { opacity: 0.86 },
+              ]}>
+              {busy
+                ? <ActivityIndicator color="#FFFFFF" />
+                : (
+                  <Text style={[styles.goTxt, !ready && { color: FAINT }]}>
+                    {isUp ? t('Create account') : t('Sign in')}
+                  </Text>
+                )}
+            </Pressable>
 
-          {err ? <Text style={styles.err}>{t(err)}</Text> : null}
-          {note ? <Text style={styles.note}>{note}</Text> : null}
-
-          <FadeIn delay={190}>
-            <Btn label={isUp ? t('Create my account') : t('Sign in')}
-              color={REPPO_ORANGE}
-              onPress={go} disabled={!ready} busy={busy} style={{ marginTop:S.lg }} />
+            <Pressable onPress={swap} hitSlop={10} style={styles.swap}>
+              <Text style={styles.swapTxt}>
+                {isUp ? t('Already have an account?') : t('New here?')}{' '}
+                <Text style={{ color: REPPO_ORANGE }}>
+                  {isUp ? t('Sign in') : t('Create one')}
+                </Text>
+              </Text>
+            </Pressable>
           </FadeIn>
 
           <Text style={styles.fine}>
@@ -138,50 +125,73 @@ export default function Auth({ onDone }) {
   );
 }
 
-function Field({ label, value, onChange, placeholder, secure, keyboard, autoCap }) {
-  const { C, T } = useTheme();
-  const styles = makeStyles(C, T);
+/* The placeholder is the label. One line of text where there were
+   two, and nothing shouting in capitals above an empty box. */
+function Field({ value, onChange, placeholder, secure, keyboard, autoCap, last }) {
+  const [on, setOn] = useState(false);
   return (
-    <View style={{ marginBottom:S.md }}>
-      <Label style={{ marginBottom:8 }}>{label}</Label>
-      <TextInput
-        value={value} onChangeText={onChange} placeholder={placeholder}
-        placeholderTextColor="#5A5A62" secureTextEntry={secure}
-        keyboardType={keyboard || 'default'}
-        autoCapitalize={autoCap || 'none'} autoCorrect={false}
-        style={styles.input}
-      />
-    </View>
+    <TextInput
+      value={value}
+      onChangeText={onChange}
+      onFocus={() => setOn(true)}
+      onBlur={() => setOn(false)}
+      placeholder={placeholder}
+      placeholderTextColor={FAINT}
+      secureTextEntry={secure}
+      keyboardType={keyboard || 'default'}
+      autoCapitalize={autoCap || 'none'}
+      autoCorrect={false}
+      style={[
+        styles.input,
+        !last && { marginBottom: 12 },
+        on && { borderColor: REPPO_ORANGE },
+      ]}
+    />
   );
 }
 
-/* The sign-in is always the dark one, whatever the app is set to —
-   it is the first thing anybody sees and it is where the brand is
-   stated. So the colours here are literal rather than from the
-   palette. */
-const makeStyles = (C, T) => StyleSheet.create({
-  hero:{ paddingTop:S.md, paddingBottom:S.xl, paddingHorizontal:S.lg,
-         alignItems:'stretch', backgroundColor:'#000000' },
-  topRow:{ flexDirection:'row', justifyContent:'flex-end', marginBottom:S.lg },
-  langBtn:{ paddingHorizontal:12, paddingVertical:7, borderRadius:R.pill,
-            borderWidth:1.5, borderColor:'rgba(254,78,2,0.55)' },
-  langTxt:{ fontFamily:'WorkSans_500Medium', fontSize:10.5, letterSpacing:1,
-            color:REPPO_ORANGE },
-  tagline:{ fontFamily:'WorkSans_400Regular', fontSize:16, letterSpacing:0.4,
-            color:'#C9C9CF', marginTop:S.md, textAlign:'center' },
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: INK },
+  scroll: { flexGrow: 1, justifyContent: 'center', padding: S.lg, paddingVertical: 40 },
+  /* capped, so it is a sign-in on a laptop and not a stretched form */
+  column: { width: '100%', maxWidth: 380, alignSelf: 'center', alignItems: 'center' },
 
-  sheet:{ padding:S.lg, paddingTop:S.xl, backgroundColor:'#0B0B0E',
-          borderTopLeftRadius:R.lg, borderTopRightRadius:R.lg },
-  toggle:{ flexDirection:'row', backgroundColor:'#16161B', borderRadius:R.pill,
-           padding:4, marginBottom:S.lg },
-  tab:{ flex:1, paddingVertical:11, borderRadius:R.pill, alignItems:'center' },
-  tabTxt:{ fontFamily:'WorkSans_500Medium', fontSize:13.5, color:'#8A8A92' },
-  tabTxtOn:{ color:'#FFFFFF' },
-  input:{ backgroundColor:'#16161B', borderRadius:R.md, paddingHorizontal:16, paddingVertical:15,
-          fontFamily:'WorkSans_400Regular', fontSize:16, color:'#FFFFFF',
-          borderWidth:1, borderColor:'#2A2A32' },
-  err:{ fontFamily:'WorkSans_400Regular', fontSize:13.5, color:'#EF4444', marginTop:4 },
-  note:{ fontFamily:'WorkSans_400Regular', fontSize:13.5, color:'#4ADE80', marginTop:4 },
-  fine:{ fontFamily:'WorkSans_400Regular', fontSize:11.5, color:'#6B7280',
-         textAlign:'center', marginTop:S.md, lineHeight:16 },
+  lang: { alignSelf: 'flex-end', paddingVertical: 6, paddingHorizontal: 4, marginBottom: 22 },
+  langTxt: { fontFamily: 'WorkSans_400Regular', fontSize: 13, color: DIM },
+
+  tagline: {
+    fontFamily: 'WorkSans_400Regular', fontSize: 15.5, letterSpacing: 0.3,
+    color: DIM, marginTop: 22, textAlign: 'center',
+  },
+
+  input: {
+    backgroundColor: FIELD, borderRadius: R.md,
+    paddingHorizontal: 18, paddingVertical: 17,
+    fontFamily: 'WorkSans_400Regular', fontSize: 16, color: '#FFFFFF',
+    borderWidth: 1.5, borderColor: LINE,
+  },
+
+  go: {
+    marginTop: 20, borderRadius: R.md, paddingVertical: 18,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: REPPO_ORANGE, minHeight: 58,
+  },
+  /* Not a washed-out orange — a flat surface, so "not yet" reads as a
+     state rather than as a broken button. */
+  goOff: { backgroundColor: FIELD, borderWidth: 1.5, borderColor: LINE },
+  goTxt: {
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 15.5,
+    letterSpacing: 0.4, color: '#FFFFFF',
+  },
+
+  swap: { marginTop: 20, alignSelf: 'center' },
+  swapTxt: { fontFamily: 'WorkSans_400Regular', fontSize: 14, color: DIM },
+
+  err: { fontFamily: 'WorkSans_400Regular', fontSize: 13.5, color: '#F87171', marginTop: 12 },
+  note: { fontFamily: 'WorkSans_400Regular', fontSize: 13.5, color: '#4ADE80', marginTop: 12 },
+
+  fine: {
+    fontFamily: 'WorkSans_400Regular', fontSize: 11.5, color: '#4A4A54',
+    textAlign: 'center', marginTop: 34, lineHeight: 16,
+  },
 });

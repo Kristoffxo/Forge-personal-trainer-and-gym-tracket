@@ -615,6 +615,9 @@ const HI = {
   'Could not add that': 'Yeh add nahi ho paaya',
   'Nothing was saved. Check your connection and try again.':
     'Kuch save nahi hua. Apna connection dekho aur phir se try karo.',
+  'New here?': 'Naye ho?',
+  'Create one': 'Ek banao',
+  'Already have an account?': 'Account pehle se hai?',
 };
 
 const Ctx = createContext(null);

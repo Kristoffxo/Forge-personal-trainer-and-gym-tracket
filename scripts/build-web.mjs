@@ -83,18 +83,23 @@ const precache = [
     '/',
     '/index.html',
     '/manifest.webmanifest',
-    '/icons/icon-180.png',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png',
-    '/icons/maskable-192.png',
-    '/icons/maskable-512.png',
+    /* the same ?v= the page and the manifest ask for, or these get
+       downloaded twice on install — once here, once under the query */
+    '/icons/icon-180.png?v=reppo',
+    '/icons/icon-192.png?v=reppo',
+    '/icons/icon-512.png?v=reppo',
+    '/icons/maskable-192.png?v=reppo',
+    '/icons/maskable-512.png?v=reppo',
     ...fromHtml,
     ...fonts,
     ...images,
   ]),
 ]
   .filter((u) => !u.startsWith('/splash/'))
-  .filter((u) => u === '/' || fs.existsSync(path.join(OUT, u.slice(1))));
+  /* The icon URLs carry a ?v= so a phone that cached the old mark has
+     to go and fetch the new one. Check the file without it, but keep
+     the query in the list — that is the URL the page will ask for. */
+  .filter((u) => u === '/' || fs.existsSync(path.join(OUT, u.split('?')[0].slice(1))));
 
 // The build id changes whenever the precached set changes, which is what makes
 // the browser fetch a new service worker and drop the old cache.
