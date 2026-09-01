@@ -101,73 +101,73 @@ function SheetHost({ req, settle }) {
   return (
     <Modal transparent visible animationType="fade" onRequestClose={() => settle(null)}>
       <Pressable style={styles.scrim} onPress={() => settle(null)} />
-      <Animated.View
-        style={[
-          styles.sheet,
-          {
-            paddingBottom: Math.max(insets.bottom, S.md),
-            transform: [{
-              translateY: slide.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }),
-            }],
-            opacity: slide,
-          },
-        ]}
-      >
-        <View style={styles.grab} />
+      {/* Centred, not stuck to the bottom edge. A message about which
+          mode you are now in is the thing on the screen — it should be
+          in the middle of it, where the eye already is. */}
+      <View style={styles.centre} pointerEvents="box-none">
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              marginBottom: Math.max(insets.bottom, 0),
+              transform: [{
+                scale: slide.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }),
+              }],
+              opacity: slide,
+            },
+          ]}
+        >
 
-        {req.title ? <Text style={styles.title}>{req.title}</Text> : null}
-        {req.message ? <Text style={[T.small, styles.msg]}>{req.message}</Text> : null}
+          {req.title ? <Text style={styles.title}>{req.title}</Text> : null}
+          {req.message ? <Text style={[T.small, styles.msg]}>{req.message}</Text> : null}
 
-        {/* A list long enough to need it scrolls rather than running
-            off the bottom of the phone — the reminder times are
-            nineteen rows. */}
-        <ScrollView style={{ marginTop: S.md, maxHeight: 340 }}
-          contentContainerStyle={{ paddingBottom: 2 }}
-          showsVerticalScrollIndicator={false}>
-          {options.map((o, i) => (
+          {/* A list long enough to need it scrolls rather than running
+              off the screen — the reminder times are nineteen rows. */}
+          <ScrollView style={{ marginTop: S.md, maxHeight: 320 }}
+            contentContainerStyle={{ paddingBottom: 2 }}
+            showsVerticalScrollIndicator={false}>
+            {options.map((o, i) => (
+              <Pressable
+                key={i}
+                onPress={() => settle(o.value === undefined ? i : o.value)}
+                style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.raised }]}
+              >
+                <Text style={[
+                  styles.rowTxt,
+                  o.destructive && { color: C.danger },
+                  o.quiet && { color: C.dim },
+                ]}>
+                  {o.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          {req.kind === 'tell' ? null : (
             <Pressable
-              key={i}
-              onPress={() => settle(o.value === undefined ? i : o.value)}
-              style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.raised }]}
+              onPress={() => settle(null)}
+              style={({ pressed }) => [styles.cancel, pressed && { backgroundColor: C.raised }]}
             >
-              <Text style={[
-                styles.rowTxt,
-                o.destructive && { color: C.danger },
-                o.quiet && { color: C.dim },
-              ]}>
-                {o.label}
-              </Text>
+              <Text style={[styles.rowTxt, { color: C.dim }]}>{req.cancelLabel || t('Cancel')}</Text>
             </Pressable>
-          ))}
-        </ScrollView>
-
-        {req.kind === 'tell' ? null : (
-          <Pressable
-            onPress={() => settle(null)}
-            style={({ pressed }) => [styles.cancel, pressed && { backgroundColor: C.raised }]}
-          >
-            <Text style={[styles.rowTxt, { color: C.dim }]}>{req.cancelLabel || t('Cancel')}</Text>
-          </Pressable>
-        )}
-      </Animated.View>
+          )}
+        </Animated.View>
+      </View>
     </Modal>
   );
 }
 
 const makeStyles = (C, T) => StyleSheet.create({
-  scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: {
-    position: 'absolute', left: 0, right: 0, bottom: 0,
-    backgroundColor: C.surface,
-    borderTopLeftRadius: R.lg, borderTopRightRadius: R.lg,
-    paddingHorizontal: S.md, paddingTop: S.sm,
-    borderTopWidth: 1, borderTopColor: C.line,
-    // wide screens get a centred card rather than a full-width bar
-    maxWidth: 520, alignSelf: 'center', width: '100%',
+  scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
+  centre: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center', justifyContent: 'center', padding: S.lg,
   },
-  grab: {
-    width: 38, height: 4, borderRadius: 2, backgroundColor: C.line,
-    alignSelf: 'center', marginBottom: S.md,
+  sheet: {
+    width: '100%', maxWidth: 420,
+    backgroundColor: C.surface, borderRadius: R.lg,
+    paddingHorizontal: S.md, paddingTop: S.lg, paddingBottom: S.sm,
+    borderWidth: 1, borderColor: C.line,
   },
   title: {
     fontFamily: 'WorkSans_600SemiBold', fontSize: 21, color: C.text,

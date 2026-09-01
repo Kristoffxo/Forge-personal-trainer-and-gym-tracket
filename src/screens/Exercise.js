@@ -89,7 +89,7 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
               <View style={[styles.dot, { backgroundColor: tint }]} />
               <Text style={[T.tiny, { color: C.text }]}>{exercise.m}</Text>
             </View>
-            {exercise.r ? null : (
+            {exercise.r || exercise.senior ? null : (
               <View style={styles.pill}>
                 <Text style={[T.tiny, { color: C.text }]}>{t(kitLabel(exercise.e))}</Text>
               </View>
@@ -109,22 +109,50 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
         <FadeIn delay={60} style={{ paddingHorizontal: S.lg, paddingBottom: S.lg }}>
           {held ? <Timer seconds={held.seconds} eachSide={held.eachSide} tint={tint} /> : null}
 
+          {/* The seniors side writes its movements out. Everywhere else
+              an exercise is a name and a rep scheme, because everyone
+              else already knows what a squat is. */}
+          {exercise.steps ? (
+            <View style={[styles.card, { borderLeftColor: tint, marginTop: S.md }]}>
+              <Label>{t('How to do it')}</Label>
+              {exercise.steps.map((step, i) => (
+                <View key={i} style={styles.step}>
+                  <View style={[styles.stepNum, { borderColor: tint }]}>
+                    <Text style={[styles.stepNumTxt, { color: tint }]}>{i + 1}</Text>
+                  </View>
+                  <Text style={[T.bodyOn, styles.stepTxt]}>{t(step)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          {exercise.care ? (
+            <View style={[styles.care, { borderLeftColor: C.amber }]}>
+              <Label style={{ color: C.amber }}>{t('Take care')}</Label>
+              <Text style={[T.bodyOn, { marginTop: 4, fontSize: 14.5 }]}>{t(exercise.care)}</Text>
+            </View>
+          ) : null}
+
           <View style={[styles.card, { borderLeftColor: tint, marginTop: S.md }]}>
             <Label>{exercise.r || held ? t('Hold for') : t('Aim for')}</Label>
             <Text style={styles.scheme}>{exercise.s}</Text>
             <Text style={[T.small, { marginTop: S.sm }]}>
-              {exercise.r
-                ? t('Go only as far as is comfortable and breathe out slowly into it. Nothing here should hurt — if it does, come out of it.')
-                : exercise.e === 'None'
-                  ? t('Slow down rather than rushing. Three seconds down, one up — when that feels easy, add reps before you add anything else.')
-                  : t('Pick a weight you can move cleanly for every rep. When all of them feel controlled, add a little next time — 2.5 kg is plenty.')}
+              {exercise.senior
+                ? t('There is no rush and nothing to prove. Doing it slowly is doing it properly.')
+                : exercise.r
+                  ? t('Go only as far as is comfortable and breathe out slowly into it. Nothing here should hurt — if it does, come out of it.')
+                  : exercise.e === 'None'
+                    ? t('Slow down rather than rushing. Three seconds down, one up — when that feels easy, add reps before you add anything else.')
+                    : t('Pick a weight you can move cleanly for every rep. When all of them feel controlled, add a little next time — 2.5 kg is plenty.')}
             </Text>
           </View>
 
           <Text style={[T.tiny, { marginTop: S.md, textAlign: 'center' }]}>
-            {exercise.r
+            {exercise.senior
+              ? t('Take as long as you like between movements.')
+              : exercise.r
               ? t('There is no rush and nothing to count. Move to the next one when you are ready.')
-              : t('Rest a minute or two between sets.')}
+                : t('Rest a minute or two between sets.')}
           </Text>
         </FadeIn>
       </ScrollView>
@@ -166,6 +194,19 @@ const makeStyles = (C, T) => StyleSheet.create({
     textTransform: 'uppercase', color: C.faint,
   },
   nearName: { fontFamily: 'WorkSans_400Regular', fontSize: 12, color: C.dim, marginTop: 1 },
+
+  /* numbered instructions, seniors side */
+  step: { flexDirection: 'row', alignItems: 'flex-start', marginTop: S.md },
+  stepNum: {
+    width: 26, height: 26, borderRadius: 13, borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center', marginRight: 12, marginTop: 1,
+  },
+  stepNumTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13 },
+  stepTxt: { flex: 1, fontSize: 16, lineHeight: 24 },
+  care: {
+    backgroundColor: C.surface, borderRadius: R.md, padding: S.md,
+    borderLeftWidth: 4, marginTop: S.md,
+  },
   pill: {
     flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: C.line,
     borderRadius: R.pill, paddingHorizontal: 10, paddingVertical: 4, marginRight: 8,

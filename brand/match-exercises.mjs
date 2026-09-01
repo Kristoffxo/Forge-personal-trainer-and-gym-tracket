@@ -32,6 +32,16 @@ export const NO_PHOTO = [
 ];
 
 const ALIAS = {
+  /* ---- the seniors side ---- */
+  'Ankle Circles': 'Ankle Circles',
+  'Side Leg Raises': 'Side Leg Raises',
+  'Calf Stretch at the Wall': 'Calf Stretch Hands Against Wall',
+  'Knee Circles': 'Knee Circles',
+  'Arm Circles': 'Arm Circles',
+  'Side Neck Stretch': 'Side Neck Stretch',
+  'Chair Upper Body Stretch': 'Chair Upper Body Stretch',
+  'Hug Knees To Chest': 'Hug Knees To Chest',
+
   /* ---- home work with a band, and the floor moves that replaced the
      pull-ups when 'no equipment' was made to mean it. These were
      fetched by hand once and never written down here, which meant the

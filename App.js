@@ -8,7 +8,7 @@ import { WorkSans_400Regular, WorkSans_500Medium, WorkSans_600SemiBold,
          WorkSans_700Bold } from '@expo-google-fonts/work-sans';
 
 import { useTheme, ThemeProvider, SIDE_BLUE, SIDE_PINK } from './src/theme';
-import { SideProvider, useSide, WOMEN } from './src/side';
+import { SideProvider, useSide, MEN, WOMEN, SENIORS } from './src/side';
 import { LangProvider, useLang } from './src/lang';
 import { Press } from './src/ui/kit';
 import { SheetProvider, useSheet } from './src/ui/sheet';
@@ -22,7 +22,8 @@ import Food     from './src/screens/Food';
 import AddFood  from './src/screens/AddFood';
 import Train    from './src/screens/Train';
 import Discover from './src/screens/Feed';
-import You      from './src/screens/You';
+import ChallengesTab from './src/screens/ChallengesTab';
+import Settings from './src/screens/Settings';
 import Trainer  from './src/screens/Trainer';
 import Onboarding from './src/screens/Onboarding';
 
@@ -36,8 +37,8 @@ const TABS = [
     title:'Food',            sub:'What you ate today' },
   { key:'feed',  label:'Discover', icon:'◈', colorKey:'gold',
     title:'Discover',        sub:'How everyone is doing' },
-  { key:'you',   label:'You',   icon:'✦', colorKey:'violet',
-    title:'You',             sub:'Your streak and numbers' },
+  { key:'you',   label:'Challenges', icon:'✦', colorKey:'violet',
+    title:'Challenges',      sub:'Race, medals, numbers' },
   { key:'trainer', label:'Trainer', icon:'✆', colorKey:'teal',
     title:'Trainer',         sub:'Ask a real trainer' },
 ];
@@ -83,6 +84,9 @@ function Root() {
      to fetch back what we had just sent was most of why adding food
      felt like it had not worked. */
   const [justAdded, setJustAdded] = useState(null);
+  /* Settings is a place you go, not a tab you flip to. It opens over
+     everything from the three dots beside the mark. */
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { width } = useWindowDimensions();
   const slide = useRef(new Animated.Value(0)).current;
@@ -121,9 +125,9 @@ function Root() {
 
       await push.markAsked();            // whatever they say, we asked
       const yes = await sheet.confirm({
-        title: tr('One line a day?'),
-        message: tr('A philosopher, once a day, at six in the evening. Change the time or switch it off in Settings whenever you like.'),
-        confirmLabel: tr('Yes, remind me'),
+        title: tr('Can we nudge you once a day?'),
+        message: tr('One reminder, at a time you pick, to keep you going on the days you would rather not. Nothing else — no offers, no chasing. Change the time or switch it off in Settings whenever you like.'),
+        confirmLabel: tr('Yes, keep me going'),
         cancelLabel: tr('Not now'),
       });
       if (!alive || !yes) return;
@@ -179,7 +183,11 @@ function Root() {
 
   /* Full-screen flows sit above the tabs — logging food is a task you
      finish, not a place you are. */
-  const overlay = adding ? (
+  const overlay = settingsOpen ? (
+    <SettingsSheet onClose={() => setSettingsOpen(false)}>
+      <Settings user={user} profile={profile} onProfile={setProfile} />
+    </SettingsSheet>
+  ) : adding ? (
     <AddFood meal={adding} user={user}
       onCancel={() => setAdding(null)}
       onDone={(row) => {
@@ -195,7 +203,8 @@ function Root() {
       <SafeAreaView style={styles.wrap} edges={EDGES_TOP}>
         {overlay || (
           <>
-            <TitleBar tab={current} accent={accent} />
+            <TitleBar tab={current} accent={accent}
+              onSettings={() => setSettingsOpen(true)} />
 
             <View style={{ flex:1 }}>
               {tab === 'train' ? (
@@ -209,7 +218,7 @@ function Root() {
               ) : tab === 'trainer' ? (
                 <Trainer user={user} profile={profile} />
               ) : (
-                <You user={user} profile={profile} onProfile={setProfile} />
+                <ChallengesTab user={user} profile={profile} onProfile={setProfile} />
               )}
             </View>
 
@@ -253,17 +262,22 @@ function Root() {
    Light/dark and the language used to live here too. They were moved
    into Settings: they are set once and then never touched again,
    whereas this one is the difference between two different apps. */
-function TitleBar({ tab, accent }) {
+function TitleBar({ tab, accent, onSettings }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
   if (!tab) return null;
   return (
     <View style={[styles.titleBar, { borderBottomColor: accent }]}>
-      <Mark size={30} style={{ marginRight: 11 }} />
+      <Mark size={30} />
+      {/* Everything you set once lives behind these. */}
+      <Press onPress={onSettings} scaleTo={0.88} style={styles.dots}
+        accessibilityLabel={t('Settings')}>
+        <Text style={styles.dotsTxt}>{'⋮'}</Text>
+      </Press>
       {/* One line each. The switch takes real width, and a subtitle
           that wraps makes the bar a different height on every tab. */}
-      <View style={{ flex:1, marginRight: 10 }}>
+      <View style={{ flex:1, marginRight: 8 }}>
         <Text style={styles.titleTxt} numberOfLines={1}>{t(tab.title)}</Text>
         <Text style={styles.subTxt} numberOfLines={1}>{t(tab.sub)}</Text>
       </View>
@@ -272,19 +286,19 @@ function TitleBar({ tab, accent }) {
   );
 }
 
-/* Two halves of one pill: men on the left in blue, women on the right
-   in pink. These are the only two places those colours appear in the
-   whole app — everywhere else is the same palette on both sides,
-   because a screen tinted end to end was too much of it.
+/* Three ways the app can be. Men and women are the two colours the
+   logo already uses; seniors is the app's own accent, because it is
+   not a third gender — it is a third kind of training.
 
-   The thumb springs across and overshoots slightly on the way, which
-   is most of the reason to animate it at all: you see which way it
-   went, so a glance is enough to know which side you are on.
+   The thumb springs across and overshoots slightly, which is most of
+   the reason to animate it: you see which way it went.
 
-   Changing sides also says what changed. Somebody who taps this by
-   accident should find out immediately, not three screens later when
-   the workout is not the one they expected. */
-const HALF = 62;
+   Changing sides says what changed, in the middle of the screen.
+   Somebody who taps this by accident should find out immediately,
+   not three screens later when the workout is not the one they
+   expected. */
+const SIDE_ORDER = [MEN, WOMEN, SENIORS];
+const HALF = 52;
 
 function SideSwitch() {
   const { C, T } = useTheme();
@@ -292,60 +306,96 @@ function SideSwitch() {
   const { side, setSide } = useSide();
   const sheet = useSheet();
   const styles = makeStyles(C, T);
-  const women = side === WOMEN;
 
-  const slide = useRef(new Animated.Value(women ? 1 : 0)).current;
+  const at = Math.max(0, SIDE_ORDER.indexOf(side));
+  const slide = useRef(new Animated.Value(at)).current;
+
   useEffect(() => {
     Animated.spring(slide, {
-      toValue: women ? 1 : 0,
-      useNativeDriver: true,
-      speed: 16,
-      bounciness: 11,        // enough bounce to see, not enough to wobble
+      toValue: at, useNativeDriver: true, speed: 16, bounciness: 11,
     }).start();
-  }, [women, slide]);
+  }, [at, slide]);
+
+  const COLOUR = { [MEN]: SIDE_BLUE, [WOMEN]: SIDE_PINK, [SENIORS]: C.lime };
+
+  const SAID = {
+    [MEN]: {
+      title: 'You are in Men mode',
+      body: 'Upper body focused — push, pull and legs, the full gym library. Switch back any time.',
+    },
+    [WOMEN]: {
+      title: 'You are in Women mode',
+      body: 'Lower body focused — glutes, thighs and calves lead every session. Menstrual Exercises are on the Train screen. Switch back any time.',
+    },
+    [SENIORS]: {
+      title: 'You are in Seniors mode',
+      body: 'Home only, and nothing that strains a joint. Every movement is written out step by step, with what to watch for. Switch back any time.',
+    },
+  };
 
   async function pick(next) {
-    if (next === side) return;          // nothing changed, say nothing
+    if (next === side) return;
     setSide(next);
-    await sheet.tell({
-      title: next === WOMEN ? t('You are in Women mode') : t('You are in Men mode'),
-      message: next === WOMEN
-        ? t('Lower body focused — glutes, thighs and calves lead every session. Menstrual Exercises are on the Train screen. Switch back any time.')
-        : t('Upper body focused — push, pull and legs, the full gym library. Switch back any time.'),
-    });
+    await sheet.tell({ title: t(SAID[next].title), message: t(SAID[next].body) });
   }
 
-  const lit = slide.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
-  const litWomen = slide.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+  const lit = (i) => slide.interpolate({
+    inputRange: [i - 1, i, i + 1],
+    outputRange: [0, 1, 0],
+    extrapolate: 'clamp',
+  });
 
-  /* Each label is drawn twice, unlit and lit, and cross-faded on the
-     same value that moves the thumb. One animation, no colour maths,
-     and it all runs on the native driver. */
-  const half = (key, label, on) => (
+  const half = (key, label, i) => (
     <Press key={key} onPress={() => pick(key)} scaleTo={0.96} style={styles.sideHalf}>
       <Text style={[styles.sideTxt, { color: C.faint }]}>{t(label)}</Text>
-      <Animated.Text style={[styles.sideTxt, styles.sideTxtOn, { opacity: on }]}>
+      <Animated.Text style={[styles.sideTxt, styles.sideTxtOn, { opacity: lit(i) }]}>
         {t(label)}
       </Animated.Text>
     </Press>
   );
 
   return (
-    <View style={[styles.sideWrap, { borderColor: women ? SIDE_PINK : SIDE_BLUE }]}>
+    <View style={[styles.sideWrap, { borderColor: COLOUR[side] }]}>
       <Animated.View
         pointerEvents="none"
         style={[styles.sideThumb, {
           transform: [{
-            translateX: slide.interpolate({ inputRange: [0, 1], outputRange: [0, HALF] }),
+            translateX: slide.interpolate({
+              inputRange: [0, 1, 2], outputRange: [0, HALF, HALF * 2],
+            }),
           }],
         }]}
       >
-        <Animated.View style={[styles.sideFill, { backgroundColor: SIDE_BLUE, opacity: lit }]} />
-        <Animated.View style={[styles.sideFill, { backgroundColor: SIDE_PINK, opacity: litWomen }]} />
+        {SIDE_ORDER.map((k, i) => (
+          <Animated.View key={k} style={[styles.sideFill,
+            { backgroundColor: COLOUR[k], opacity: lit(i) }]} />
+        ))}
       </Animated.View>
 
-      {half('men', 'Men', lit)}
-      {half(WOMEN, 'Women', litWomen)}
+      {half(MEN, 'Men', 0)}
+      {half(WOMEN, 'Women', 1)}
+      {half(SENIORS, 'Seniors', 2)}
+    </View>
+  );
+}
+
+/* Settings, over the top of whatever you were doing. */
+function SettingsSheet({ children, onClose }) {
+  const { C, T } = useTheme();
+  const { t } = useLang();
+  const styles = makeStyles(C, T);
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <View style={[styles.titleBar, { borderBottomColor: C.violet }]}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.titleTxt}>{t('Settings')}</Text>
+          <Text style={styles.subTxt} numberOfLines={1}>{t('Your account and how the app behaves')}</Text>
+        </View>
+        <Press onPress={onClose} scaleTo={0.9} style={styles.close}>
+          <Text style={[styles.closeTxt, { color: C.violet }]}>{t('Done')}</Text>
+        </Press>
+      </View>
+      <View style={{ flex: 1 }}>{children}</View>
     </View>
   );
 }
@@ -358,17 +408,22 @@ const makeStyles = (C, T) => StyleSheet.create({
   titleBar:{ flexDirection:'row', alignItems:'center', paddingHorizontal:18,
              paddingTop:12, paddingBottom:11,
              backgroundColor:C.surface, borderBottomWidth:2 },
+  dots:{ width:26, height:34, alignItems:'center', justifyContent:'center', marginRight:6 },
+  dotsTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:21, color:C.dim, lineHeight:24 },
+  close:{ paddingHorizontal:12, paddingVertical:8 },
+  closeTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:15 },
+
   sideWrap:{ flexDirection:'row', borderRadius:999, borderWidth:1.5,
              backgroundColor:C.raised, padding:2, overflow:'hidden' },
   sideThumb:{ position:'absolute', left:2, top:2, bottom:2, width:HALF,
               borderRadius:999, overflow:'hidden' },
   sideFill:{ ...StyleSheet.absoluteFillObject, borderRadius:999 },
   sideHalf:{ width:HALF, paddingVertical:6, alignItems:'center', justifyContent:'center' },
-  sideTxt:{ fontFamily:'WorkSans_500Medium', fontSize:11, letterSpacing:0.7,
+  sideTxt:{ fontFamily:'WorkSans_500Medium', fontSize:9.5, letterSpacing:0.4,
             textTransform:'uppercase', textAlign:'center' },
   sideTxtOn:{ ...StyleSheet.absoluteFillObject, color:'#FFFFFF',
               paddingVertical:6 },
-  titleTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:21, color:C.text },
+  titleTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:19, color:C.text },
   subTxt:{ fontFamily:'WorkSans_400Regular', fontSize:12, color:C.dim, marginTop:1 },
 
   /* bottom bar — the padding keeps it whole above the home indicator */

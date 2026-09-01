@@ -629,6 +629,67 @@ const HI = {
   'Reset': 'Reset',
   'Before': 'Pehle',
   'Next': 'Aage',
+  /* ---------- seniors ---------- */
+  'Seniors': 'Buzurg',
+  'You are in Seniors mode': 'Aap Seniors mode mein ho',
+  'Home only, and nothing that strains a joint. Every movement is written out step by step, with what to watch for. Switch back any time.':
+    'Sirf ghar par, aur kuch bhi jodon pe zor nahi daalta. Har exercise step by step likhi hai, aur kya dhyan rakhna hai woh bhi. Jab chaho badal lo.',
+  'Gentle Workouts': 'Aaram se Workouts',
+  'A chair, a wall, the floor. Nothing that strains a joint.':
+    'Ek kursi, ek deewar, zameen. Jodon pe koi zor nahi.',
+  'Take care': 'Dhyan rakhein',
+  'There is no rush and nothing to prove. Doing it slowly is doing it properly.':
+    'Koi jaldi nahi, kisi ko kuch sabit nahi karna. Dheere karna hi sahi karna hai.',
+  'Take as long as you like between movements.':
+    'Do exercises ke beech jitna chaho aaram lo.',
+
+  /* ---------- challenges tab ---------- */
+  'Challenges': 'Challenges',
+  'Race, medals, numbers': 'Muqabla, medals, numbers',
+  'Compete': 'Muqabla',
+  'Journey': 'Safar',
+  'Next medal': 'Agla medal',
+  'more days': 'din aur',
+  '1 more day': '1 din aur',
+  'Ahead': 'Aage',
+  'Behind you': 'Peeche',
+  'earned': 'mil gaya',
+  'to the next': 'agle tak',
+  'Every medal is yours': 'Saare medals aapke hain',
+  'Nothing left to earn.': 'Ab kuch baaki nahi.',
+  'Train seven days in a row for the first one.': 'Pehle ke liye saat din lagataar train karo.',
+  'day streak': 'din ki streak',
+
+  /* ---------- compete ---------- */
+  'One minute. Someone else.': 'Ek minute. Koi aur.',
+  'Pick a move and you are matched with whoever else is waiting. Both scores show on both screens.':
+    'Ek exercise chuno, jo bhi wait kar raha hai usse match ho jaoge. Dono ke score dono screen pe dikhte hain.',
+  'Push-ups': 'Push-ups',
+  'Squats': 'Squats',
+  'Phone on the floor, propped against something.': 'Phone zameen pe, kisi cheez ke sahare.',
+  'Phone against a wall, a few steps back.': 'Phone deewar ke sahare, do kadam peeche.',
+  'Reps are counted by tapping the screen for now. Counting them from the camera is coming.':
+    'Abhi reps screen tap karke ginte hain. Camera se ginna aa raha hai.',
+  'Looking for someone': 'Koi mil raha hai',
+  'seconds': 'second',
+  'Could not start': 'Shuru nahi ho paaya',
+  'Them': 'Woh',
+  'Time': 'Time',
+  'A draw': 'Barabar',
+  'You won': 'Aap jeete',
+  'They won': 'Woh jeete',
+  'to': 'se',
+  'They are still finishing.': 'Woh abhi kar rahe hain.',
+  'Again': 'Phir se',
+  'Tap anywhere for each rep': 'Har rep pe kahin bhi tap karo',
+
+  /* ---------- settings, moved ---------- */
+  'Your account and how the app behaves': 'Aapka account aur app ka behaviour',
+  'Done': 'Ho gaya',
+  'Can we nudge you once a day?': 'Din mein ek baar yaad dila dein?',
+  'One reminder, at a time you pick, to keep you going on the days you would rather not. Nothing else — no offers, no chasing. Change the time or switch it off in Settings whenever you like.':
+    'Ek reminder, aapke chune hue time pe, un dino ke liye jab mann na kare. Aur kuch nahi — koi offer nahi, koi peecha nahi. Settings mein time badal sakte ho ya band kar sakte ho.',
+  'Yes, keep me going': 'Haan, yaad dilate raho',
 };
 
 const Ctx = createContext(null);

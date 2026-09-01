@@ -219,5 +219,41 @@ const KNOWN_KIT = ['None', 'Chair', 'Band', 'Dumbbell', 'Bar', 'Wheel', 'Partner
 is('every exercise names kit we understand',
   EX.filter((x) => !KNOWN_KIT.includes(x.e)).map((x) => `${x.n} (${x.e})`), []);
 
+/* ---------------------------------------------------------------
+   The seniors side.
+
+   The promise here is stronger than on the other two: nothing that
+   loads a joint, nothing fast, nothing that ends with you on the
+   floor by accident. It is worth a test rather than a comment.
+   --------------------------------------------------------------- */
+console.log('seniors');
+
+const { SENIOR_SESSIONS, SENIOR_NOTE } = await import('../src/seniors.js');
+
+is('five sessions', SENIOR_SESSIONS.length, 5);
+is('all of them are short', SENIOR_SESSIONS.every((s) => s.mins <= 20), true);
+is('every movement is written out',
+  SENIOR_SESSIONS.every((s) => s.exercises.every((x) => Array.isArray(x.steps) && x.steps.length >= 3)),
+  true);
+is('every movement says what to watch for',
+  SENIOR_SESSIONS.every((s) => s.exercises.every((x) => typeof x.care === 'string' && x.care.length > 20)),
+  true);
+is('nothing needs equipment',
+  SENIOR_SESSIONS.every((s) => s.exercises.every((x) => x.e === 'None')), true);
+is('every movement has a photograph',
+  SENIOR_SESSIONS.flatMap((s) => s.exercises).filter((x) => !hasPhoto(x.n)).map((x) => x.n), []);
+is('the safety note names symptoms rather than waving at them',
+  /doctor/.test(SENIOR_NOTE) && /dizz/.test(SENIOR_NOTE), true);
+
+/* and nothing the generator hands a senior loads a joint */
+const HARSH = /jump|plyo|handstand|nordic|deadlift|sprint|burpee|dip|pull-?up|chin-?up|hanging|ab wheel|wall sit|inverted|bulgarian|skull/i;
+for (const tg of splitTargetsFor('seniors').concat(targetsFor('seniors'))) {
+  for (const level of ['beginner', 'intermediate', 'advanced']) {
+    const r = buildRoutine({ target: tg, place: 'home', level, side: 'seniors' });
+    is(`seniors ${tg.key} ${level} is gentle`,
+      r.exercises.filter((x) => HARSH.test(x.n) || !HOME_KIT.includes(x.e)).map((x) => x.n), []);
+  }
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

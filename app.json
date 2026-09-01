@@ -24,7 +24,8 @@
       },
       "permissions": [
         "CAMERA",
-        "READ_MEDIA_IMAGES"
+        "READ_MEDIA_IMAGES",
+        "POST_NOTIFICATIONS"
       ]
     },
     "web": {
@@ -36,7 +37,21 @@
       "lang": "en"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Reppo needs your photos so you can post one to Discover.",
+          "cameraPermission": "Reppo needs the camera so you can take a photo for Discover."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#FE4E02"
+        }
+      ]
     ]
   }
 }

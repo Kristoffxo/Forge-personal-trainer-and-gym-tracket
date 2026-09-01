@@ -21,6 +21,7 @@ import { framesFor } from '../exercisePhotos';
 import { targetsFor, splitTargetsFor, buildRoutine, minutesFor, INSTANT, buildInstant } from '../routines';
 import { useSide } from '../side';
 import { RELIEF, RELIEF_NOTE } from '../menstrual';
+import { SENIOR_SESSIONS, SENIOR_NOTE } from '../seniors';
 import { kitLabel } from '../exercises';
 import Session from './Session';
 import Exercise from './Exercise';
@@ -37,7 +38,9 @@ export default function Library({ place, user, profile, onBack }) {
   const [peek, setPeek] = useState(null);      // one exercise, just to look at
 
   const level = (profile && profile.experience) || 'intermediate';
-  const accent = place === 'relief' ? C.gold : place === 'home' ? C.teal : C.ember;
+  const accent = place === 'relief' ? C.gold
+    : place === 'senior' ? C.lime
+      : place === 'home' ? C.teal : C.ember;
 
   const SPLITS = splitTargetsFor(side);
   const SINGLES = targetsFor(side);
@@ -81,7 +84,8 @@ export default function Library({ place, user, profile, onBack }) {
             It was showing a man on a pull-up bar above a list with no
             pull-up in it. */}
         <ImageBackground
-          source={place === 'gym' ? photoForTarget(picked.key) : PHOTO.home}
+          source={place === 'gym' ? photoForTarget(picked.key)
+            : place === 'senior' ? PHOTO.rest : PHOTO.home}
           style={styles.hero} imageStyle={{ opacity: 0.55 }}>
           <View style={styles.heroVeil} />
           <View style={styles.heroBody}>
@@ -112,10 +116,13 @@ export default function Library({ place, user, profile, onBack }) {
                       goes on this line rather than squeezing the name into
                       half a row. */}
                   <Text style={T.tiny}>
-                    {x.r ? `${t(x.m)} · ${x.s}` : `${t(x.m)} · ${t(kitLabel(x.e))}`}
+                    {x.senior || x.r
+                      ? `${t(x.m)} · ${x.s}`
+                      : `${t(x.m)} · ${t(kitLabel(x.e))}`}
                   </Text>
                 </View>
-                {x.r ? null : <Text style={[styles.setsTxt, { color: accent }]}>{x.s}</Text>}
+                {x.r || x.senior ? null
+                  : <Text style={[styles.setsTxt, { color: accent }]}>{x.s}</Text>}
                 <Text style={styles.rowChev}>{'›'}</Text>
               </Press>
             </FadeIn>
@@ -139,6 +146,53 @@ export default function Library({ place, user, profile, onBack }) {
 
   /* ---------- the menu ---------- */
   const open = (target) => setPicked(buildRoutine({ target, place, level, side }));
+
+  /* ---------- the seniors side ----------
+     Five fixed sessions and nothing generated. What is right for a
+     joint that has done seventy years of work is a known short list,
+     not something to shuffle. */
+  if (place === 'senior') {
+    return (
+      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
+        <ImageBackground source={PHOTO.rest} style={styles.hero} imageStyle={{ opacity: 0.45 }}>
+          <View style={styles.heroVeil} />
+          <View style={styles.heroBody}>
+            <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
+            </Press>
+            <Text style={styles.heroTitle}>{t('Gentle Workouts')}</Text>
+            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
+              {t('A chair, a wall, the floor. Nothing that strains a joint.')}
+            </Text>
+          </View>
+        </ImageBackground>
+
+        <View style={{ padding: S.lg }}>
+          {SENIOR_SESSIONS.map((r, i) => (
+            <FadeIn key={r.key} delay={i * 24} from={8}>
+              <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
+                <View style={[styles.timeBadge, { borderColor: accent }]}>
+                  <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
+                  <Text style={T.tiny}>{t('min')}</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 14 }}>
+                  <Text style={styles.planName}>{t(r.name)}</Text>
+                  <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
+                </View>
+                <View style={[styles.go, { backgroundColor: accent }]}>
+                  <Text style={styles.goTxt}>{'→'}</Text>
+                </View>
+              </Press>
+            </FadeIn>
+          ))}
+
+          <View style={[styles.note, { borderLeftColor: C.danger }]}>
+            <Text style={[T.small, { color: C.text }]}>{t(SENIOR_NOTE)}</Text>
+          </View>
+        </View>
+      </ScrollView>
+    );
+  }
 
   /* ---------- period pain ----------
      Three fixed sessions rather than anything generated. What eases
@@ -289,7 +343,7 @@ export default function Library({ place, user, profile, onBack }) {
       <Text style={[T.tiny, { textAlign: 'center', marginTop: S.lg, paddingHorizontal: S.lg }]}>
         {place === 'instant'
           ? t('No equipment at all. Rest 30 seconds between moves.')
-          : t('Sessions are sized to your level. Change it in You → Numbers.')}
+          : t('Sessions are sized to your level. Change it in Challenges → Numbers.')}
       </Text>
     </ScrollView>
   );

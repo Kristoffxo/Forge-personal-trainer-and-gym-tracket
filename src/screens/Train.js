@@ -7,11 +7,15 @@
      Gym Workouts            I am at the gym, today is chest
      Home Workouts           I have a floor and maybe a dumbbell
      Instant Workouts        I have twenty minutes and no equipment
-     Challenges              give me a reason to turn up tomorrow
      Menstrual Exercises     it is day two and I want to feel human
 
-   The last one only appears on the women's side, because on the
-   men's side it would be a box nobody could ever open.
+   Menstrual Exercises only appears on the women's side. The seniors
+   side shows none of the gym boxes at all — it has its own gentle
+   sessions and nothing else, because half a menu you must not use is
+   worse than no menu.
+
+   Challenges used to be here. It has its own tab now: it is a thing
+   you check on, not a way into today's session.
 
    The hub is deliberately a handful of large targets and nothing
    else. Every screen behind it knows how to get back here.
@@ -29,9 +33,21 @@ import { useSide } from '../side';
 
 import Planner from './Training';
 import Library from './Library';
-import Challenges from './Challenges';
 
-function boxesFor(women) {
+function boxesFor(women, senior) {
+  if (senior) {
+    return [
+      {
+        key: 'senior', photo: 'rest', colorKey: 'ember',
+        name: 'Gentle Workouts',
+        sub: 'Five sessions. A chair, a wall, the floor.',
+      },
+      /* No Instant Workouts here. It builds from the bodyweight pool,
+         which still has press-ups and mountain climbers in it — fine
+         for everyone else and not what this side is for. */
+    ];
+  }
+
   return [
     {
       key: 'planner', photo: 'gym', colorKey: 'ember',
@@ -59,21 +75,16 @@ function boxesFor(women) {
       name: 'Menstrual Exercises',
       sub: 'Ten to twenty minutes for period pain',
     }] : []),
-    {
-      key: 'challenges', photo: 'bench', colorKey: 'violet',
-      name: 'Challenges',
-      sub: 'Medals for every streak you keep',
-    },
   ];
 }
 
 export default function Train({ user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
-  const { isWomen } = useSide();
+  const { isWomen, isSenior } = useSide();
   const styles = makeStyles(C, T);
   const tabPad = useTabPad();
-  const BOXES = boxesFor(isWomen);
+  const BOXES = boxesFor(isWomen, isSenior);
 
   const [open, setOpen] = useState(null);
   const [me, setMe] = useState(null);          // streak, medals, level
@@ -99,13 +110,15 @@ export default function Train({ user, profile }) {
   if (open === 'relief') {
     return <Library place="relief" user={user} profile={profile} onBack={() => setOpen(null)} />;
   }
-  if (open === 'challenges') return <Challenges user={user} onBack={() => setOpen(null)} />;
+  if (open === 'senior') {
+    return <Library place="senior" user={user} profile={profile} onBack={() => setOpen(null)} />;
+  }
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       {me ? (
         <FadeIn>
-          <Press onPress={() => setOpen('challenges')} scaleTo={0.99}
+          <View
             style={[styles.banner, {
               borderColor: me.rank.grade ? GRADE_COLOUR[me.rank.grade] : C.violet,
             }]}>
@@ -131,8 +144,7 @@ export default function Train({ user, profile }) {
                     : t('Nothing today yet — one free rest day left')}
               </Text>
             </View>
-            <Text style={[styles.chev, { color: C.violet }]}>{'›'}</Text>
-          </Press>
+          </View>
         </FadeIn>
       ) : null}
 

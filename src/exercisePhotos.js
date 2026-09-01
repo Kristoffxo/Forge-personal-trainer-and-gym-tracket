@@ -166,6 +166,16 @@ export const EXERCISE_FRAMES = {
   "Banded Squat": [require('../assets/exercises/banded-squat-0.jpg'), require('../assets/exercises/banded-squat-1.jpg')],
   "Banded Good Morning": [require('../assets/exercises/banded-good-morning-0.jpg'), require('../assets/exercises/banded-good-morning-1.jpg')],
   "Monster Walk": [require('../assets/exercises/monster-walk-0.jpg'), require('../assets/exercises/monster-walk-1.jpg')],
+
+  /* the seniors side */
+  "Ankle Circles": [require('../assets/exercises/ankle-circles-0.jpg'), require('../assets/exercises/ankle-circles-1.jpg')],
+  "Side Leg Raises": [require('../assets/exercises/side-leg-raises-0.jpg'), require('../assets/exercises/side-leg-raises-1.jpg')],
+  "Calf Stretch at the Wall": [require('../assets/exercises/calf-stretch-at-the-wall-0.jpg'), require('../assets/exercises/calf-stretch-at-the-wall-1.jpg')],
+  "Knee Circles": [require('../assets/exercises/knee-circles-0.jpg'), require('../assets/exercises/knee-circles-1.jpg')],
+  "Arm Circles": [require('../assets/exercises/arm-circles-0.jpg'), require('../assets/exercises/arm-circles-1.jpg')],
+  "Side Neck Stretch": [require('../assets/exercises/side-neck-stretch-0.jpg'), require('../assets/exercises/side-neck-stretch-1.jpg')],
+  "Chair Upper Body Stretch": [require('../assets/exercises/chair-upper-body-stretch-0.jpg'), require('../assets/exercises/chair-upper-body-stretch-1.jpg')],
+  "Hug Knees To Chest": [require('../assets/exercises/hug-knees-to-chest-0.jpg'), require('../assets/exercises/hug-knees-to-chest-1.jpg')],
 };
 
 export function framesFor(exercise) {

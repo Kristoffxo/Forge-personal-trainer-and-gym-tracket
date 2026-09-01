@@ -171,7 +171,12 @@ self.addEventListener('push', (event) => {
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-96.png',
       tag: 'reppo-daily',
-      renotify: false,
+      /* With a fixed tag and renotify off, every reminder after the
+         first one replaced the last one silently — it appeared with
+         no sound and no buzz, which is indistinguishable from not
+         arriving at all. */
+      renotify: true,
+      vibrate: [200, 100, 200],
       data: { url: '/' },
     })
   );

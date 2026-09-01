@@ -1,38 +1,38 @@
 /* ---------------------------------------------------------------
-   You.
+   The Challenges tab.
 
-   Tools and Progress used to be two of the four tabs, which meant
-   half the app's navigation was spent on screens you visit once a
-   week. They are one tab now, with a switch at the top: what you
-   have done, and the numbers everything else is calculated from.
+   Three things, in the order somebody wants them: a race against
+   another person, the medals in front of and behind you, and the
+   numbers everything is calculated from.
 
-   Both halves are the screens that already existed, unchanged —
-   this only decides which one is showing.
+   Settings used to be a fourth switch up here. It is behind the
+   three dots in the corner now — it is a place you go once, not one
+   of three things you flip between daily.
    --------------------------------------------------------------- */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { S, R, useTheme } from '../theme';
 import { Press } from '../ui/kit';
 import { useLang } from '../lang';
-import Progress from './Progress';
+import Compete from './Compete';
+import Journey from './Journey';
 import Tools from './Tools';
 import Admin from './Admin';
-import Settings from './Settings';
 
 const PAGES = [
-  { key: 'progress', label: 'Progress' },
+  { key: 'compete', label: 'Compete' },
+  { key: 'journey', label: 'Journey' },
   { key: 'numbers', label: 'Numbers' },
-  { key: 'settings', label: 'Settings' },
 ];
 
 /* Only whoever runs the app sees this one. */
 const ADMIN_PAGE = { key: 'admin', label: 'Feed' };
 
-export default function You({ user, profile, onProfile }) {
+export default function ChallengesTab({ user, profile, onProfile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
-  const [page, setPage] = useState('progress');
+  const [page, setPage] = useState('compete');
   const pages = profile && profile.is_admin ? PAGES.concat(ADMIN_PAGE) : PAGES;
 
   return (
@@ -47,16 +47,16 @@ export default function You({ user, profile, onProfile }) {
               scaleTo={0.97}
               style={[styles.tab, on && { backgroundColor: C.violet }]}
             >
-              <Text style={[styles.tabTxt, on && { color: C.onAccent }]}>{t(p.label)}</Text>
+              <Text style={[styles.tabTxt, on && { color: '#FFFFFF' }]}>{t(p.label)}</Text>
             </Press>
           );
         })}
       </View>
 
       <View style={{ flex: 1 }}>
-        {page === 'progress' ? <Progress user={user} profile={profile} />
-          : page === 'admin' ? <Admin />
-            : page === 'settings' ? <Settings user={user} profile={profile} onProfile={onProfile} />
+        {page === 'compete' ? <Compete user={user} profile={profile} />
+          : page === 'journey' ? <Journey user={user} />
+            : page === 'admin' ? <Admin />
               : <Tools user={user} profile={profile} onProfile={onProfile} />}
       </View>
     </View>

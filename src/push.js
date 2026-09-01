@@ -24,6 +24,7 @@
    --------------------------------------------------------------- */
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import { supabase } from './supabase';
 
 /* What the app remembers about you and reminders, on this device.
@@ -32,6 +33,7 @@ import { supabase } from './supabase';
            put it twice. */
 const WANT = 'nemea:push';        // see the note in src/lang.js
 const ASKED = 'nemea:push-asked';
+const HOUR_KEY = 'nemea:push-hour';   // the phone build keeps its own
 
 export const DEFAULT_HOUR = 18;          // six in the evening, India time
 
@@ -63,8 +65,8 @@ export const VAPID_PUBLIC =
 const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
 
 export function canPush() {
-  return isWeb
-    && 'serviceWorker' in navigator
+  if (!isWeb) return true;          // a phone build schedules its own
+  return 'serviceWorker' in navigator
     && 'PushManager' in window
     && 'Notification' in window;
 }
@@ -78,7 +80,7 @@ export function isInstalled() {
 
 /* Why the button cannot be offered, in a sentence, or null if it can. */
 export function whyNot() {
-  if (!isWeb) return 'Notifications need the web app.';
+  if (!isWeb) return null;          // the phone build handles its own
   const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   if (iOS && !isInstalled()) {
     return 'On iPhone, add Reppo to your home screen first — Share, then Add to Home Screen. '
@@ -89,7 +91,72 @@ export function whyNot() {
 }
 
 export function permission() {
+  if (!isWeb) return 'native';
   return canPush() ? Notification.permission : 'unsupported';
+}
+
+/* ---------------------------------------------------------------
+   The phone build.
+
+   An installed app cannot use the browser's push service, which is
+   why the reminder simply never arrived in the APK. It does not need
+   to: a daily reminder at a chosen hour is a thing the phone can
+   schedule itself, and a local notification is more reliable than a
+   push — it needs no network, no VAPID, and no server awake at six.
+
+   One repeating trigger, cancelled and rewritten whenever the hour
+   changes.
+   --------------------------------------------------------------- */
+const NATIVE_ID = 'reppo-daily';
+
+const NUDGE = {
+  title: 'Reppo',
+  body: 'A few minutes today is what the streak is made of. Open it and log something.',
+};
+
+async function scheduleNative(hour) {
+  await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+  await Notifications.setNotificationChannelAsync('daily', {
+    name: 'Daily reminder',
+    importance: Notifications.AndroidImportance.DEFAULT,
+    vibrationPattern: [0, 200, 100, 200],
+  }).catch(() => {});
+
+  await Notifications.scheduleNotificationAsync({
+    identifier: NATIVE_ID,
+    content: { title: NUDGE.title, body: NUDGE.body, sound: true },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour,
+      minute: 0,
+      channelId: 'daily',
+    },
+  });
+}
+
+async function nativeEnable(hour) {
+  const asked = await Notifications.requestPermissionsAsync();
+  if (!asked.granted && asked.status !== 'granted') {
+    return { error: 'Notifications are switched off for Reppo. Turn them on in your phone settings.' };
+  }
+  await scheduleNative(hour);
+  await AsyncStorage.setItem(HOUR_KEY, String(hour)).catch(() => {});
+  await remember(true);
+  return { ok: true };
+}
+
+async function nativeDisable() {
+  await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+  await remember(false);
+  return { ok: true };
+}
+
+async function nativeIsOn() {
+  if (!(await wanted())) return false;
+  const perm = await Notifications.getPermissionsAsync().catch(() => null);
+  if (!perm || !(perm.granted || perm.status === 'granted')) return false;
+  const list = await Notifications.getAllScheduledNotificationsAsync().catch(() => []);
+  return list.length > 0;
 }
 
 /* base64url -> Uint8Array, which is the only shape subscribe() takes */
@@ -106,6 +173,8 @@ function urlBase64ToUint8Array(base64) {
    caller, because every failure here has a sentence worth showing.
    --------------------------------------------------------------- */
 export async function enable(userId, hour = DEFAULT_HOUR) {
+  if (!isWeb) return nativeEnable(hour);
+
   const why = whyNot();
   if (why) return { error: why };
 
@@ -157,6 +226,7 @@ export async function enable(userId, hour = DEFAULT_HOUR) {
 }
 
 export async function disable(userId) {
+  if (!isWeb) return nativeDisable();
   await remember(false);
   if (!canPush()) return { ok: true };
   const reg = await navigator.serviceWorker.ready;
@@ -187,6 +257,11 @@ async function myEndpoint() {
 }
 
 export async function getHour() {
+  if (!isWeb) {
+    const v = await AsyncStorage.getItem(HOUR_KEY).catch(() => null);
+    const n = parseInt(v, 10);
+    return HOURS.includes(n) ? n : DEFAULT_HOUR;
+  }
   const endpoint = await myEndpoint();
   if (!endpoint) return DEFAULT_HOUR;
   const { data, error } = await supabase
@@ -196,6 +271,11 @@ export async function getHour() {
 }
 
 export async function setHour(hour) {
+  if (!isWeb) {
+    await AsyncStorage.setItem(HOUR_KEY, String(hour)).catch(() => {});
+    await scheduleNative(hour);
+    return { ok: true };
+  }
   const endpoint = await myEndpoint();
   if (!endpoint) return { error: 'Turn the reminder on first.' };
 
@@ -223,6 +303,19 @@ export async function autoStart(userId) {
   if (!(await wanted())) return { off: true };
   if (whyNot()) return { off: true };
 
+  if (!isWeb) {
+    const perm = await Notifications.getPermissionsAsync().catch(() => null);
+    if (perm && (perm.granted || perm.status === 'granted')) {
+      if (await nativeIsOn()) return { on: true };
+      const hour = await getHour();
+      const r = await nativeEnable(hour);
+      return r.ok ? { on: true } : { off: true };
+    }
+    if (perm && perm.status === 'denied' && !perm.canAskAgain) return { off: true };
+    const asked = await AsyncStorage.getItem(ASKED).catch(() => null);
+    return asked ? { off: true } : { ask: true };
+  }
+
   if (Notification.permission === 'denied') return { off: true };
 
   if (Notification.permission === 'granted') {
@@ -245,6 +338,7 @@ export async function markAsked() {
 
 /* Is this device already signed up? */
 export async function isOn() {
+  if (!isWeb) return nativeIsOn();
   if (!canPush() || Notification.permission !== 'granted') return false;
   try {
     const reg = await navigator.serviceWorker.ready;

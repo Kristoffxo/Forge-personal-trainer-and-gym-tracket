@@ -180,7 +180,7 @@ export default function Settings({ user, profile, onProfile }) {
             </Text>
           </View>
           <Text style={[T.tiny, { marginTop: 6 }]}>
-            {t('Change these in You → Numbers.')}
+            {t('Change these in Challenges → Numbers.')}
           </Text>
         </View>
       </FadeIn>

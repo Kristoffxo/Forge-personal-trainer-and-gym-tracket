@@ -9,7 +9,7 @@
 
    One question per screen, a progress bar, and nothing optional —
    but the target it produces is shown before you accept it, and it
-   stays editable afterwards in You → Numbers.
+   stays editable afterwards in Challenges → Numbers.
    --------------------------------------------------------------- */
 import React, { useState } from 'react';
 import {
@@ -160,7 +160,7 @@ export default function Onboarding({ profile, onDone }) {
                   {protein} g {t('of protein a day')}
                 </Text>
                 <Text style={[T.tiny, { marginTop: S.sm }]}>
-                  {t('An estimate, not a rule. The Food tab counts down from it, and you can change it any time in You → Numbers.')}
+                  {t('An estimate, not a rule. The Food tab counts down from it, and you can change it any time in Challenges → Numbers.')}
                 </Text>
               </View>
             </FadeIn>

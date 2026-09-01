@@ -26,7 +26,9 @@ import { EX } from './exercises.js';
    file is loaded by the test scripts under plain node, which cannot
    parse JSX. One word is not worth a module boundary. */
 const WOMEN = 'women';
+const SENIORS = 'seniors';
 const isWomen = (side) => side === WOMEN;
+const isSenior = (side) => side === SENIORS;
 
 /* ---------------------------------------------------------------
    What each target trains — the men's side, unchanged.
@@ -104,13 +106,24 @@ export const WOMEN_SPLIT_TARGETS = [
   },
 ];
 
+/* The seniors side has no muscle-group menu at all: it has five
+   written sessions in src/seniors.js and nothing to pick between.
+   These still answer, so anything that asks does not crash — it
+   answers with the home-shaped lists. */
 export function targetsFor(side) {
+  if (isSenior(side)) return TARGETS.filter((t) => t.key !== 'chest');
   return isWomen(side) ? WOMEN_TARGETS : TARGETS;
 }
 
 export function splitTargetsFor(side) {
+  if (isSenior(side)) return SPLIT_TARGETS.filter((t) => t.key === 'corework');
   return isWomen(side) ? WOMEN_SPLIT_TARGETS : SPLIT_TARGETS;
 }
+
+/* Nothing fast, nothing loaded, nothing that ends with you on the
+   floor by accident. Used to keep the seniors side out of the rest
+   of the library even where a screen reaches for it. */
+const TOO_MUCH = /jump|plyo|handstand|nordic|deadlift|snatch|clean|sprint|burpee|dip|pull-?up|chin-?up|hanging|ab wheel|wall sit|inverted|bulgarian|skull/i;
 
 export function allTargets() {
   return SPLIT_TARGETS.concat(TARGETS, WOMEN_SPLIT_TARGETS, WOMEN_TARGETS);
@@ -159,15 +172,22 @@ export function poolFor(muscle, place, side) {
     all = all.slice().sort((a, b) => (b.w ? 1 : 0) - (a.w ? 1 : 0));
   }
 
+  if (isSenior(side)) {
+    all = all.filter((x) => HOME_KIT.includes(x.e) && !TOO_MUCH.test(x.n) && !x.x);
+  }
+
   if (place === 'instant') return all.filter((x) => FLOOR_ONLY.includes(x.e));
-  if (place !== 'home') return all;
+  if (place !== 'home' && !isSenior(side)) return all;
 
   return all
     .filter((x) => HOME_KIT.includes(x.e))
     .sort((a, b) => KIT_ORDER[a.e] - KIT_ORDER[b.e]);
 }
 
-function usable(x, place) {
+function usable(x, place, side) {
+  if (isSenior(side)) {
+    return HOME_KIT.includes(x.e) && !TOO_MUCH.test(x.n) && !x.x;
+  }
   if (place === 'instant') return FLOOR_ONLY.includes(x.e);
   if (place !== 'home') return true;
   return HOME_KIT.includes(x.e);
@@ -234,7 +254,7 @@ export function buildRoutine({ target, place = 'gym', level = 'intermediate', si
   const t = typeof target === 'string' ? targetByKey(target) : target;
   const want = sizeFor(level);
 
-  const live = t.muscles.filter((m) => EX.some((x) => x.m === m && usable(x, place)));
+  const live = t.muscles.filter((m) => EX.some((x) => x.m === m && usable(x, place, side)));
   if (!live.length) return { ...t, exercises: [] };
 
   const per = share(live, want, side);
