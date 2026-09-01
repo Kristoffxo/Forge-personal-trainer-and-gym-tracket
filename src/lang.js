@@ -29,9 +29,9 @@ const HI = {
   'Food': 'Khana',
   'What you ate today': 'Aaj kya khaya',
   'Feed': 'Feed',
-  'See how everyone is doing': 'Dekho sab kaise kar rahe hain',
+  'How everyone is doing': 'Dekho sab kaise kar rahe hain',
   'You': 'Aap',
-  'Your streak and your numbers': 'Aapki streak aur numbers',
+  'Your streak and numbers': 'Aapki streak aur numbers',
 
   /* ---------- sign in ---------- */
   'Sign in': 'Sign in karo',
@@ -569,6 +569,28 @@ const HI = {
     'Utna hi jao jitna aaram se ho jaye, aur dheere se saans chhodo. Yahan kuch bhi dard nahi karna chahiye — agar kare toh ruk jao.',
   'There is no rush and nothing to count. Move to the next one when you are ready.':
     'Koi jaldi nahi, kuch ginna nahi. Jab taiyaar ho tab agle pe jao.',
+
+  /* ---------- the men/women switch ---------- */
+  'You are in Women mode': 'Aap Women mode mein ho',
+  'You are in Men mode': 'Aap Men mode mein ho',
+  'Lower body focused — glutes, thighs and calves lead every session. Menstrual Exercises are on the Train screen. Switch back any time.':
+    'Lower body pe focus — har session glutes, thighs aur calves se shuru hota hai. Period ke exercises Train screen pe hain. Jab chaho wapas badal lo.',
+  'Upper body focused — push, pull and legs, the full gym library. Switch back any time.':
+    'Upper body pe focus — push, pull aur legs, poori gym library. Jab chaho wapas badal lo.',
+
+  /* ---------- the daily reminder ---------- */
+  'Daily reminder': 'Roz ka reminder',
+  'One line from a philosopher, once a day': 'Roz ek line, kisi philosopher ki',
+  'Reminder time': 'Reminder ka time',
+  'When should it arrive?': 'Kab aana chahiye?',
+  'India time. One line from a philosopher, once a day.':
+    'India ka time. Roz ek line, kisi philosopher ki.',
+  'Could not change the time': 'Time badal nahi paaye',
+  'One line a day?': 'Roz ek line?',
+  'A philosopher, once a day, at six in the evening. Change the time or switch it off in Settings whenever you like.':
+    'Roz shaam chhe baje ek line, kisi philosopher ki. Settings mein time badal sakte ho ya band kar sakte ho.',
+  'Yes, remind me': 'Haan, yaad dilao',
+  'Not now': 'Abhi nahi',
 };
 
 const Ctx = createContext(null);

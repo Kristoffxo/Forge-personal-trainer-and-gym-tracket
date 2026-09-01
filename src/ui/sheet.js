@@ -18,7 +18,7 @@
    read as straight-line code instead of nested callbacks.
    --------------------------------------------------------------- */
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, Modal, Pressable, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, Modal, Pressable, StyleSheet, Animated, Easing, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { S, R, useTheme } from '../theme';
 import { useLang } from '../lang';
@@ -118,7 +118,12 @@ function SheetHost({ req, settle }) {
         {req.title ? <Text style={styles.title}>{req.title}</Text> : null}
         {req.message ? <Text style={[T.small, styles.msg]}>{req.message}</Text> : null}
 
-        <View style={{ marginTop: S.md }}>
+        {/* A list long enough to need it scrolls rather than running
+            off the bottom of the phone — the reminder times are
+            nineteen rows. */}
+        <ScrollView style={{ marginTop: S.md, maxHeight: 340 }}
+          contentContainerStyle={{ paddingBottom: 2 }}
+          showsVerticalScrollIndicator={false}>
           {options.map((o, i) => (
             <Pressable
               key={i}
@@ -134,7 +139,7 @@ function SheetHost({ req, settle }) {
               </Text>
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
 
         {req.kind === 'tell' ? null : (
           <Pressable

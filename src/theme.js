@@ -1,106 +1,53 @@
 /* ============================================================
-   Two palettes, one shape — now in two families.
+   Two palettes, one shape. Everything reads colours through
+   useTheme() so switching is instant and nothing is hard-coded.
 
-   Light and dark decide the neutrals. Men and women decide the
-   accents, and tint the neutrals with them: the men's side is
-   cool and steel-blue, the women's warm and pink. Nothing is
-   hard-coded anywhere else, so both switches are instant.
-
-   The keys never change. `C.ember` is "the colour this app leads
-   with" — blue on one side, pink on the other — and every screen
-   goes on reading it without knowing which side it is on.
+   Men and women do NOT have different palettes. That was tried and
+   it was too much — a whole app tinted blue or pink storms over
+   everything on it. The only place those two colours appear now is
+   the switch itself, where they are doing a job: telling you which
+   side you are on at a glance.
    ============================================================ */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSide, WOMEN } from './side';
+import { useSide } from './side';
 
-/* ---------- neutrals ---------- */
-const NEUTRAL = {
-  dark: {
-    men: {
-      bg:'#080B12', surface:'#111722', raised:'#19212F', line:'#26313F',
-      text:'#FFFFFF', dim:'#9AA7BD', faint:'#69768C', onAccent:'#06090F',
-      veil:'rgba(6,10,18,0.62)', heroVeil:'rgba(6,10,18,0.55)',
-    },
-    women: {
-      bg:'#120A10', surface:'#1D1219', raised:'#281A23', line:'#3A2530',
-      text:'#FFFFFF', dim:'#C4A8B5', faint:'#8E7280', onAccent:'#140A11',
-      veil:'rgba(20,8,14,0.62)', heroVeil:'rgba(20,8,14,0.55)',
-    },
-  },
-  light: {
-    men: {
-      bg:'#F1F5FB', surface:'#FFFFFF', raised:'#E7EDF7', line:'#D6E0EE',
-      text:'#0A1018', dim:'#4F5D70', faint:'#7C8A9D', onAccent:'#FFFFFF',
-      veil:'rgba(8,12,20,0.44)', heroVeil:'rgba(8,12,20,0.46)',
-    },
-    women: {
-      bg:'#FDF5F8', surface:'#FFFFFF', raised:'#F8E9EF', line:'#EFD8E1',
-      text:'#1A0E14', dim:'#6B5460', faint:'#9B8490', onAccent:'#FFFFFF',
-      veil:'rgba(26,10,18,0.44)', heroVeil:'rgba(26,10,18,0.46)',
-    },
-  },
-};
+/* The two colours of the men/women switch, and nowhere else. */
+export const SIDE_BLUE = '#3B82F6';
+export const SIDE_PINK = '#FF4D8D';
 
-/* ---------- accents ----------
-   Five hues that have to stay apart from each other, because the
-   tab bar colours by them. Same job on both sides, different family. */
-const ACCENT = {
-  dark: {
-    men: {
-      ember:'#3B82F6', amber:'#F5A524', gold:'#22D3EE',
-      violet:'#7C6BFF', teal:'#38BDF8', lime:'#4ADE80',
-      taupe:'#AEC3E0',
-    },
-    women: {
-      ember:'#FF4D8D', amber:'#FBBF24', gold:'#FF8FB8',
-      violet:'#C084FC', teal:'#FB7185', lime:'#4ADE80',
-      taupe:'#E7C2D3',
-    },
-  },
-  light: {
-    men: {
-      ember:'#1D62D8', amber:'#B77908', gold:'#0E8FAA',
-      violet:'#5B45D6', teal:'#1478B8', lime:'#2FA45C',
-      taupe:'#7E93AF',
-    },
-    women: {
-      ember:'#D6246B', amber:'#C98A0A', gold:'#C74B85',
-      violet:'#8B44D6', teal:'#D94A63', lime:'#2FA45C',
-      taupe:'#B08398',
-    },
-  },
-};
-
-/* Fixed whatever the side — a macro is a macro, and danger is red. */
-const CONSTANT_DARK = {
+export const DARK = {
+  mode:'dark',
+  bg:'#0B0B0E', surface:'#16161B', raised:'#1F1F26', line:'#2A2A32',
+  text:'#FFFFFF', dim:'#9CA3AF', faint:'#6B7280', onAccent:'#0B0B0E',
+  ember:'#FF6B1A', amber:'#FBBF24', teal:'#22D3EE', violet:'#8B5CF6', lime:'#4ADE80',
+  gold:'#C99A3E', taupe:'#CFC1AA',   // the logo's own two
   protein:'#EF4444', carbs:'#FBBF24', fat:'#22D3EE',
   danger:'#EF4444', white:'#FFFFFF',
+  veil:'rgba(14,13,12,0.62)',      // over photographs
+  heroVeil:'rgba(14,13,12,0.55)',
 };
-const CONSTANT_LIGHT = {
+
+export const LIGHT = {
+  mode:'light',
+  bg:'#F6F6F8', surface:'#FFFFFF', raised:'#EFEFF3', line:'#E1E1E8',
+  text:'#0B0B0E', dim:'#5B6270', faint:'#8A90A0', onAccent:'#FFFFFF',
+  ember:'#EA5A0B', amber:'#C98A0A', teal:'#0E9BB5', violet:'#6D40E0', lime:'#2FA45C',
+  gold:'#B0801F', taupe:'#B9A88C',
   protein:'#D32F2F', carbs:'#C98A0A', fat:'#0E9BB5',
   danger:'#D32F2F', white:'#FFFFFF',
+  veil:'rgba(14,13,12,0.44)',
+  heroVeil:'rgba(14,13,12,0.46)',
 };
 
-export function palette(mode = 'dark', side = 'men') {
-  const m = mode === 'light' ? 'light' : 'dark';
-  const s = side === WOMEN ? 'women' : 'men';
-  return {
-    mode: m,
-    side: s,
-    ...NEUTRAL[m][s],
-    ...ACCENT[m][s],
-    ...(m === 'light' ? CONSTANT_LIGHT : CONSTANT_DARK),
-  };
+export function palette(mode = 'dark') {
+  return mode === 'light' ? LIGHT : DARK;
 }
 
-/* kept so anything still importing these by name resolves */
-export const DARK = palette('dark', 'men');
-export const LIGHT = palette('light', 'men');
-
 /* ---------- muscle colours ----------
-   Readable on both modes. The women's set pushes the lower body
-   forward, because that is where its sessions live. */
+   Readable on both modes, and the same on both sides. The last five
+   are not muscles — they are what the period-pain sessions ease,
+   which is what those screens name instead. */
 export const MUSCLE_DARK = {
   Chest:'#FF5A3C', Back:'#38BDF8', Shoulders:'#FBBF24', Biceps:'#A78BFA',
   Triceps:'#A78BFA', Quads:'#4ADE80', Hamstrings:'#34D399', Glutes:'#F472B6',
@@ -115,26 +62,6 @@ export const MUSCLE_LIGHT = {
   Thighs:'#C0455E', Calves:'#2F6FBF', Core:'#A8862A',
   'Lower back':'#BE4A80', Hips:'#C2557A', 'Inner thigh':'#C0455E',
   'Upper back':'#2F6FBF', Ribs:'#A8862A',
-};
-const MUSCLE_WOMEN_DARK = {
-  ...MUSCLE_DARK,
-  Glutes:'#FF4D8D', Thighs:'#F472B6', Quads:'#FB7185', Hamstrings:'#C084FC',
-  Calves:'#FF8FB8',
-  /* the upper body moves out of blue as well — one cold dot on a
-     screen this warm reads as a mistake rather than a category */
-  Back:'#C084FC', Chest:'#FB7185', Biceps:'#E879F9', Triceps:'#E879F9',
-  Shoulders:'#FBBF24', Core:'#FACC15',
-  'Lower back':'#F9A8D4', Hips:'#F472B6', 'Inner thigh':'#FB7185',
-  'Upper back':'#C084FC', Ribs:'#FCD34D',
-};
-const MUSCLE_WOMEN_LIGHT = {
-  ...MUSCLE_LIGHT,
-  Glutes:'#D6246B', Thighs:'#C74B85', Quads:'#C0455E', Hamstrings:'#8B44D6',
-  Calves:'#B8477E',
-  Back:'#8B44D6', Chest:'#C0455E', Biceps:'#A836C0', Triceps:'#A836C0',
-  Shoulders:'#B9761A', Core:'#A8862A',
-  'Lower back':'#BE4A80', Hips:'#C2557A', 'Inner thigh':'#C0455E',
-  'Upper back':'#8B44D6', Ribs:'#A8862A',
 };
 
 export const F = {
@@ -170,6 +97,8 @@ const KEY = 'nemea:theme';
 const Ctx = createContext(null);
 
 export function ThemeProvider({ children }) {
+  /* Only so screens can read it from one hook. The side changes what
+     the app trains, never what colour it is. */
   const { side } = useSide();
   const [mode, setMode] = useState('dark');
   const [ready, setReady] = useState(false);
@@ -181,14 +110,11 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const value = useMemo(() => {
-    const C = palette(mode, side);
-    const women = side === WOMEN;
+    const C = palette(mode);
     return {
       C,
       T: makeT(C),
-      MUSCLE_C: mode === 'light'
-        ? (women ? MUSCLE_WOMEN_LIGHT : MUSCLE_LIGHT)
-        : (women ? MUSCLE_WOMEN_DARK : MUSCLE_DARK),
+      MUSCLE_C: mode === 'light' ? MUSCLE_LIGHT : MUSCLE_DARK,
       mode,
       side,
       toggle: () => {

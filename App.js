@@ -7,14 +7,15 @@ import { useFonts } from 'expo-font';
 import { WorkSans_400Regular, WorkSans_500Medium, WorkSans_600SemiBold,
          WorkSans_700Bold } from '@expo-google-fonts/work-sans';
 
-import { useTheme, ThemeProvider } from './src/theme';
+import { useTheme, ThemeProvider, SIDE_BLUE, SIDE_PINK } from './src/theme';
 import { SideProvider, useSide, WOMEN } from './src/side';
 import { LangProvider, useLang } from './src/lang';
 import { Press } from './src/ui/kit';
-import { SheetProvider } from './src/ui/sheet';
+import { SheetProvider, useSheet } from './src/ui/sheet';
 import { Mark } from './src/ui/logo';
 import { getSession, onAuthChange, getProfile } from './src/auth';
 import { useWebChrome } from './src/webChrome';
+import * as push from './src/push';
 
 import Auth     from './src/screens/Auth';
 import Food     from './src/screens/Food';
@@ -34,9 +35,9 @@ const TABS = [
   { key:'food',  label:'Food',  icon:'◍', colorKey:'amber',
     title:'Food',            sub:'What you ate today' },
   { key:'feed',  label:'Discover', icon:'◈', colorKey:'gold',
-    title:'Discover',        sub:'See how everyone is doing' },
+    title:'Discover',        sub:'How everyone is doing' },
   { key:'you',   label:'You',   icon:'✦', colorKey:'violet',
-    title:'You',             sub:'Your streak and your numbers' },
+    title:'You',             sub:'Your streak and numbers' },
   { key:'trainer', label:'Trainer', icon:'✆', colorKey:'teal',
     title:'Trainer',         sub:'Ask a real trainer' },
 ];
@@ -68,6 +69,7 @@ function Root() {
   const { C, T, mode } = useTheme();
   const { t: tr } = useLang();
   const { seedFrom } = useSide();
+  const sheet = useSheet();
   const styles = makeStyles(C, T);
   const insets = useSafeAreaInsets();
   const [fontsLoaded] = useFonts({ WorkSans_600SemiBold, WorkSans_400Regular, WorkSans_500Medium });
@@ -95,6 +97,40 @@ function Root() {
   useEffect(() => {
     if (profile && profile.sex) seedFrom(profile.sex);
   }, [profile, seedFrom]);
+
+  /* The daily reminder is on unless you turned it off.
+
+     If the browser has already been given permission this signs the
+     device up quietly, with no button to find. If it has not, a
+     browser will not let us ask on our own — so we ask, once, and
+     take no for an answer permanently. */
+  useEffect(() => {
+    /* Not until they are through onboarding — a permission box on top
+       of "what do you weigh?" is how people end up saying no. */
+    if (!session || !session.user || !profile || !profile.onboarded) return undefined;
+    let alive = true;
+
+    (async () => {
+      const r = await push.autoStart(session.user.id);
+      if (!alive || !r.ask) return;
+
+      await push.markAsked();            // whatever they say, we asked
+      const yes = await sheet.confirm({
+        title: tr('One line a day?'),
+        message: tr('A philosopher, once a day, at six in the evening. Change the time or switch it off in Settings whenever you like.'),
+        confirmLabel: tr('Yes, remind me'),
+        cancelLabel: tr('Not now'),
+      });
+      if (!alive || !yes) return;
+
+      const done = await push.enable(session.user.id);
+      if (alive && done.error) {
+        await sheet.tell({ title: tr('Not switched on'), message: done.error });
+      }
+    })();
+
+    return () => { alive = false; };
+  }, [session, profile, sheet, tr]);
 
   useEffect(() => {
     const i = Math.max(0, TABS.findIndex((t) => t.key === tab));
@@ -215,36 +251,55 @@ function TitleBar({ tab, accent }) {
   return (
     <View style={[styles.titleBar, { borderBottomColor: accent }]}>
       <Mark size={30} style={{ marginRight: 11 }} />
-      <View style={{ flex:1 }}>
-        <Text style={styles.titleTxt}>{t(tab.title)}</Text>
-        <Text style={styles.subTxt}>{t(tab.sub)}</Text>
+      {/* One line each. The switch takes real width, and a subtitle
+          that wraps makes the bar a different height on every tab. */}
+      <View style={{ flex:1, marginRight: 10 }}>
+        <Text style={styles.titleTxt} numberOfLines={1}>{t(tab.title)}</Text>
+        <Text style={styles.subTxt} numberOfLines={1}>{t(tab.sub)}</Text>
       </View>
       <SideSwitch />
     </View>
   );
 }
 
-/* Two halves of one pill. Blue on the left, pink on the right, and
-   the whole thing is a single tap — there is no third state to get
-   lost in and nothing to confirm. */
+/* Two halves of one pill: men on the left in blue, women on the right
+   in pink. These are the only two places those colours appear in the
+   whole app — everywhere else is the same palette on both sides,
+   because a screen tinted end to end was too much of it.
+
+   Changing sides says what changed. Somebody who taps this by accident
+   should find out immediately, not three screens later when the
+   workout is not the one they expected. */
 function SideSwitch() {
   const { C, T } = useTheme();
   const { t } = useLang();
   const { side, setSide } = useSide();
+  const sheet = useSheet();
   const styles = makeStyles(C, T);
   const women = side === WOMEN;
 
+  async function pick(next) {
+    if (next === side) return;          // nothing changed, say nothing
+    setSide(next);
+    await sheet.tell({
+      title: next === WOMEN ? t('You are in Women mode') : t('You are in Men mode'),
+      message: next === WOMEN
+        ? t('Lower body focused — glutes, thighs and calves lead every session. Menstrual Exercises are on the Train screen. Switch back any time.')
+        : t('Upper body focused — push, pull and legs, the full gym library. Switch back any time.'),
+    });
+  }
+
   const half = (key, label, colour, on) => (
-    <Press onPress={() => setSide(key)} scaleTo={0.94}
+    <Press key={key} onPress={() => pick(key)} scaleTo={0.94}
       style={[styles.sideHalf, on && { backgroundColor: colour }]}>
-      <Text style={[styles.sideTxt, { color: on ? C.onAccent : C.faint }]}>{t(label)}</Text>
+      <Text style={[styles.sideTxt, { color: on ? '#FFFFFF' : C.faint }]}>{t(label)}</Text>
     </Press>
   );
 
   return (
-    <View style={[styles.sideWrap, { borderColor: women ? '#FF4D8D' : '#3B82F6' }]}>
-      {half('men', 'Men', '#3B82F6', !women)}
-      {half(WOMEN, 'Women', '#FF4D8D', women)}
+    <View style={[styles.sideWrap, { borderColor: women ? SIDE_PINK : SIDE_BLUE }]}>
+      {half('men', 'Men', SIDE_BLUE, !women)}
+      {half(WOMEN, 'Women', SIDE_PINK, women)}
     </View>
   );
 }

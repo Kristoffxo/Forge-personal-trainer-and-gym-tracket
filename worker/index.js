@@ -5,8 +5,8 @@
 
      serve      everything that is not /api/ comes from the static
                 build, exactly as before
-     six p.m.   a cron trigger fans a push out to every subscribed
-                device, once a day
+     the hour   a cron trigger runs every hour and fans a push out to
+                the devices that asked to hear from us at that hour
 
    The push carries no payload. It is a bare "wake up" — the service
    worker in public/sw.js picks the day's quote itself. That is a
@@ -30,13 +30,22 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    /* A manual trigger, so the nightly job can be tested without
-       waiting until six. Needs the same secret the cron uses. */
+    /* A manual trigger, so the job can be tested without waiting for
+       the hour to come round. Needs the same secret the cron uses.
+
+         ?hour=18   only the six o'clock subscribers, as the cron does
+         (no hour)  everybody, which is only ever what you want when
+                    testing — say it out loud rather than by omission */
     if (url.pathname === '/api/send-daily') {
       if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
       const key = request.headers.get('x-admin-key') || '';
       if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) return json({ error: 'unauthorised' }, 401);
-      const result = await sendDaily(env);
+      const asked = url.searchParams.get('hour');
+      const hour = asked === null || asked === '' ? null : Number(asked);
+      if (hour !== null && !(Number.isInteger(hour) && hour >= 0 && hour <= 23)) {
+        return json({ error: 'hour must be 0-23' }, 400);
+      }
+      const result = await sendDaily(env, hour);
       return json(result);
     }
 
@@ -76,9 +85,13 @@ export default {
     return env.ASSETS.fetch(request);
   },
 
-  /* 12:30 UTC = 18:00 India. See the cron in wrangler.jsonc. */
+  /* Every hour, at half past UTC — which is on the hour in India.
+     Whoever asked for this hour hears from us; nobody else does.
+     Without that filter an hourly cron would push twenty-four times
+     a day to everybody, so it is the one line here worth reading
+     twice. See the cron in wrangler.jsonc. */
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(sendDaily(env));
+    ctx.waitUntil(sendDaily(env, istHour(event && event.scheduledTime)));
   },
 };
 
@@ -90,11 +103,24 @@ export default {
    we delete our copy too rather than retrying it every evening
    forever.
    --------------------------------------------------------------- */
-async function sendDaily(env) {
+/* India runs at UTC+5:30 and Cloudflare crons are UTC only, so the
+   cron fires at half past every UTC hour, which is on the hour here. */
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+function istHour(scheduledTime) {
+  const at = new Date(scheduledTime || Date.now());
+  return new Date(at.getTime() + IST_OFFSET_MS).getUTCHours();
+}
+
+/* `hour` null means everybody, which only the manual trigger ever
+   asks for. The cron always names an hour. */
+async function sendDaily(env, hour = null) {
   if (!env.VAPID_PRIVATE_JWK) return { error: 'VAPID_PRIVATE_JWK is not set' };
 
-  const subs = await fetchSubs(env);
-  if (!subs.length) return { sent: 0, gone: 0, failed: 0, note: 'nobody subscribed' };
+  const subs = await fetchSubs(env, hour);
+  if (!subs.length) {
+    return { sent: 0, gone: 0, failed: 0, hour, note: 'nobody subscribed for this hour' };
+  }
 
   const key = await importVapidKey(env.VAPID_PRIVATE_JWK);
 
@@ -129,7 +155,7 @@ async function sendDaily(env) {
   }
 
   if (dead.length) await dropSubs(env, dead);
-  return { sent, gone, failed, total: subs.length };
+  return { sent, gone, failed, hour, total: subs.length };
 }
 
 /* ---------------------------------------------------------------
@@ -336,13 +362,22 @@ async function deleteAccount(request, env) {
    signed in, so row-level security has to be stepped around by a
    credential that only ever lives here.
    --------------------------------------------------------------- */
-async function fetchSubs(env) {
+async function fetchSubs(env, hour = null) {
+  const where = hour === null ? '' : `&send_hour=eq.${hour}`;
   const res = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/push_subs?select=endpoint`,
+    `${env.SUPABASE_URL}/rest/v1/push_subs?select=endpoint${where}`,
     { headers: adminHeaders(env) },
   );
   if (!res.ok) {
-    console.error('could not read push_subs', res.status, await res.text());
+    const body = await res.text();
+    /* Before supabase-v6.sql there is no send_hour column. Sending
+       everybody the six o'clock push is the right thing to fall back
+       on — it is what the app did before any of this. */
+    if (hour !== null && /send_hour/.test(body)) {
+      console.warn('push_subs has no send_hour yet — run supabase-v6.sql');
+      return hour === 18 ? fetchSubs(env, null) : [];
+    }
+    console.error('could not read push_subs', res.status, body);
     return [];
   }
   return res.json();

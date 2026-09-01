@@ -34,9 +34,10 @@
     "run_worker_first": ["/api/*"]
   },
 
-  // 12:30 UTC is 18:00 in India. Cloudflare crons are UTC only.
+  // Half past every UTC hour is on the hour in India (UTC+5:30).
+  // The Worker sends only to the people who asked for that hour.
   "triggers": {
-    "crons": ["30 12 * * *"]
+    "crons": ["30 * * * *"]
   },
 
   "vars": {

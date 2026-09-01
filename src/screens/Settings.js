@@ -32,9 +32,13 @@ export default function Settings({ user, profile, onProfile }) {
   const [saving, setSaving] = useState(false);
   const [notifOn, setNotifOn] = useState(false);
   const [notifBusy, setNotifBusy] = useState(false);
+  const [hour, setHour] = useState(push.DEFAULT_HOUR);
   const [working, setWorking] = useState(false);
 
-  useEffect(() => { push.isOn().then(setNotifOn); }, []);
+  useEffect(() => {
+    push.isOn().then(setNotifOn);
+    push.getHour().then(setHour);
+  }, []);
 
   async function saveName() {
     setSaving(true);
@@ -45,10 +49,33 @@ export default function Settings({ user, profile, onProfile }) {
 
   async function toggleNotif() {
     setNotifBusy(true);
-    const r = notifOn ? await push.disable(user.id) : await push.enable(user.id);
+    const r = notifOn ? await push.disable(user.id) : await push.enable(user.id, hour);
     setNotifBusy(false);
     if (r.error) { await sheet.tell({ title: t('Not switched on'), message: r.error }); return; }
     setNotifOn(await push.isOn());
+    if (!notifOn) setHour(await push.getHour());
+  }
+
+  /* Pick the hour. It is kept against this device, so a phone and a
+     laptop can disagree about when the evening starts. */
+  async function pickTime() {
+    const picked = await sheet.choose({
+      title: t('When should it arrive?'),
+      message: t('India time. One line from a philosopher, once a day.'),
+      options: push.HOURS.map((h) => ({
+        label: push.hourLabel(h) + (h === hour ? '  ✓' : ''),
+        value: h,
+      })),
+    });
+    if (picked === null || picked === undefined) return;
+
+    const before = hour;
+    setHour(picked);                       // move now, put it back if it fails
+    const r = await push.setHour(picked);
+    if (r.error) {
+      setHour(before);
+      await sheet.tell({ title: t('Could not change the time'), message: r.error });
+    }
   }
 
   async function resetPassword() {
@@ -176,13 +203,20 @@ export default function Settings({ user, profile, onProfile }) {
 
         <Press onPress={toggleNotif} disabled={notifBusy} scaleTo={0.98} style={styles.opt}>
           <View style={{ flex: 1 }}>
-            <Text style={[T.bodyOn, { fontSize: 15 }]}>{t('Six o’clock reminder')}</Text>
-            <Text style={T.tiny}>{t('One line from a philosopher, every evening')}</Text>
+            <Text style={[T.bodyOn, { fontSize: 15 }]}>{t('Daily reminder')}</Text>
+            <Text style={T.tiny}>{t('One line from a philosopher, once a day')}</Text>
           </View>
           <Text style={[styles.optValue, { color: notifOn ? C.lime : C.faint }]}>
             {notifOn ? t('On') : t('Off')}
           </Text>
         </Press>
+
+        {notifOn ? (
+          <Press onPress={pickTime} scaleTo={0.98} style={styles.opt}>
+            <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('Reminder time')}</Text>
+            <Text style={[styles.optValue, { color: C.gold }]}>{push.hourLabel(hour)}</Text>
+          </Press>
+        ) : null}
       </FadeIn>
 
       {/* ---- account ---- */}
