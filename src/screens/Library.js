@@ -14,7 +14,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, ImageBackground } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, FadeIn, Label } from '../ui/kit';
+import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useLang } from '../lang';
 import { photoForTarget, photoForMuscle, groupPhoto, PHOTO } from '../photos';
 import { framesFor } from '../exercisePhotos';
@@ -30,6 +30,7 @@ export default function Library({ place, user, profile, onBack }) {
   const { t } = useLang();
   const { side } = useSide();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
 
   const [picked, setPicked] = useState(null);   // the routine being previewed
   const [running, setRunning] = useState(false);
@@ -73,7 +74,7 @@ export default function Library({ place, user, profile, onBack }) {
   /* ---------- one routine, before you start it ---------- */
   if (picked) {
     return (
-      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
         {/* A home session must not open with a photograph of a gym.
             It was showing a man on a pull-up bar above a list with no
             pull-up in it. */}
@@ -118,8 +119,17 @@ export default function Library({ place, user, profile, onBack }) {
             </FadeIn>
           ))}
 
-          <Btn label={t('Start this workout')} color={accent}
-            onPress={() => setRunning(true)} style={{ marginTop: S.lg }} />
+          {picked.exercises.length ? (
+            <Btn label={t('Start this workout')} color={accent}
+              onPress={() => setRunning(true)} style={{ marginTop: S.lg }} />
+          ) : (
+            /* Belt and braces. Every target has exercises at every
+               level — there are tests for it — but a Start button on
+               an empty list would start nothing and say nothing. */
+            <Text style={[T.small, { marginTop: S.lg, textAlign: 'center' }]}>
+              {t('Nothing here fits what you have to train with. Try the gym version, or pick another muscle.')}
+            </Text>
+          )}
         </View>
       </ScrollView>
     );
@@ -133,7 +143,7 @@ export default function Library({ place, user, profile, onBack }) {
      cramp is a known short list, not something to shuffle. */
   if (place === 'relief') {
     return (
-      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
         <ImageBackground source={PHOTO.calm} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
           <View style={styles.heroVeil} />
           <View style={styles.heroBody}>
@@ -178,7 +188,7 @@ export default function Library({ place, user, profile, onBack }) {
 
   if (place === 'instant') {
     return (
-      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
         <ImageBackground source={PHOTO.home} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
           <View style={styles.heroVeil} />
           <View style={styles.heroBody}>
@@ -217,7 +227,7 @@ export default function Library({ place, user, profile, onBack }) {
   }
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
       <View style={styles.head}>
         <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
           <Text style={[T.small, { color: accent }]}>{'←'} {t('Train')}</Text>

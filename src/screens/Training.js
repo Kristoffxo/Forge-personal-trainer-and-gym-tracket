@@ -15,7 +15,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, Card, FadeIn, Label, Chip, Bar } from '../ui/kit';
+import { Btn, Press, Card, FadeIn, Label, Chip, Bar, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { splitsFor, splitById, DAY_NAMES, buildWeek, todayIndex, dayTitle } from '../planner';
@@ -32,6 +32,7 @@ export default function Training({ user, profile, onBack }) {
   const { t } = useLang();
   const { side } = useSide();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
   const sheet = useSheet();
 
   const [plan, setPlan] = useState(undefined);   // undefined = loading, null = none yet
@@ -102,7 +103,7 @@ export default function Training({ user, profile, onBack }) {
   const todayPlan = week[todayIndex()];
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
       {onBack ? (
         <Press onPress={onBack} hitSlop={12} scaleTo={0.94}
           style={{ alignSelf: 'flex-start', paddingHorizontal: S.lg, paddingTop: S.md }}>
@@ -254,6 +255,7 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
   const { t } = useLang();
   const { side } = useSide();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
   const SPLITS = splitsFor(side);
   /* Build-my-own lists the muscles in the order that side trains
      them, so glutes are not four rows below the chest. */
@@ -262,7 +264,7 @@ function Wizard({ firstTime, splitId, setSplitId, per, setPer, kit, setKit,
   const ready = splitId && (splitId !== 'custom' || custom.some((d) => d.length));
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
       <View style={styles.wizHead}>
         {onBack && !onCancel ? (
           <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>

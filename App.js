@@ -78,6 +78,11 @@ function Root() {
   const [tab, setTab] = useState('train');
   const [adding, setAdding] = useState(null);      // meal name, for the food search
   const [refreshKey, setRefreshKey] = useState(0);
+  /* The row that was just written, handed straight to the diary so it
+     appears the instant it is saved. Waiting for a second round trip
+     to fetch back what we had just sent was most of why adding food
+     felt like it had not worked. */
+  const [justAdded, setJustAdded] = useState(null);
 
   const { width } = useWindowDimensions();
   const slide = useRef(new Animated.Value(0)).current;
@@ -177,7 +182,11 @@ function Root() {
   const overlay = adding ? (
     <AddFood meal={adding} user={user}
       onCancel={() => setAdding(null)}
-      onDone={() => { setAdding(null); setRefreshKey((k) => k + 1); }} />
+      onDone={(row) => {
+        setAdding(null);
+        setJustAdded(row || null);
+        setRefreshKey((k) => k + 1);
+      }} />
   ) : null;
 
   return (
@@ -193,6 +202,7 @@ function Root() {
                 <Train user={user} profile={profile} />
               ) : tab === 'food' ? (
                 <Food user={user} profile={profile} refreshKey={refreshKey}
+                      justAdded={justAdded}
                       onAdd={(meal) => setAdding(meal)} />
               ) : tab === 'feed' ? (
                 <Discover user={user} profile={profile} />

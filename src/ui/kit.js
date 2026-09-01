@@ -1,8 +1,27 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated, Easing, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { S, R, useTheme } from '../theme';
 
 const EASE = Easing.bezier(0.22, 1, 0.36, 1);
+
+/* ---------------------------------------------------------------
+   How much room the tab bar takes.
+
+   It is 58 tall plus whatever the home indicator needs, so on most
+   phones it covers the bottom 90 pixels of the screen. Every screen
+   used to end with `paddingBottom: 70`, which is less than that —
+   and the last thing on a workout screen is the button that starts
+   it. That is why "Start this workout" was sometimes not there.
+
+   One number, read from the device, used everywhere.
+   --------------------------------------------------------------- */
+export const TAB_BAR = 58;
+
+export function useTabPad(extra = 20) {
+  const insets = useSafeAreaInsets();
+  return TAB_BAR + Math.max(insets.bottom, 8) + extra;
+}
 
 export function Label({ children, style, color }) {
   const { C, T } = useTheme();

@@ -7,6 +7,7 @@ import { searchFoods, macrosFor, portionsFor } from '../foods';
 import { addEntry, todayKey } from '../diary';
 import { num } from '../num';
 import { useLang } from '../lang';
+import { useSheet } from '../ui/sheet';
 
 export default function AddFood({ meal, onDone, onCancel, user }) {
   const { C, T } = useTheme();
@@ -70,9 +71,11 @@ function Portion({ food, meal, user, onBack, onDone }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
+  const sheet = useSheet();
   const options = useMemo(() => portionsFor(food), [food]);
   const [idx, setIdx] = useState(0);
   const [qty, setQty] = useState('1');
+  const [saving, setSaving] = useState(false);
 
   const n = num(qty);
   const count = isFinite(n) && n > 0 ? n : 0;
@@ -80,14 +83,29 @@ function Portion({ food, meal, user, onBack, onDone }) {
   const m = macrosFor(food, grams);
   const shownKcal = useCountUp(Math.round(m.kcal), 420);
 
+  /* This waits on the network, and it used to do it with no sign that
+     anything was happening: the button stayed lit, a second tap wrote
+     the meal twice, and a failed write closed the screen anyway so the
+     food simply was not there. All three are handled here. */
   async function save() {
-    await addEntry(user.id, todayKey(), {
+    if (saving) return;
+    setSaving(true);
+    const r = await addEntry(user.id, todayKey(), {
       name:food.name, meal,
       portion:(count % 1 === 0 ? count : count.toFixed(2)) + ' × ' + options[idx].label +
               ' (' + Math.round(grams) + ' g)',
       grams, kcal:m.kcal, protein:m.protein, carbs:m.carbs, fat:m.fat,
     });
-    onDone();
+    setSaving(false);
+
+    if (r.error) {
+      await sheet.tell({
+        title: t('Could not add that'),
+        message: t('Nothing was saved. Check your connection and try again.'),
+      });
+      return;
+    }
+    onDone(r.row);
   }
 
   return (
@@ -137,7 +155,8 @@ function Portion({ food, meal, user, onBack, onDone }) {
       />
 
       <View style={styles.foot}>
-        <Btn label={t('Add to diary')} color={C.amber} onPress={save} disabled={count <= 0} />
+        <Btn label={t('Add to diary')} color={C.amber} onPress={save}
+          busy={saving} disabled={count <= 0} />
       </View>
     </KeyboardAvoidingView>
   );

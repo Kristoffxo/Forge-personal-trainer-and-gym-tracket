@@ -14,7 +14,7 @@ const MEALS = [
   { name:'Snacks',    icon:'✦' },
 ];
 
-export default function Food({ user, profile, refreshKey, onAdd }) {
+export default function Food({ user, profile, refreshKey, justAdded, onAdd }) {
   const { C, T } = useTheme();
   const { t: tr } = useLang();
   const styles = makeStyles(C, T);
@@ -24,7 +24,20 @@ export default function Food({ user, profile, refreshKey, onAdd }) {
   const day = todayKey();
 
   const load = useCallback(() => { loadDay(user.id, day).then(setRows); }, [user.id, day]);
-  useEffect(() => { load(); }, [load, refreshKey]);
+
+  /* Show what was just saved immediately, then let the refetch replace
+     it. The row is real — it came back from the insert — so this is
+     not a guess about what the server will say, it is the server's
+     answer arriving one round trip early. */
+  useEffect(() => {
+    if (justAdded) {
+      setRows((prev) => {
+        const list = prev || [];
+        return list.some((r) => r.id === justAdded.id) ? list : list.concat(justAdded);
+      });
+    }
+    load();
+  }, [load, refreshKey, justAdded]);
 
   const t = totals(rows);
   const left = goal - t.kcal;

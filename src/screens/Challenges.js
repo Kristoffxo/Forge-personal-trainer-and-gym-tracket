@@ -18,7 +18,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Press, FadeIn, Label, Bar } from '../ui/kit';
+import { Press, FadeIn, Label, Bar, useTabPad } from '../ui/kit';
 import { useLang } from '../lang';
 import { MedalRow, RankCard } from '../ui/medals';
 import { TIERS, GRADE_COLOUR, gradeOf } from '../rank';
@@ -29,6 +29,7 @@ export default function Challenges({ user, onBack }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
 
   const [me, setMe] = useState(null);
   const [board, setBoard] = useState([]);
@@ -47,7 +48,7 @@ export default function Challenges({ user, onBack }) {
   const next = me.next;
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
       <View style={styles.head}>
         <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
           <Text style={[T.small, { color: C.violet }]}>{'←'} {t('Train')}</Text>

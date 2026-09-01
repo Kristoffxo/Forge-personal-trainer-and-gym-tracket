@@ -16,7 +16,7 @@ import { View, Text, ScrollView, TextInput, StyleSheet, ActivityIndicator } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { S, R, useTheme } from '../theme';
-import { Card, Label, Btn, FadeIn, useCountUp } from '../ui/kit';
+import { Card, Label, Btn, FadeIn, useCountUp, useTabPad } from '../ui/kit';
 import { loadRange, totals, todayKey } from '../diary';
 import { num } from '../num';
 import { useLang } from '../lang';
@@ -83,6 +83,7 @@ export default function Progress({ user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
 
   const [rows, setRows] = useState(null);
   const [weights, setWeights] = useState([]);
@@ -134,7 +135,7 @@ export default function Progress({ user, profile }) {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: S.xxl }}>
+    <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       {standing ? (
         <FadeIn>
           <RankCard level={standing.level} rank={standing.rank}

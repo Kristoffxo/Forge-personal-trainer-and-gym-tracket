@@ -14,12 +14,18 @@ export async function loadDay(userId, day) {
   return error ? [] : data;
 }
 
+/* Hands the saved row back, so the diary can show it straight away
+   rather than waiting on a second round trip to fetch what it just
+   wrote. Returns { row } or { error } — never a bare boolean, because
+   the caller has to be able to say what went wrong. */
 export async function addEntry(userId, day, e) {
-  const { error } = await supabase.from('diary').insert({
+  const { data, error } = await supabase.from('diary').insert({
     user_id:userId, day, meal:e.meal, name:e.name, portion:e.portion,
     grams:e.grams, kcal:e.kcal, protein:e.protein, carbs:e.carbs, fat:e.fat,
-  });
-  return !error;
+  }).select().single();
+
+  if (error) return { error: error.message };
+  return { row: data };
 }
 
 export async function removeEntry(id) {

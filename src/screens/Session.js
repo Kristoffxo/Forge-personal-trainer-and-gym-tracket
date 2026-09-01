@@ -14,7 +14,7 @@ import { View, Text, ScrollView, StyleSheet, Image, TextInput,
          Platform, KeyboardAvoidingView, useWindowDimensions } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, FadeIn, Bar, Label } from '../ui/kit';
+import { Btn, Press, FadeIn, Bar, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { markWorkout } from '../challenge';
@@ -28,6 +28,7 @@ export default function Session({ title, exercises, user, profile, kind, name, o
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
   const sheet = useSheet();
 
   const [done, setDone] = useState({});
@@ -83,7 +84,7 @@ export default function Session({ title, exercises, user, profile, kind, name, o
   }
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
       <View style={styles.top}>
         <Press onPress={() => onExit(false)} hitSlop={12} scaleTo={0.94}
           style={{ alignSelf: 'flex-start' }}>

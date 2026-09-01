@@ -606,6 +606,11 @@ const HI = {
   'A partner': 'Ek saathi',
   'Pull-up bar': 'Pull-up bar',
   'Ab wheel': 'Ab wheel',
+  'Nothing here fits what you have to train with. Try the gym version, or pick another muscle.':
+    'Jo aapke paas hai usse yeh nahi ho payega. Gym wala try karo, ya doosra muscle chuno.',
+  'Could not add that': 'Yeh add nahi ho paaya',
+  'Nothing was saved. Check your connection and try again.':
+    'Kuch save nahi hua. Apna connection dekho aur phir se try karo.',
 };
 
 const Ctx = createContext(null);

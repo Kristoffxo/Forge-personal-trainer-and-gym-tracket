@@ -20,7 +20,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ImageBackground } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Press, FadeIn } from '../ui/kit';
+import { Press, FadeIn, useTabPad } from '../ui/kit';
 import { useLang } from '../lang';
 import { myStanding } from '../challenge';
 import { GRADE_COLOUR } from '../rank';
@@ -72,6 +72,7 @@ export default function Train({ user, profile }) {
   const { t } = useLang();
   const { isWomen } = useSide();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
   const BOXES = boxesFor(isWomen);
 
   const [open, setOpen] = useState(null);
@@ -101,7 +102,7 @@ export default function Train({ user, profile }) {
   if (open === 'challenges') return <Challenges user={user} onBack={() => setOpen(null)} />;
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: 70 }}>
+    <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       {me ? (
         <FadeIn>
           <Press onPress={() => setOpen('challenges')} scaleTo={0.99}

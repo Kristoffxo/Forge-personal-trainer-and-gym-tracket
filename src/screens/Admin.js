@@ -12,13 +12,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Press, FadeIn, Label } from '../ui/kit';
+import { Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { loadAllPosts, loadReports, deletePost, imageUrl, firstNameOf, ago, daysLeft } from '../social';
 
 export default function Admin() {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
   const sheet = useSheet();
 
   const [posts, setPosts] = useState(null);
@@ -51,7 +52,7 @@ export default function Admin() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: S.xxl }}>
+    <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       <View style={styles.summary}>
         <View style={styles.stat}>
           <Text style={styles.statNum}>{posts.length}</Text>

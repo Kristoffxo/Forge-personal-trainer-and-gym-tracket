@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, FadeIn, Label } from '../ui/kit';
+import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import PersonSheet from './PersonSheet';
@@ -48,6 +48,7 @@ export default function Feed({ user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
 
   const [view, setView] = useState('list');       // list | compose | post
   const [posts, setPosts] = useState(null);
@@ -116,7 +117,7 @@ export default function Feed({ user, profile }) {
   }
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: 70 }}>
+    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
       <View style={styles.top}>
         <Press onPress={() => setView('compose')} scaleTo={0.98} style={styles.share}>
           <Text style={styles.shareIcon}>{'◎'}</Text>

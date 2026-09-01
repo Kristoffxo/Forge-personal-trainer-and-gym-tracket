@@ -14,7 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, FadeIn, Label } from '../ui/kit';
+import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { supabase } from '../supabase';
@@ -26,6 +26,7 @@ export default function Settings({ user, profile, onProfile }) {
   const { C, T, mode, toggle } = useTheme();
   const { t, lang, toggle: toggleLang } = useLang();
   const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
   const sheet = useSheet();
 
   const [name, setName] = useState((profile && profile.full_name) || '');
@@ -139,7 +140,7 @@ export default function Settings({ user, profile, onProfile }) {
   const goal = GOALS.find((g) => g.key === (profile && profile.goal));
 
   return (
-    <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: S.xxl }}>
+    <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       {/* ---- who you are ---- */}
       <FadeIn>
         <Label>{t('Your name')}</Label>
