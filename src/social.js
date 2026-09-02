@@ -56,7 +56,7 @@ export async function postedToday(userId) {
 export async function loadFeed({ before } = {}) {
   let q = supabase
     .from('posts')
-    .select('id, user_id, name, image_path, caption, created_at')
+    .select('id, user_id, name, image_path, caption, created_at, avatar_path, avatar_at')
     .order('created_at', { ascending: false })
     .limit(PAGE);
 
@@ -86,7 +86,7 @@ async function commentCounts(ids) {
    image is removed again, so a failed post cannot leave an orphan
    file sitting in the bucket forever.
    --------------------------------------------------------------- */
-export async function createPost({ userId, name, blob, caption }) {
+export async function createPost({ userId, name, blob, caption, avatarPath, avatarAt }) {
   const clean = String(caption || '').trim().slice(0, 300);
   const who = firstNameOf(name);
 
@@ -100,7 +100,10 @@ export async function createPost({ userId, name, blob, caption }) {
 
   const { data, error } = await supabase
     .from('posts')
-    .insert({ user_id: userId, name: who, image_path: path, caption: clean })
+        /* The picture is copied onto the post the same way the name
+       already is, so the feed renders in one query. */
+    .insert({ user_id: userId, name: who, image_path: path, caption: clean,
+              avatar_path: avatarPath || null, avatar_at: avatarAt || null })
     .select()
     .single();
 
@@ -109,6 +112,48 @@ export async function createPost({ userId, name, blob, caption }) {
     return { error: friendly(error.message) };
   }
   return { post: data };
+}
+
+/* ---------------------------------------------------------------
+   Your picture.
+
+   Same bucket as the feed, under avatars/<your id>. One file per
+   person, overwritten rather than accumulated, because nobody wants
+   thirteen old profile pictures billed to them forever. The path is
+   fixed, so a cache-buster is appended when it is read — otherwise
+   a new picture keeps showing as the old one.
+   --------------------------------------------------------------- */
+export async function setAvatar(userId, blob) {
+  const path = `avatars/${userId}.jpg`;
+
+  const up = await supabase.storage.from(BUCKET).upload(path, blob, {
+    contentType: 'image/jpeg',
+    upsert: true,
+  });
+  if (up.error) return { error: friendly(up.error.message) };
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ avatar_path: path, avatar_at: new Date().toISOString() })
+    .eq('id', userId);
+  if (error) return { error: friendly(error.message) };
+
+  return { path };
+}
+
+export async function removeAvatar(userId) {
+  await supabase.storage.from(BUCKET).remove([`avatars/${userId}.jpg`]).catch(() => {});
+  const { error } = await supabase
+    .from('profiles').update({ avatar_path: null }).eq('id', userId);
+  return error ? { error: friendly(error.message) } : {};
+}
+
+/* The public URL for somebody's picture, or null. `at` busts the CDN
+   cache when they change it. */
+export function avatarUrl(path, at) {
+  const url = imageUrl(path);
+  if (!url) return null;
+  return at ? `${url}?v=${encodeURIComponent(String(at))}` : url;
 }
 
 export async function deletePost(post) {
@@ -237,7 +282,7 @@ export async function leaderboard(top = 20) {
 export async function loadAllPosts({ limit = 60 } = {}) {
   const { data, error } = await supabase
     .from('posts')
-    .select('id, user_id, name, image_path, caption, created_at')
+    .select('id, user_id, name, image_path, caption, created_at, avatar_path, avatar_at')
     .order('created_at', { ascending: false })
     .limit(limit);
   return error ? [] : (data || []);

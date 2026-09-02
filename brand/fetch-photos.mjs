@@ -14,13 +14,17 @@ const OUT = path.join(ROOT, 'assets', 'photos');
 fs.mkdirSync(OUT, { recursive: true });
 
 let total = 0;
-for (const [name, [id, aspect, note, crop]] of Object.entries(PHOTOS)) {
+for (const [name, [id, aspect, note, crop, tune]] of Object.entries(PHOTOS)) {
   const w = aspect > 1.5 ? 900 : 560;
   const h = Math.round(w / aspect);
   /* A tall crop of a landscape photograph defaults to the middle,
      which on a hillside shot is all sky. `crop` biases it. */
   const url = `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=68`
-    + (crop ? `&crop=${crop}` : '');
+    + (crop ? `&crop=${crop}` : '')
+    /* The place badges are shown at about 60pt across. A moody wide
+       shot that is lovely full-bleed is a dark smudge that small, so
+       they get pushed for exposure and contrast on the way down. */
+    + (tune || '');
   const file = path.join(OUT, name + '.jpg');
 
   execFileSync('curl', ['-sS', '-m', '30', '-A', 'Mozilla/5.0', '-o', file, url]);

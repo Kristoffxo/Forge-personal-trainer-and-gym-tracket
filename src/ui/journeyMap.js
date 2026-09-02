@@ -39,6 +39,31 @@ const PHOTO = {
   frost: require('../../assets/photos/t_frost.jpg'),
 };
 
+/* One symbol per place. A campfire, a bridge, a windmill, a forge,
+   a summit — drawn from game-icons.net, which exists precisely
+   because a photograph is unreadable at sixty pixels across and a
+   flat white glyph is not. Locked places show theirs dimmed rather
+   than hidden: the appeal of a map is seeing what is out there
+   before you can reach it.
+
+   Icons by Lorc and Delapouite, game-icons.net, CC BY 3.0.
+   The credit is repeated in Settings, where a person can read it. */
+export const PLACE_ICON = {
+  1: require('../../assets/places/i1.png'),
+  2: require('../../assets/places/i2.png'),
+  3: require('../../assets/places/i3.png'),
+  4: require('../../assets/places/i4.png'),
+  5: require('../../assets/places/i5.png'),
+  6: require('../../assets/places/i6.png'),
+  7: require('../../assets/places/i7.png'),
+  8: require('../../assets/places/i8.png'),
+  9: require('../../assets/places/i9.png'),
+  10: require('../../assets/places/i10.png'),
+  11: require('../../assets/places/i11.png'),
+  12: require('../../assets/places/i12.png'),
+  13: require('../../assets/places/i13.png'),
+};
+
 /* How far to zoom into each photograph, and where to hold it while
    zooming. Landscape photographs are about half sky, and a band of
    the map that is half empty blue is a band with nothing to look at.
@@ -57,7 +82,7 @@ const ZOOM = {
 };
 
 /* How tall one leg of the climb is. */
-const STEP = 142;
+const STEP = 152;
 const TOP_PAD = 150;      // sky above the summit
 const BOTTOM_PAD = 132;   // room under the first place for the you-marker
 
@@ -210,7 +235,10 @@ function Node({ spot, width, days, onPress, isNext, t }) {
   const { m } = spot;
   const reached = days >= m.at;
   const colour = MEDAL_COLOUR[m.grade];
-  const size = m.level ? 66 : 54;
+  /* Bigger than a numbered disc needed to be. These carry a
+     photograph now, and a photograph has to be large enough to read
+     as a campfire or a forge rather than as a dark circle. */
+  const size = m.level ? 78 : 66;
 
   const pulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -259,13 +287,17 @@ function Node({ spot, width, days, onPress, isNext, t }) {
             { width: size, height: size, borderRadius: size / 2, borderColor: colour },
             reached
               ? { backgroundColor: colour, shadowColor: colour, shadowOpacity: 0.9, shadowRadius: 12 }
-              : { backgroundColor: 'rgba(6,6,10,0.78)' },
+              : { backgroundColor: 'rgba(6,6,10,0.8)' },
           ]}>
-            {/* a number only where there is something to number.
-                A locked place is a dark disc and nothing else. */}
-            {reached ? (
-              <Text style={[styles.medalNum, { color: '#0B0B0E' }]}>{m.n}</Text>
-            ) : null}
+            <Image
+              source={PLACE_ICON[m.n]}
+              style={{ width: size * 0.62, height: size * 0.62,
+                       /* the glyphs are white; dark on a lit badge,
+                          the grade colour on an unlit one */
+                       tintColor: reached ? '#0B0B0E' : colour,
+                       opacity: reached ? 1 : 0.55 }}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
@@ -348,9 +380,9 @@ const styles = StyleSheet.create({
 
   medal: {
     alignItems: 'center', justifyContent: 'center', borderWidth: 3,
+    overflow: 'hidden',
     shadowOffset: { width: 0, height: 2 }, elevation: 8,
   },
-  medalNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 21 },
 
   ping: { position: 'absolute', borderWidth: 3 },
 

@@ -17,6 +17,7 @@ import {
 import { S, R, useTheme } from '../theme';
 import { Btn, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
+import { Avatar } from '../ui/avatar';
 import { useLang } from '../lang';
 import { Ring } from '../ui/ring';
 import {
@@ -138,11 +139,9 @@ export default function Compete({ user, profile }) {
 
             <View style={styles.faces}>
               <View style={styles.face}>
-                <View style={[styles.avatar, { borderColor: C.violet }]}>
-                  <Text style={styles.avatarTxt}>
-                    {((profile && profile.full_name) || 'Y').trim().charAt(0).toUpperCase()}
-                  </Text>
-                </View>
+                <Avatar name={(profile && profile.full_name) || 'You'}
+                  path={profile && profile.avatar_path} at={profile && profile.avatar_at}
+                  size={72} colour={C.violet} />
                 <Text style={[styles.faceName, { color: C.violet }]}>{t('You')}</Text>
               </View>
 

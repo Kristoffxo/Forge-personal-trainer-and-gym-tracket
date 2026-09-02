@@ -18,6 +18,7 @@ import {
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
+import { Avatar } from '../ui/avatar';
 import { useLang } from '../lang';
 import PersonSheet from './PersonSheet';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
@@ -198,9 +199,8 @@ function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, o
       <View style={styles.cardHead}>
         <Press onPress={onPerson} scaleTo={0.94}
           style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarTxt}>{firstNameOf(post.name).charAt(0).toUpperCase()}</Text>
-          </View>
+          <Avatar name={post.name} path={post.avatar_path} at={post.avatar_at}
+            size={34} colour={C.line} />
           <Text style={styles.who}>{firstNameOf(post.name)}</Text>
         </Press>
         <Text style={T.tiny}>{ago(post.created_at)}</Text>

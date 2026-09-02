@@ -66,8 +66,16 @@ grant execute on function public.days_trained() to authenticated;
 --  turning up, which is the thing the app is actually for, and it
 --  is the same number the journey map counts.
 -- ------------------------------------------------------------
-alter table public.profiles
-  add column if not exists days_trained integer not null default 0;
+--  The profile columns the board reads. They belong to v3, which
+--  has not been run on every project, and the functions below select
+--  them by name — so add them here rather than failing on the first
+--  database that skipped a migration. All no-ops where they exist.
+alter table public.profiles add column if not exists level          integer not null default 1;
+alter table public.profiles add column if not exists medals         jsonb   not null default '{}'::jsonb;
+alter table public.profiles add column if not exists best_streak    integer not null default 0;
+alter table public.profiles add column if not exists current_streak integer not null default 0;
+alter table public.profiles add column if not exists stats_at       timestamptz;
+alter table public.profiles add column if not exists days_trained   integer not null default 0;
 
 create or replace function public.leaderboard(top integer default 20)
 returns table (
@@ -118,3 +126,68 @@ grant execute on function public.public_profile(uuid) to authenticated;
 -- ============================================================
 --  Done.
 -- ============================================================
+
+-- ============================================================
+--  v8b — profile pictures
+--
+--  Run this too. Same bucket as the feed, one file per person at
+--  avatars/<user id>.jpg. Only the path is stored on the profile.
+-- ============================================================
+alter table public.profiles add column if not exists avatar_path text;
+alter table public.profiles add column if not exists avatar_at   timestamptz;
+
+--  The board and profile cards carry the picture, so a face can be
+--  shown next to a name without a second round trip per row.
+create or replace function public.leaderboard(top integer default 20)
+returns table (
+  id             uuid,
+  name           text,
+  level          integer,
+  medals         jsonb,
+  best_streak    integer,
+  current_streak integer,
+  days_trained   integer,
+  avatar_path    text,
+  avatar_at      timestamptz
+)
+language sql security definer stable set search_path = public as $$
+  select p.id,
+         split_part(coalesce(nullif(trim(p.full_name), ''), 'Someone'), ' ', 1),
+         p.level, p.medals, p.best_streak, p.current_streak, p.days_trained,
+         p.avatar_path, p.avatar_at
+    from public.profiles p
+   where auth.uid() is not null
+     and p.days_trained > 0
+   order by p.days_trained desc, p.created_at asc
+   limit greatest(1, least(coalesce(top, 20), 100))
+$$;
+
+create or replace function public.public_profile(uid uuid)
+returns table (
+  id             uuid,
+  name           text,
+  level          integer,
+  medals         jsonb,
+  best_streak    integer,
+  current_streak integer,
+  days_trained   integer,
+  avatar_path    text,
+  avatar_at      timestamptz
+)
+language sql security definer stable set search_path = public as $$
+  select p.id,
+         split_part(coalesce(nullif(trim(p.full_name), ''), 'Someone'), ' ', 1),
+         p.level, p.medals, p.best_streak, p.current_streak, p.days_trained,
+         p.avatar_path, p.avatar_at
+    from public.profiles p
+   where auth.uid() is not null
+     and p.id = uid
+$$;
+
+grant execute on function public.leaderboard(integer)  to authenticated;
+grant execute on function public.public_profile(uuid)  to authenticated;
+
+--  Posts carry the poster's picture the way they already carry the
+--  name, so the feed renders in one query instead of a join per row.
+alter table public.posts add column if not exists avatar_path text;
+alter table public.posts add column if not exists avatar_at   timestamptz;

@@ -15,7 +15,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput, ActivityIndicator,
-  useWindowDimensions, KeyboardAvoidingView, Platform,
+  useWindowDimensions, KeyboardAvoidingView, Platform, Image,
 } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
@@ -24,7 +24,12 @@ import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
 import { MILESTONES, MEDAL_COLOUR, terrainOf, TOP } from '../journey';
-import { JourneyMap, MAP_HEIGHT } from '../ui/journeyMap';
+import { JourneyMap, MAP_HEIGHT, PLACE_ICON } from '../ui/journeyMap';
+
+/* react-native-web hands every focused input the browser's own blue
+   focus ring, which lands on top of the app's border and reads as a
+   selection box rather than as a text field. */
+const NO_RING = Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : null;
 
 export default function Journey({ user, profile }) {
   const { C, T } = useTheme();
@@ -178,7 +183,7 @@ function Stat({ label, value, unit, C, T }) {
 /* ---------------------------------------------------------------
    One place, and what you weighed when you got there.
    --------------------------------------------------------------- */
-function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
+function Milestone({ milestone, days, entry, onBack, onSaved, user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -190,15 +195,20 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
   const colour = milestone.grade ? MEDAL_COLOUR[milestone.grade] : terrain.accent;
 
   const [weight, setWeight] = useState(entry && entry.weight_kg != null ? String(entry.weight_kg) : '');
-  const [bmi, setBmi] = useState(entry && entry.bmi != null ? String(entry.bmi) : '');
-  const [muscle, setMuscle] = useState(entry && entry.muscle_kg != null ? String(entry.muscle_kg) : '');
   const [note, setNote] = useState((entry && entry.note) || '');
   const [busy, setBusy] = useState(false);
+
+  /* BMI is not something to be asked for. The height is already on
+     the profile and the weight is in the box above, so it is simply
+     arithmetic — and typing it by hand is how it ends up wrong. */
+  const cm = Number((profile && profile.height_cm) || 0);
+  const kg = Number(String(weight).replace(',', '.'));
+  const bmi = cm > 0 && kg > 0 ? (kg / ((cm / 100) ** 2)).toFixed(1) : '';
 
   async function save() {
     setBusy(true);
     const r = await saveJourneyEntry(user.id, milestone.n, {
-      dayCount: days, weight, bmi, muscle, note,
+      dayCount: days, weight, bmi, muscle: '', note,
     });
     setBusy(false);
     if (r.error) { await sheet.tell({ title: t('Could not save'), message: r.error }); return; }
@@ -214,20 +224,23 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
           <View style={[StyleSheet.absoluteFill, { backgroundColor: terrain.sky[0] }]} />
           <View style={[styles.hill, { backgroundColor: terrain.ground ? terrain.ground[0] : '#1A2712' }]} />
 
-          <View style={styles.mHead}>
-            <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
-              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Map')}</Text>
-            </Press>
-          </View>
-
-          <View style={styles.mCentre}>
+          {/* mCentre is flex:1 and fills this whole box, and a later
+              sibling paints over an earlier one — so with the header
+              first, the back button sat underneath it and every tap
+              landed on the medallion instead. Header last, and the
+              middle passes touches through. */}
+          <View style={styles.mCentre} pointerEvents="box-none">
             <View style={[styles.mMedal, {
               borderColor: colour,
               backgroundColor: reached ? colour : 'rgba(8,8,12,0.7)',
             }]}>
-              <Text style={[styles.mMedalNum, { color: reached ? '#0B0B0E' : colour }]}>
-                {milestone.n || '0'}
-              </Text>
+              {PLACE_ICON[milestone.n] ? (
+                <Image source={PLACE_ICON[milestone.n]}
+                  style={{ width: 46, height: 46,
+                           tintColor: reached ? '#0B0B0E' : colour,
+                           opacity: reached ? 1 : 0.6 }}
+                  resizeMode="contain" />
+              ) : null}
             </View>
             {milestone.grade ? (
               <View style={styles.mPlate}>
@@ -237,6 +250,12 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
                 <Text style={styles.mPlateDay}>{t('Day')} {milestone.at}</Text>
               </View>
             ) : null}
+          </View>
+
+          <View style={styles.mHead}>
+            <Press onPress={onBack} hitSlop={16} scaleTo={0.94}>
+              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Map')}</Text>
+            </Press>
           </View>
         </View>
 
@@ -250,20 +269,36 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
                 : `${milestone.at - days} ${t('days to go')}`}
           </Text>
 
-          <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record')}</Label>
-          <Field label={t('Weight')} unit="kg" value={weight} onChange={setWeight} C={C} T={T} />
-          <Field label={t('BMI')} unit="" value={bmi} onChange={setBmi} C={C} T={T} />
-          <Field label={t('Muscle')} unit="kg" value={muscle} onChange={setMuscle} C={C} T={T} />
+          {reached ? (
+            <>
+              <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record')}</Label>
+              <Field label={t('Weight')} unit="kg" value={weight} onChange={setWeight} C={C} T={T} />
+              <ReadOut label={t('BMI')} value={bmi}
+                hint={cm > 0 ? '' : t('Add your height in Settings')} C={C} T={T} />
 
-          <Label style={{ marginTop: S.md, marginBottom: 6 }}>{t('Notes')}</Label>
-          <TextInput
-            value={note} onChangeText={setNote}
-            placeholder={t('How are you feeling?')} placeholderTextColor={C.faint}
-            multiline maxLength={400} style={styles.noteBox}
-          />
+              <Label style={{ marginTop: S.md, marginBottom: 6 }}>{t('Notes')}</Label>
+              <TextInput
+                value={note} onChangeText={setNote}
+                placeholder={t('How are you feeling?')} placeholderTextColor={C.faint}
+                    multiline maxLength={400} underlineColorAndroid="transparent"
+                style={[styles.noteBox, NO_RING]}
+              />
 
-          <Btn label={t('Save')} color={colour} busy={busy}
-            onPress={save} style={{ marginTop: S.lg }} />
+              <Btn label={t('Save')} color={colour} busy={busy}
+                onPress={save} style={{ marginTop: S.lg }} />
+            </>
+          ) : (
+            /* Nothing to fill in for a place you have not been to.
+               Writing down what you weighed at the summit before you
+               have climbed it is not a record of anything. */
+            <View style={styles.locked}>
+              <Text style={styles.lockedIcon}>{'\u25CB'}</Text>
+              <Text style={[T.bodyOn, { fontSize: 15, marginTop: 6 }]}>{t('Locked')}</Text>
+              <Text style={[T.small, { textAlign: 'center', marginTop: 4 }]}>
+                {`${t('Train')} ${milestone.at - days} ${milestone.at - days === 1 ? t('more day') : t('more days')} ${t('to open this')}`}
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -278,9 +313,25 @@ function Field({ label, unit, value, onChange, C, T }) {
       <TextInput
         value={value} onChangeText={onChange}
         keyboardType="decimal-pad" placeholder="—" placeholderTextColor={C.faint}
-        style={styles.fieldInput}
+        underlineColorAndroid="transparent"
+        style={[styles.fieldInput, NO_RING]}
       />
       {unit ? <Text style={[T.tiny, { width: 22 }]}>{unit}</Text> : <View style={{ width: 22 }} />}
+    </View>
+  );
+}
+
+/* A number the app worked out rather than one you type. */
+function ReadOut({ label, value, hint, C, T }) {
+  const styles = makeStyles(C, T);
+  return (
+    <View style={styles.field}>
+      <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{label}</Text>
+      <Text style={[styles.readOut, { color: value ? C.text : C.faint }]}>
+        {value || (hint ? '' : '\u2014')}
+      </Text>
+      {hint ? <Text style={[T.tiny, { maxWidth: 130, textAlign: 'right' }]}>{hint}</Text> : null}
+      <View style={{ width: 22 }} />
     </View>
   );
 }
@@ -382,12 +433,17 @@ const makeStyles = (C, T) => StyleSheet.create({
     height: 260, borderRadius: 400,
   },
   mHead: { position: 'absolute', left: S.lg, top: S.md },
+  readOut: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, textAlign: 'right', minWidth: 54 },
+  locked: {
+    marginTop: S.xl, alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.lg, borderWidth: 1, borderColor: C.line, padding: S.lg,
+  },
+  lockedIcon: { fontSize: 26, color: C.faint },
   mCentre: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 18 },
   mMedal: {
     width: 78, height: 78, borderRadius: 39, borderWidth: 3,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
-  mMedalNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30 },
   mPlate: {
     marginTop: 10, backgroundColor: 'rgba(8,8,12,0.82)', borderRadius: 9,
     paddingHorizontal: 12, paddingVertical: 7, alignItems: 'center',

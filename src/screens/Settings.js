@@ -20,6 +20,9 @@ import { useLang } from '../lang';
 import { supabase } from '../supabase';
 import { api } from '../api';
 import { saveProfile, signOut } from '../auth';
+import { setAvatar, removeAvatar } from '../social';
+import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
+import { Avatar } from '../ui/avatar';
 import * as push from '../push';
 import { EXPERIENCE, GOALS } from '../tdee';
 import { API_ORIGIN } from '../api';
@@ -38,6 +41,7 @@ export default function Settings({ user, profile, onProfile }) {
   const sheet = useSheet();
 
   const [name, setName] = useState((profile && profile.full_name) || '');
+  const [picBusy, setPicBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notifOn, setNotifOn] = useState(false);
   const [notifBusy, setNotifBusy] = useState(false);
@@ -48,6 +52,45 @@ export default function Settings({ user, profile, onProfile }) {
     push.isOn().then(setNotifOn);
     push.getHour().then(setHour);
   }, []);
+
+  /* Pick, upload, and put the new path straight onto the profile in
+     memory — otherwise the picture on screen stays the old one until
+     the app is reopened. */
+  async function choosePicture() {
+    if (!CAN_TAKE_PHOTOS) {
+      await sheet.tell({ title: t('Not available'),
+        message: t('This device cannot open the photo picker.') });
+      return;
+    }
+    let picked;
+    try {
+      picked = await pickPhoto({ maxEdge: 512 });
+    } catch (e) {
+      await sheet.tell({ title: t('Could not open photos'), message: e.message });
+      return;
+    }
+    if (!picked || !picked.blob) return;      // cancelled
+
+    setPicBusy(true);
+    const r = await setAvatar(user.id, picked.blob);
+    setPicBusy(false);
+    if (r.error) { await sheet.tell({ title: t('Could not save'), message: r.error }); return; }
+    onProfile({ ...profile, avatar_path: r.path, avatar_at: new Date().toISOString() });
+  }
+
+  async function dropPicture() {
+    const ok = await sheet.confirm({
+      title: t('Remove your picture?'),
+      message: t('Your name will show instead.'),
+      confirm: t('Remove'),
+    });
+    if (!ok) return;
+    setPicBusy(true);
+    const r = await removeAvatar(user.id);
+    setPicBusy(false);
+    if (r.error) { await sheet.tell({ title: t('Could not remove'), message: r.error }); return; }
+    onProfile({ ...profile, avatar_path: null });
+  }
 
   async function saveName() {
     setSaving(true);
@@ -151,6 +194,25 @@ export default function Settings({ user, profile, onProfile }) {
     <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       {/* ---- who you are ---- */}
       <FadeIn>
+        <Label>{t('Your picture')}</Label>
+        <Text style={[T.tiny, { marginTop: 2, marginBottom: 10 }]}>
+          {t('Shown on Discover and when you race someone.')}
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: S.lg }}>
+          <Avatar name={name} path={profile && profile.avatar_path}
+            at={profile && profile.avatar_at} size={64} colour={C.gold} />
+          <View style={{ flex: 1, gap: 8 }}>
+            <Btn label={picBusy ? t('Uploading') : (profile && profile.avatar_path
+              ? t('Change picture') : t('Add a picture'))}
+              color={C.gold} busy={picBusy} onPress={choosePicture} />
+            {profile && profile.avatar_path ? (
+              <Press onPress={dropPicture} hitSlop={10} scaleTo={0.96}>
+                <Text style={[T.small, { color: C.dim }]}>{t('Remove picture')}</Text>
+              </Press>
+            ) : null}
+          </View>
+        </View>
+
         <Label>{t('Your name')}</Label>
         <Text style={[T.tiny, { marginTop: 2, marginBottom: 8 }]}>
           {t('The first word of this is what Discover shows.')}
@@ -247,6 +309,12 @@ export default function Settings({ user, profile, onProfile }) {
           <Text style={[T.small, { flex: 1 }]}>{t('Version')}</Text>
           <Text style={[T.bodyOn, { fontSize: 14 }]}>1.0.0</Text>
         </View>
+
+        {/* The journey icons are CC BY 3.0. The licence asks for a
+            credit, so here is one somebody can actually read. */}
+        <Text style={[T.tiny, { marginTop: S.sm }]}>
+          {t('Journey icons by Lorc and Delapouite, game-icons.net (CC BY 3.0). Photographs from Unsplash.')}
+        </Text>
       </FadeIn>
 
       {/* ---- account ---- */}
