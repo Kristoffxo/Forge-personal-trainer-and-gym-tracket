@@ -4,13 +4,15 @@
 --  Safe to run more than once.
 -- ============================================================
 
-drop table if exists public.messages cascade;
-drop table if exists public.diary    cascade;
-drop table if exists public.plans    cascade;
-drop table if exists public.profiles cascade;
+-- These four tables used to be dropped here before being recreated,
+-- directly under a comment promising the file was safe to run twice.
+-- It was not: re-running it deleted every profile, every diary entry
+-- and every plan in the database. The tables below are `if not
+-- exists`, so nothing needs dropping. A deliberate wipe lives in
+-- supabase-reset.sql, where somebody has to mean it.
 
 -- ---------- who each account is ----------
-create table public.profiles (
+create table if not exists public.profiles (
   id         uuid primary key references auth.users on delete cascade,
   full_name  text,
   role       text not null default 'client' check (role in ('client','coach')),
@@ -44,17 +46,17 @@ returns boolean language sql security definer stable set search_path = public as
 $$;
 
 -- ---------- chat ----------
-create table public.messages (
+create table if not exists public.messages (
   id         bigint generated always as identity primary key,
   user_id    uuid not null references auth.users on delete cascade,
   sender     text not null check (sender in ('client','coach')),
   body       text not null,
   created_at timestamptz not null default now()
 );
-create index messages_user_idx on public.messages (user_id, created_at);
+create index if not exists messages_user_idx on public.messages (user_id, created_at);
 
 -- ---------- food diary ----------
-create table public.diary (
+create table if not exists public.diary (
   id         bigint generated always as identity primary key,
   user_id    uuid not null references auth.users on delete cascade,
   day        date not null,
@@ -68,10 +70,10 @@ create table public.diary (
   fat        numeric,
   created_at timestamptz not null default now()
 );
-create index diary_user_idx on public.diary (user_id, day);
+create index if not exists diary_user_idx on public.diary (user_id, day);
 
 -- ---------- training plan ----------
-create table public.plans (
+create table if not exists public.plans (
   user_id     uuid primary key references auth.users on delete cascade,
   split       text,
   per_session integer,
@@ -89,6 +91,19 @@ alter table public.profiles enable row level security;
 alter table public.messages enable row level security;
 alter table public.diary    enable row level security;
 alter table public.plans    enable row level security;
+
+-- Dropped first so this file can be run again without
+-- failing on a policy that already exists.
+drop policy if exists profiles_read on public.profiles;
+drop policy if exists profiles_write on public.profiles;
+drop policy if exists messages_read on public.messages;
+drop policy if exists messages_write on public.messages;
+drop policy if exists diary_read on public.diary;
+drop policy if exists diary_write on public.diary;
+drop policy if exists diary_delete on public.diary;
+drop policy if exists plans_read on public.plans;
+drop policy if exists plans_write on public.plans;
+drop policy if exists plans_update on public.plans;
 
 create policy profiles_read   on public.profiles for select
   using (id = auth.uid() or public.is_coach());
