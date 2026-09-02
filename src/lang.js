@@ -686,7 +686,9 @@ const HI = {
   /* ---------- settings, moved ---------- */
   'Your account and how the app behaves': 'Aapka account aur app ka behaviour',
   'Done': 'Ho gaya',
-  'Can we nudge you once a day?': 'Din mein ek baar yaad dila dein?',
+  'Want a daily reminder to train?': 'Roz workout ka reminder bhejein?',
+  'One reminder a day, at a time you pick. Nothing else — no offers, no chasing. Change the time or turn it off in Settings whenever you like.': 'Din mein ek reminder, aapke chune hue time par. Aur kuch nahi — koi offer nahi, koi peecha nahi. Settings mein time badlein ya band karein.',
+  'Yes, remind me': 'Haan, yaad dilao',
   'One reminder, at a time you pick, to keep you going on the days you would rather not. Nothing else — no offers, no chasing. Change the time or switch it off in Settings whenever you like.':
     'Ek reminder, aapke chune hue time pe, un dino ke liye jab mann na kare. Aur kuch nahi — koi offer nahi, koi peecha nahi. Settings mein time badal sakte ho ya band kar sakte ho.',
   'Yes, keep me going': 'Haan, yaad dilate raho',

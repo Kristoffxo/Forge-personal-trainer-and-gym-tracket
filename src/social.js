@@ -117,14 +117,18 @@ export async function createPost({ userId, name, blob, caption, avatarPath, avat
 /* ---------------------------------------------------------------
    Your picture.
 
-   Same bucket as the feed, under avatars/<your id>. One file per
-   person, overwritten rather than accumulated, because nobody wants
-   thirteen old profile pictures billed to them forever. The path is
-   fixed, so a cache-buster is appended when it is read — otherwise
-   a new picture keeps showing as the old one.
+   Same bucket as the feed, at <your id>/avatar.jpg. Your id has to
+   come first: the storage policy checks that the first folder of
+   the path is the uploader, so anything under an `avatars/` folder
+   is rejected before it starts.
+
+   One file per person, overwritten rather than accumulated, because
+   nobody wants thirteen old profile pictures billed to them forever.
+   The path is fixed, so a cache-buster is appended when it is read —
+   otherwise a new picture keeps showing as the old one.
    --------------------------------------------------------------- */
 export async function setAvatar(userId, blob) {
-  const path = `avatars/${userId}.jpg`;
+  const path = `${userId}/avatar.jpg`;
 
   const up = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: 'image/jpeg',
@@ -142,7 +146,7 @@ export async function setAvatar(userId, blob) {
 }
 
 export async function removeAvatar(userId) {
-  await supabase.storage.from(BUCKET).remove([`avatars/${userId}.jpg`]).catch(() => {});
+  await supabase.storage.from(BUCKET).remove([`${userId}/avatar.jpg`]).catch(() => {});
   const { error } = await supabase
     .from('profiles').update({ avatar_path: null }).eq('id', userId);
   return error ? { error: friendly(error.message) } : {};

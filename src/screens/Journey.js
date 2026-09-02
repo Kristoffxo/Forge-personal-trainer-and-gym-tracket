@@ -24,6 +24,7 @@ import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
 import { MILESTONES, MEDAL_COLOUR, terrainOf, TOP } from '../journey';
+import { bmiFrom, bandOf, healthyRange, scalePos } from '../bmi';
 import { JourneyMap, MAP_HEIGHT, PLACE_ICON } from '../ui/journeyMap';
 
 /* react-native-web hands every focused input the browser's own blue
@@ -120,7 +121,6 @@ export default function Journey({ user, profile }) {
             </View>
             <Stat label={t('Weight')} value={start && start.weight_kg} unit="kg" C={C} T={T} />
             <Stat label={t('BMI')} value={start && start.bmi} unit="" C={C} T={T} />
-            <Stat label={t('Muscle')} value={start && start.muscle_kg} unit="kg" C={C} T={T} />
             <Press
               onPress={() => setOpen({ n: 0, at: 0, place: 'Your Starting Point',
                 terrain: 'meadow' })}
@@ -130,6 +130,8 @@ export default function Journey({ user, profile }) {
               </Text>
             </Press>
           </View>
+
+          <BmiCard profile={profile} entries={entries} C={C} T={T} t={t} styles={styles} />
 
           {me.next ? (
             <FadeIn>
@@ -202,8 +204,9 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user, profile }) {
      the profile and the weight is in the box above, so it is simply
      arithmetic — and typing it by hand is how it ends up wrong. */
   const cm = Number((profile && profile.height_cm) || 0);
-  const kg = Number(String(weight).replace(',', '.'));
-  const bmi = cm > 0 && kg > 0 ? (kg / ((cm / 100) ** 2)).toFixed(1) : '';
+  const bmiNum = bmiFrom(cm, weight);
+  const bmi = bmiNum == null ? '' : bmiNum.toFixed(1);
+  const band = bandOf(bmiNum);
 
   async function save() {
     setBusy(true);
@@ -273,8 +276,10 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user, profile }) {
             <>
               <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record')}</Label>
               <Field label={t('Weight')} unit="kg" value={weight} onChange={setWeight} C={C} T={T} />
-              <ReadOut label={t('BMI')} value={bmi}
-                hint={cm > 0 ? '' : t('Add your height in Settings')} C={C} T={T} />
+              {/* the word, not only the number — 24.1 on its own is
+                  not something anybody can act on */}
+              <ReadOut label={t('BMI')} value={bmi} band={band}
+                hint={cm > 0 ? '' : t('Add your height in Challenges \u2192 Numbers')} C={C} T={T} />
 
               <Label style={{ marginTop: S.md, marginBottom: 6 }}>{t('Notes')}</Label>
               <TextInput
@@ -321,12 +326,92 @@ function Field({ label, unit, value, onChange, C, T }) {
   );
 }
 
+/* ---------------------------------------------------------------
+   Where your weight has you, right now.
+
+   The index on its own tells almost nobody anything: 26.4 is not a
+   fact most people can act on. So the word comes first and large,
+   the number is a footnote to it, and underneath is the one figure
+   that is actually in the unit their scales are in — the weight
+   range that would put them in the healthy band.
+
+   The weight comes from the last place they recorded one at, which
+   means the card fills itself in as they climb rather than asking
+   them to type their weight a second time.
+   --------------------------------------------------------------- */
+function BmiCard({ profile, entries, C, T, t, styles }) {
+  const cm = (profile && profile.height_cm) || null;
+
+  /* the most recent milestone with a weight on it, then whatever is
+     on the profile as a fallback */
+  const latest = Object.values(entries || {})
+    .filter((e) => e && e.weight_kg != null)
+    .sort((a, b) => (b.milestone || 0) - (a.milestone || 0))[0];
+  const kg = latest ? latest.weight_kg : ((profile && profile.weight_kg) || null);
+
+  const bmi = cm && kg ? bmiFrom(cm, kg) : null;
+  const band = bandOf(bmi);
+  const range = cm ? healthyRange(cm) : null;
+  const pos = scalePos(bmi);
+
+  return (
+    <FadeIn delay={30}>
+      <View style={[styles.bmiCard, band && { borderColor: band.color }]}>
+        <Label>{t('Where you are')}</Label>
+
+        {band ? (
+          <>
+            <Text style={[styles.bmiBand, { color: band.color }]}>{t(band.label)}</Text>
+            <Text style={[T.small, { marginTop: 2 }]}>
+              {t('BMI')} {bmi.toFixed(1)} · {kg} kg
+            </Text>
+
+            <View style={styles.bmiScale}>
+              <View style={{ flex: 4.5, backgroundColor: '#5C9BE8' }} />
+              <View style={{ flex: 6.5, backgroundColor: '#8BC34A' }} />
+              <View style={{ flex: 5, backgroundColor: '#F5A623' }} />
+              <View style={{ flex: 10, backgroundColor: '#E4453A' }} />
+            </View>
+            <View style={{ marginLeft: (pos * 100) + '%' }}>
+              <View style={styles.bmiMark} />
+            </View>
+            <View style={styles.bmiNums}>
+              {['14', '18.5', '25', '30', '40'].map((n) => (
+                <Text key={n} style={T.tiny}>{n}</Text>
+              ))}
+            </View>
+
+            <Text style={[T.body, { marginTop: S.md }]}>{t(band.note)}</Text>
+            {range ? (
+              <Text style={[T.small, { marginTop: 6, color: C.text }]}>
+                {t('Healthy for your height')}: {range.lo.toFixed(0)}–{range.hi.toFixed(0)} kg
+              </Text>
+            ) : null}
+            <Text style={[T.tiny, { marginTop: S.sm }]}>
+              {t('BMI cannot tell muscle from fat, so it reads high if you train. One number, not a verdict.')}
+            </Text>
+          </>
+        ) : (
+          <Text style={[T.small, { marginTop: 6 }]}>
+            {cm
+              ? t('Record a weight at any place you have reached and this fills itself in.')
+              : t('Add your height in Challenges → Numbers and this fills itself in.')}
+          </Text>
+        )}
+      </View>
+    </FadeIn>
+  );
+}
+
 /* A number the app worked out rather than one you type. */
-function ReadOut({ label, value, hint, C, T }) {
+function ReadOut({ label, value, band, hint, C, T }) {
   const styles = makeStyles(C, T);
   return (
     <View style={styles.field}>
       <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{label}</Text>
+      {band ? (
+        <Text style={[styles.readOutBand, { color: band.color }]}>{band.label}</Text>
+      ) : null}
       <Text style={[styles.readOut, { color: value ? C.text : C.faint }]}>
         {value || (hint ? '' : '\u2014')}
       </Text>
@@ -433,6 +518,15 @@ const makeStyles = (C, T) => StyleSheet.create({
     height: 260, borderRadius: 400,
   },
   mHead: { position: 'absolute', left: S.lg, top: S.md },
+  bmiCard: {
+    backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
+    borderWidth: 1.5, borderColor: C.line, marginTop: S.md,
+  },
+  bmiBand: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, marginTop: 4 },
+  bmiScale: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', marginTop: S.lg },
+  bmiMark: { width: 2, height: 12, backgroundColor: C.text, marginTop: 2 },
+  bmiNums: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  readOutBand: { fontFamily: 'WorkSans_600SemiBold', fontSize: 12.5, letterSpacing: 0.3, marginRight: 10 },
   readOut: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, textAlign: 'right', minWidth: 54 },
   locked: {
     marginTop: S.xl, alignItems: 'center', backgroundColor: C.surface,

@@ -43,10 +43,10 @@ export const PHOTOS = {
      band is about 650pt tall on a phone and a landscape crop has to
      be blown up three times over to fill one — which turns a
      photograph into a smear of sky. */
-  't_meadow': ['1785268593240-c90cc929b1ca', 0.56, 'a footpath up a green hill', 'bottom'],
-  't_forest': ['1783410299649-90cc2defc4b7', 0.56, 'a fogged wood'],
-  't_ember':  ['1639152930550-4b18e9e461b6', 0.56, 'volcanic ash', 'bottom'],
-  't_frost':  ['1554176259-aa961fc32671', 0.56, 'a snow peak at night'],
+  't_meadow': ['1765200135341-d0e69d62d841', 0.56, 'a valley of green fields under peaks', 'bottom'],
+  't_forest': ['1418065460487-3e41a6c84dc5', 0.56, 'a misty pine hillside'],
+  't_ember':  ['1779391730407-46c0abf78274', 0.56, 'red mountains under an orange sky'],
+  't_frost':  ['1531366936337-7c912a4589a7', 0.56, 'northern lights over a snow peak'],
 };
 
 /* ---------------------------------------------------------------

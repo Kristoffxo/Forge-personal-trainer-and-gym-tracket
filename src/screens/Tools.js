@@ -11,17 +11,6 @@ import { useSheet } from '../ui/sheet';
 import * as push from '../push';
 import { quoteForDate } from '../quotes';
 
-const BANDS = [
-  { max:18.5, label:'Underweight', color:'#5C9BE8',
-    note:'Below the healthy range. Eating more is the priority, not training harder.' },
-  { max:25,   label:'Healthy', color:'#8BC34A',
-    note:'Right where you want to be. Keep doing what you are doing.' },
-  { max:30,   label:'Overweight', color:'#F5A623',
-    note:'A little above. A small daily calorie deficit is the lever.' },
-  { max:1e9,  label:'Obese', color:'#E4453A',
-    note:'Well above the healthy range. Structured coaching matters most here.' },
-];
-
 export default function Tools({ user, profile, onProfile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
@@ -45,20 +34,11 @@ export default function Tools({ user, profile, onProfile }) {
   const [saved, setSaved] = useState(false);
   const q = quoteOfDay();
 
-  const h = num(cm) / 100;
-  const w = num(kg);
-  const ok = h > 0.5 && h < 2.6 && w > 20 && w < 400;
-  const bmi = ok ? w / (h * h) : 0;
-  const band = ok ? BANDS.find((b) => bmi < b.max) : null;
-  const shown = useCountUp(ok ? Math.round(bmi * 10) : 0, 550) / 10;
-  const lo = ok ? 18.5 * h * h : 0;
-  const hi = ok ? 24.9 * h * h : 0;
-  const pos = ok ? Math.max(0, Math.min(1, (bmi - 14) / 26)) : 0;
 
   async function save() {
     const p = await saveProfile({
-      height_cm: ok ? num(cm) : null,
-      weight_kg: ok ? num(kg) : null,
+      height_cm: num(cm) || null,
+      weight_kg: num(kg) || null,
       goal_kcal: int(goal, 2200),
     });
     if (p) { onProfile(p); setSaved(true); setTimeout(() => setSaved(false), 2000); }
@@ -74,49 +54,21 @@ export default function Tools({ user, profile, onProfile }) {
         </View>
       </ImageBackground>
 
-      {/* ---- BMI ---- */}
+      {/* Height and weight stay — they feed the calorie target and
+          the BMI on the Journey, which is where the index itself now
+          lives. Two screens showing the same number invited them to
+          disagree. */}
       <FadeIn delay={60} style={{ padding:S.lg }}>
         <Card color={C.teal}>
-          <Label>{t('Body Mass Index')}</Label>
+          <Label>{t('Your measurements')}</Label>
           <View style={{ flexDirection:'row', marginTop:S.md }}>
             <Num label={t('Height (cm)')} value={cm} onChange={setCm} />
             <View style={{ width:S.md }} />
             <Num label={t('Weight (kg)')} value={kg} onChange={setKg} />
           </View>
-
-          <View style={{ marginTop:S.lg, alignItems:'center' }}>
-            <Text style={[styles.bmi, { color: band ? band.color : C.faint }]}>
-              {ok ? shown.toFixed(1) : '—'}
-            </Text>
-            <Text style={[styles.bandTxt, { color: band ? band.color : C.faint }]}>
-              {band ? t(band.label).toUpperCase() : t('ENTER YOUR NUMBERS')}
-            </Text>
-          </View>
-
-          {ok ? (
-            <>
-              <View style={styles.scale}>
-                <View style={{ flex:4.5, backgroundColor:'#5C9BE8' }} />
-                <View style={{ flex:6.5, backgroundColor:'#8BC34A' }} />
-                <View style={{ flex:5,   backgroundColor:'#F5A623' }} />
-                <View style={{ flex:10,  backgroundColor:'#E4453A' }} />
-              </View>
-              <View style={{ marginLeft:(pos * 100) + '%' }}>
-                <View style={styles.marker} />
-              </View>
-              <View style={styles.scaleNums}>
-                {['14','18.5','25','30','40'].map((n) => <Text key={n} style={T.tiny}>{n}</Text>)}
-              </View>
-              <Text style={[T.body, { marginTop:S.md }]}>{t(band.note)}</Text>
-              <Text style={[T.small, { marginTop:6, color:C.text }]}>
-                Healthy weight for your height: {lo.toFixed(0)}–{hi.toFixed(0)} kg
-              </Text>
-              <Text style={[T.tiny, { marginTop:S.sm }]}>
-                BMI cannot tell muscle from fat, so it reads high if you train.
-                One number, not a verdict.
-              </Text>
-            </>
-          ) : null}
+          <Text style={[T.tiny, { marginTop:S.sm }]}>
+            {t('Your BMI is on the Journey tab.')}
+          </Text>
         </Card>
       </FadeIn>
 

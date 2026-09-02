@@ -130,7 +130,19 @@ create policy plans_update    on public.plans for update
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- live chat updates
-alter publication supabase_realtime add table public.messages;
+-- Postgres has no "add table if not exists" for a publication, and
+-- adding one twice is an error rather than a no-op — so ask first.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+     where pubname = 'supabase_realtime'
+       and schemaname = 'public'
+       and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+end $$;
 
 -- ============================================================
 --  Kept for reference. Reppo has no coach role in the app any more,

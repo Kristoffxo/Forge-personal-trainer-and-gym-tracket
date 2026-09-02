@@ -131,9 +131,9 @@ function Root() {
 
       await push.markAsked();            // whatever they say, we asked
       const yes = await sheet.confirm({
-        title: tr('Can we nudge you once a day?'),
-        message: tr('One reminder, at a time you pick, to keep you going on the days you would rather not. Nothing else — no offers, no chasing. Change the time or switch it off in Settings whenever you like.'),
-        confirmLabel: tr('Yes, keep me going'),
+        title: tr('Want a daily reminder to train?'),
+        message: tr('One reminder a day, at a time you pick. Nothing else — no offers, no chasing. Change the time or turn it off in Settings whenever you like.'),
+        confirmLabel: tr('Yes, remind me'),
         cancelLabel: tr('Not now'),
       });
       if (!alive || !yes) return;

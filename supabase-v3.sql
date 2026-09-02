@@ -27,6 +27,11 @@ alter table public.profiles add column if not exists stats_at       timestamptz;
 --  fields that are meant to be public and physically cannot return
 --  height, weight or the calorie target.
 -- ------------------------------------------------------------
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.public_profile(uuid);
+
 create or replace function public.public_profile(uid uuid)
 returns table (
   id             uuid,
@@ -51,6 +56,11 @@ $$;
 --  Longest unbroken run, then current run. First names only — the
 --  same rule the feed follows.
 -- ------------------------------------------------------------
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.leaderboard(integer);
+
 create or replace function public.leaderboard(top integer default 20)
 returns table (
   id             uuid,

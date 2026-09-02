@@ -75,9 +75,13 @@ export const PLACE_ICON = {
    removes the mountain — which is the one thing the top of the map
    is for. */
 const ZOOM = {
-  meadow: { scale: 1.55, anchor: 'bottom' },
-  forest: { scale: 1.2, anchor: 'bottom' },
-  ember: { scale: 1.3, anchor: 'bottom' },
+  meadow: { scale: 1.25, anchor: 'bottom' },
+  forest: { scale: 1.15, anchor: 'bottom' },
+  ember: { scale: 1.1, anchor: 'bottom' },
+  /* The frost band is the aurora over the summit. Its subject is
+     the sky, so this one is not pushed down into its own ground —
+     cropping to the bottom of that picture throws away the whole
+     reason it is the last thing you climb to. */
   frost: { scale: 1.0, anchor: 'centre' },
 };
 

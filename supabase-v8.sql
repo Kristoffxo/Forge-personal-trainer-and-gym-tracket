@@ -77,6 +77,11 @@ alter table public.profiles add column if not exists current_streak integer not 
 alter table public.profiles add column if not exists stats_at       timestamptz;
 alter table public.profiles add column if not exists days_trained   integer not null default 0;
 
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.leaderboard(integer);
+
 create or replace function public.leaderboard(top integer default 20)
 returns table (
   id             uuid,
@@ -102,6 +107,11 @@ grant execute on function public.leaderboard(integer) to authenticated;
 
 --  and the same number on somebody's profile card, or tapping a name
 --  on the board shows a journey with nothing in it
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.public_profile(uuid);
+
 create or replace function public.public_profile(uid uuid)
 returns table (
   id             uuid,
@@ -138,6 +148,11 @@ alter table public.profiles add column if not exists avatar_at   timestamptz;
 
 --  The board and profile cards carry the picture, so a face can be
 --  shown next to a name without a second round trip per row.
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.leaderboard(integer);
+
 create or replace function public.leaderboard(top integer default 20)
 returns table (
   id             uuid,
@@ -161,6 +176,11 @@ language sql security definer stable set search_path = public as $$
    order by p.days_trained desc, p.created_at asc
    limit greatest(1, least(coalesce(top, 20), 100))
 $$;
+
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.public_profile(uuid);
 
 create or replace function public.public_profile(uid uuid)
 returns table (
@@ -191,3 +211,17 @@ grant execute on function public.public_profile(uuid)  to authenticated;
 --  name, so the feed renders in one query instead of a join per row.
 alter table public.posts add column if not exists avatar_path text;
 alter table public.posts add column if not exists avatar_at   timestamptz;
+
+--  Overwriting your own picture is an UPDATE on storage.objects, not
+--  only an INSERT, and there was no update policy — so the second
+--  time somebody changed their picture it was refused.
+drop policy if exists posts_img_update on storage.objects;
+create policy posts_img_update on storage.objects for update
+  using (
+    bucket_id = 'posts'
+    and auth.uid()::text = (storage.foldername(name))[1]
+  )
+  with check (
+    bucket_id = 'posts'
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );

@@ -149,7 +149,19 @@ create policy plans_update    on public.plans for update
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- live chat updates
-alter publication supabase_realtime add table public.messages;
+-- Postgres has no "add table if not exists" for a publication, and
+-- adding one twice is an error rather than a no-op — so ask first.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+     where pubname = 'supabase_realtime'
+       and schemaname = 'public'
+       and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+end $$;
 
 -- ============================================================
 --  Kept for reference. Reppo has no coach role in the app any more,
@@ -524,6 +536,11 @@ alter table public.profiles add column if not exists stats_at       timestamptz;
 --  fields that are meant to be public and physically cannot return
 --  height, weight or the calorie target.
 -- ------------------------------------------------------------
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.public_profile(uuid);
+
 create or replace function public.public_profile(uid uuid)
 returns table (
   id             uuid,
@@ -548,6 +565,11 @@ $$;
 --  Longest unbroken run, then current run. First names only — the
 --  same rule the feed follows.
 -- ------------------------------------------------------------
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.leaderboard(integer);
+
 create or replace function public.leaderboard(top integer default 20)
 returns table (
   id             uuid,
@@ -1163,6 +1185,11 @@ alter table public.profiles add column if not exists current_streak integer not 
 alter table public.profiles add column if not exists stats_at       timestamptz;
 alter table public.profiles add column if not exists days_trained   integer not null default 0;
 
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.leaderboard(integer);
+
 create or replace function public.leaderboard(top integer default 20)
 returns table (
   id             uuid,
@@ -1188,6 +1215,11 @@ grant execute on function public.leaderboard(integer) to authenticated;
 
 --  and the same number on somebody's profile card, or tapping a name
 --  on the board shows a journey with nothing in it
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.public_profile(uuid);
+
 create or replace function public.public_profile(uid uuid)
 returns table (
   id             uuid,
@@ -1224,6 +1256,11 @@ alter table public.profiles add column if not exists avatar_at   timestamptz;
 
 --  The board and profile cards carry the picture, so a face can be
 --  shown next to a name without a second round trip per row.
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.leaderboard(integer);
+
 create or replace function public.leaderboard(top integer default 20)
 returns table (
   id             uuid,
@@ -1247,6 +1284,11 @@ language sql security definer stable set search_path = public as $$
    order by p.days_trained desc, p.created_at asc
    limit greatest(1, least(coalesce(top, 20), 100))
 $$;
+
+-- `create or replace` cannot change a function's return type, and
+-- this one gained columns since it was first written — so drop it
+-- first. Dropping an RPC is safe: nothing stores a reference to it.
+drop function if exists public.public_profile(uuid);
 
 create or replace function public.public_profile(uid uuid)
 returns table (
