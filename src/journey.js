@@ -12,8 +12,9 @@
    them, which meant a fortnight of flu could delete a month of work.
    This one counts days and never takes anything back.
 
-   Each place is one day-count and one or two medals. Four of them
-   are also levels.
+   Each place is one day-count and one badge. Four of them are also
+   levels, and the badge grade simply follows the level — bronze at
+   the bottom, diamond only at the summit.
    --------------------------------------------------------------- */
 
 /* Terrain, low to high. The map gets colder and cleaner as it goes
@@ -33,42 +34,42 @@ export const MEDAL_COLOUR = {
   diamond: '#6FD8E8',
 };
 
-/* Every place, in the order they are reached. `at` is total days
-   trained. `medals` is what is handed over on arrival — two of them
-   land on the same day more than once, which is why it is a list. */
+/* ---------------------------------------------------------------
+   One badge per place, and the grade is simply how far up you are.
+
+   It used to be four tiers crossed with four grades, which produced
+   sixteen medals with names like "15 day silver" — a formula rather
+   than a thing, and nobody could tell you whether that was better or
+   worse than "30 day bronze". Now the grade is the stretch of the
+   journey you are in: bronze at the bottom, then silver, then gold,
+   and diamond only at the summit. One idea instead of two.
+
+     Level 1   places 1-5     bronze
+     Level 2   places 6-8     silver
+     Level 3   places 9-12    gold
+     Level 4   place 13       diamond
+   --------------------------------------------------------------- */
 export const MILESTONES = [
-  { n: 1,  at: 7,   terrain: 'meadow', place: 'First Camp',
-    medals: [{ tier: 7, grade: 'bronze' }], level: 1 },
-  { n: 2,  at: 14,  terrain: 'meadow', place: 'The Crossing',
-    medals: [{ tier: 7, grade: 'silver' }] },
-  { n: 3,  at: 15,  terrain: 'meadow', place: 'Old Mill',
-    medals: [{ tier: 15, grade: 'bronze' }] },
-  { n: 4,  at: 21,  terrain: 'meadow', place: 'Riverbend',
-    medals: [{ tier: 7, grade: 'gold' }] },
-  { n: 5,  at: 28,  terrain: 'forest', place: 'The Falls',
-    medals: [{ tier: 7, grade: 'diamond' }] },
-  { n: 6,  at: 30,  terrain: 'forest', place: 'Watchtower',
-    medals: [{ tier: 15, grade: 'silver' }, { tier: 30, grade: 'bronze' }], level: 2 },
-  { n: 7,  at: 45,  terrain: 'forest', place: 'Hollow Pass',
-    medals: [{ tier: 15, grade: 'gold' }] },
-  { n: 8,  at: 60,  terrain: 'forest', place: 'The Deepwood',
-    medals: [{ tier: 15, grade: 'diamond' }, { tier: 30, grade: 'silver' }] },
-  { n: 9,  at: 90,  terrain: 'ember',  place: 'Emberfall',
-    medals: [{ tier: 30, grade: 'gold' }, { tier: 90, grade: 'bronze' }], level: 3 },
-  { n: 10, at: 120, terrain: 'ember',  place: 'The Forge',
-    medals: [{ tier: 30, grade: 'diamond' }] },
-  { n: 11, at: 180, terrain: 'frost',  place: 'Snowline',
-    medals: [{ tier: 90, grade: 'silver' }] },
-  { n: 12, at: 270, terrain: 'frost',  place: 'The Spire',
-    medals: [{ tier: 90, grade: 'gold' }] },
-  { n: 13, at: 360, terrain: 'frost',  place: 'The Summit',
-    medals: [{ tier: 90, grade: 'diamond' }], level: 4 },
+  { n: 1,  at: 7,   terrain: 'meadow', place: 'First Camp',   grade: 'bronze',  level: 1 },
+  { n: 2,  at: 14,  terrain: 'meadow', place: 'The Crossing', grade: 'bronze' },
+  { n: 3,  at: 15,  terrain: 'meadow', place: 'Old Mill',     grade: 'bronze' },
+  { n: 4,  at: 21,  terrain: 'meadow', place: 'Riverbend',    grade: 'bronze' },
+  { n: 5,  at: 28,  terrain: 'forest', place: 'The Falls',    grade: 'bronze' },
+  { n: 6,  at: 30,  terrain: 'forest', place: 'Watchtower',   grade: 'silver',  level: 2 },
+  { n: 7,  at: 45,  terrain: 'forest', place: 'Hollow Pass',  grade: 'silver' },
+  { n: 8,  at: 60,  terrain: 'forest', place: 'Deepwood',     grade: 'silver' },
+  { n: 9,  at: 90,  terrain: 'ember',  place: 'Emberfall',    grade: 'gold',    level: 3 },
+  { n: 10, at: 120, terrain: 'ember',  place: 'The Forge',    grade: 'gold' },
+  { n: 11, at: 180, terrain: 'frost',  place: 'Snowline',     grade: 'gold' },
+  { n: 12, at: 270, terrain: 'frost',  place: 'The Spire',    grade: 'gold' },
+  { n: 13, at: 360, terrain: 'frost',  place: 'The Summit',   grade: 'diamond', level: 4 },
 ];
 
 export const TOP = MILESTONES[MILESTONES.length - 1].at;
 
-export function label(medal) {
-  return `${medal.tier} day ${medal.grade}`;
+/* "First Camp · Bronze" — a place and a grade, not a formula. */
+export function label(m) {
+  return `${m.place} · ${m.grade.charAt(0).toUpperCase()}${m.grade.slice(1)}`;
 }
 
 /* Where somebody is, from the number of days they have trained.
@@ -81,7 +82,7 @@ export function label(medal) {
      toGo        days until it
      level       1-4
      progress    0-1 between the last one and the next, for the path
-     medals      every medal earned, flattened
+     badges      one per place reached
 */
 export function journeyFrom(days) {
   const d = Math.max(0, Math.floor(Number(days) || 0));
@@ -101,7 +102,7 @@ export function journeyFrom(days) {
     toGo: next ? next.at - d : 0,
     level,
     progress: next ? (d - from) / (next.at - from) : 1,
-    medals: reached.flatMap((m) => m.medals.map((x) => ({ ...x, at: m.at, n: m.n }))),
+    badges: reached.map((m) => ({ n: m.n, at: m.at, place: m.place, grade: m.grade })),
     atTop: !next,
   };
 }

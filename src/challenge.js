@@ -11,6 +11,7 @@
    have already finished.
    --------------------------------------------------------------- */
 import { supabase } from './supabase';
+
 import { dayKey } from './challengeRules';
 import { analyse } from './rank';
 import { journeyFrom } from './journey';
@@ -31,13 +32,25 @@ export { dayKey, progress, message } from './challengeRules';
 export async function publishStats(userId) {
   const days = await allTrainedDays(userId);
   const a = analyse(days);
-  await supabase.from('profiles').update({
+  const row = {
     level: a.level,
     medals: a.medals,
     best_streak: a.longest,
+    days_trained: a.trained,
     current_streak: a.current,
     stats_at: new Date().toISOString(),
-  }).eq('id', userId);
+  };
+
+  const { error } = await supabase.from('profiles').update(row).eq('id', userId);
+
+  /* days_trained arrives with supabase-v8.sql. Until that has been
+     run the whole update is rejected for the one unknown column,
+     which would quietly stop publishing anything at all — so drop
+     it and write the rest rather than losing the lot. */
+  if (error && /days_trained/.test(error.message || '')) {
+    const { days_trained, ...older } = row;
+    await supabase.from('profiles').update(older).eq('id', userId);
+  }
   return a;
 }
 

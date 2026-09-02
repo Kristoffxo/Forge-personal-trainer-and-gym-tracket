@@ -14,10 +14,13 @@ const OUT = path.join(ROOT, 'assets', 'photos');
 fs.mkdirSync(OUT, { recursive: true });
 
 let total = 0;
-for (const [name, [id, aspect]] of Object.entries(PHOTOS)) {
+for (const [name, [id, aspect, note, crop]] of Object.entries(PHOTOS)) {
   const w = aspect > 1.5 ? 900 : 560;
   const h = Math.round(w / aspect);
-  const url = `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=68`;
+  /* A tall crop of a landscape photograph defaults to the middle,
+     which on a hillside shot is all sky. `crop` biases it. */
+  const url = `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=68`
+    + (crop ? `&crop=${crop}` : '');
   const file = path.join(OUT, name + '.jpg');
 
   execFileSync('curl', ['-sS', '-m', '30', '-A', 'Mozilla/5.0', '-o', file, url]);

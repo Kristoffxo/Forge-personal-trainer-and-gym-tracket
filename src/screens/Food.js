@@ -97,13 +97,21 @@ export default function Food({ user, profile, refreshKey, justAdded, onAdd }) {
               </View>
 
               {list.map((e) => (
-                <Press key={e.id} onLongPress={() => confirmRemove(e)} style={styles.row}>
+                /* The row used to be long-press-only. It animated under
+                   a tap and then did nothing, which reads as a broken
+                   button rather than as a hint — so removing is now a
+                   control you can see. Long press still works. */
+                <View key={e.id} style={styles.row}>
                   <View style={{ flex:1, paddingRight:S.md }}>
                     <Text style={styles.foodName} numberOfLines={2}>{e.name}</Text>
                     <Text style={T.tiny}>{e.portion}</Text>
                   </View>
                   <Text style={styles.foodKcal}>{Math.round(e.kcal)}</Text>
-                </Press>
+                  <Press onPress={() => confirmRemove(e)} onLongPress={() => confirmRemove(e)}
+                    hitSlop={14} scaleTo={0.85} style={styles.del}>
+                    <Text style={styles.delX}>{'\u00d7'}</Text>
+                  </Press>
+                </View>
               ))}
 
               <Press onPress={() => onAdd(meal.name)} scaleTo={0.97} style={styles.addBtn}>
@@ -116,7 +124,7 @@ export default function Food({ user, profile, refreshKey, justAdded, onAdd }) {
 
       {rows && rows.length > 0 ? (
         <Text style={[T.tiny, { textAlign:'center', marginTop:S.lg }]}>
-          {tr('Hold an item to remove it')}
+          {tr('Tap \u00d7 to remove an item')}
         </Text>
       ) : null}
     </ScrollView>
@@ -151,6 +159,9 @@ const makeStyles = (C, T) => StyleSheet.create({
         borderRadius:R.sm, padding:13, marginBottom:8 },
   foodName:{ fontFamily:'WorkSans_400Regular', fontSize:14.5, color:C.text },
   foodKcal:{ fontFamily:'WorkSans_600SemiBold', fontSize:20, color:C.amber },
+  del:{ marginLeft:10, width:26, height:26, borderRadius:13, alignItems:'center',
+        justifyContent:'center', backgroundColor:C.bg },
+  delX:{ fontFamily:'WorkSans_400Regular', fontSize:17, lineHeight:19, color:C.dim },
   addBtn:{ flexDirection:'row', alignItems:'center', paddingVertical:13, paddingHorizontal:13,
            borderRadius:R.sm, borderWidth:1.5, borderColor:C.line, borderStyle:'dashed' },
   addPlus:{ fontFamily:'WorkSans_500Medium', fontSize:18, color:C.amber, marginRight:10 },

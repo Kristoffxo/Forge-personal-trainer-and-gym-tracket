@@ -20,8 +20,8 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-nat
 import { S, R, useTheme } from '../theme';
 import { Press, FadeIn, Label, Bar, useTabPad } from '../ui/kit';
 import { useLang } from '../lang';
-import { MedalRow, RankCard } from '../ui/medals';
-import { TIERS, GRADE_COLOUR, gradeOf } from '../rank';
+import { BadgeRow, StandingCard } from '../ui/medals';
+import { MEDAL_COLOUR, journeyFrom } from '../journey';
 import { myStanding } from '../challenge';
 import { leaderboard } from '../social';
 
@@ -45,7 +45,7 @@ export default function Challenges({ user, onBack }) {
     return <View style={styles.boot}><ActivityIndicator color={C.violet} /></View>;
   }
 
-  const next = me.next;
+  const here = journeyFrom(me.trained);
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
@@ -55,58 +55,35 @@ export default function Challenges({ user, onBack }) {
         </Press>
         <Text style={styles.title}>{t('Challenges')}</Text>
         <Text style={[T.small, { marginTop: 2 }]}>
-          {t('Just train. The medals come to you.')}
+          {t('Just train. The badges come to you.')}
         </Text>
       </View>
 
       {/* where you stand */}
       <FadeIn style={{ padding: S.lg, paddingBottom: 0 }}>
-        <RankCard level={me.level} rank={me.rank}
-          current={me.current} longest={me.longest} accent={C.violet} />
+        <StandingCard days={me.trained} accent={C.violet} />
       </FadeIn>
 
-      {/* this week's free rest day */}
-      <FadeIn delay={40} style={{ paddingHorizontal: S.lg, marginTop: S.md }}>
-        <View style={[styles.rest, { borderColor: me.restUsedThisWeek ? C.amber : C.lime }]}>
-          <Text style={[styles.restIcon, { color: me.restUsedThisWeek ? C.amber : C.lime }]}>
-            {me.restUsedThisWeek ? '◑' : '●'}
-          </Text>
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={[T.bodyOn, { fontSize: 14.5 }]}>
-              {me.restUsedThisWeek
-                ? t('Rest day used this week')
-                : t('One free rest day left this week')}
-            </Text>
-            <Text style={T.tiny}>
-              {me.restUsedThisWeek
-                ? t('Miss another day before Monday and the streak resets.')
-                : t('Every week you get one day off that does not break your streak.')}
-            </Text>
-          </View>
-        </View>
-      </FadeIn>
-
-      {/* the four tiers */}
+      {/* the badges */}
       <FadeIn delay={70} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
-        <Label style={{ marginBottom: S.md }}>{t('Your medals')}</Label>
+        <Label style={{ marginBottom: S.md }}>{t('Your badges')}</Label>
         <View style={styles.medalBox}>
-          <MedalRow medals={me.medals} size={62} />
+          <BadgeRow days={me.trained} size={44} />
         </View>
 
-        {next ? (
+        {here.next ? (
           <View style={styles.nextBox}>
             <Text style={[T.small, { color: C.text }]}>
-              {next.daysToGo} {next.daysToGo === 1 ? t('day') : t('days')} {t('to')}{' '}
-              <Text style={{ color: GRADE_COLOUR[next.grade] }}>{t(next.grade)}</Text>
-              {' '}{t('at the')} {next.tier} {t('day tier')}
+              {here.toGo} {here.toGo === 1 ? t('day') : t('days')} {t('to')}{' '}
+              <Text style={{ color: MEDAL_COLOUR[here.next.grade] }}>{t(here.next.place)}</Text>
             </Text>
-            <Bar value={next.tier - next.daysToGo} max={next.tier}
-              color={GRADE_COLOUR[next.grade]} height={6} style={{ marginTop: S.sm }} />
+            <Bar value={here.progress} max={1}
+              color={MEDAL_COLOUR[here.next.grade]} height={6} style={{ marginTop: S.sm }} />
           </View>
         ) : (
           <View style={styles.nextBox}>
             <Text style={[T.small, { color: C.text }]}>
-              {t('Every medal earned. There is nothing left to win — only to keep.')}
+              {t('Every badge earned. Nothing left to win — only to keep.')}
             </Text>
           </View>
         )}
@@ -117,9 +94,9 @@ export default function Challenges({ user, onBack }) {
         <Label style={{ marginBottom: S.sm }}>{t('How it works')}</Label>
         {[
           t('Any workout counts — planner, gym or home.'),
-          t('7, 15, 30 and 90 days. Finish a tier four times for diamond.'),
-          t('One rest day a week is free. A second missed day resets the streak.'),
-          t('30 days unbroken is Level 2. 90 is Level 3. 360 is Level 4.'),
+          t('Every day you train adds one. Rest days take nothing away.'),
+          t('Thirteen places on the map, one badge each.'),
+          t('Day 30 is Level 2. Day 90 is Level 3. Day 360 is the summit.'),
         ].map((line, i) => (
           <View key={i} style={styles.ruleRow}>
             <Text style={[styles.ruleDot, { color: C.violet }]}>{'—'}</Text>
@@ -133,11 +110,11 @@ export default function Challenges({ user, onBack }) {
         <FadeIn delay={150} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
           <Label style={{ marginBottom: S.sm }}>{t('This month')}</Label>
           <Text style={[T.tiny, { marginBottom: S.sm }]}>
-            {t('Longest run wins. Top of the board at the end of the month gets a reward.')}
+            {t('Most days trained wins. Top of the board at the end of the month gets a reward.')}
           </Text>
           {board.map((p, i) => {
             const mine = p.id === user.id;
-            const g = gradeOf((p.medals || {})[90] || (p.medals || {})[30] || 0);
+            const grade = (journeyFrom(p.days_trained || 0).reached.slice(-1)[0] || {}).grade;
             return (
               <View key={p.id} style={[styles.boardRow, mine && { borderColor: C.violet }]}>
                 <Text style={[styles.place, i < 3 && { color: C.gold }]}>{i + 1}</Text>
@@ -145,8 +122,8 @@ export default function Challenges({ user, onBack }) {
                   {p.name}{mine ? ' ' + t('(you)') : ''}
                 </Text>
                 <Text style={[T.tiny, { marginRight: 8 }]}>{t('Level')} {p.level}</Text>
-                <Text style={[styles.boardStreak, g && { color: GRADE_COLOUR[g] }]}>
-                  {p.best_streak}
+                <Text style={[styles.boardStreak, grade && { color: MEDAL_COLOUR[grade] }]}>
+                  {p.days_trained || 0}
                 </Text>
               </View>
             );

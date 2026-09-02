@@ -38,6 +38,15 @@ export const PHOTOS = {
      straining at a machine, which is the wrong photograph to open a
      screen about cramp with. */
   calm: ['1590104872666-01ac8796ab87', 1.9, 'stretching at home'],
+
+  /* The four stretches of the Journey map. Portrait, because each
+     band is about 650pt tall on a phone and a landscape crop has to
+     be blown up three times over to fill one — which turns a
+     photograph into a smear of sky. */
+  't_meadow': ['1785268593240-c90cc929b1ca', 0.56, 'a footpath up a green hill', 'bottom'],
+  't_forest': ['1783410299649-90cc2defc4b7', 0.56, 'a fogged wood'],
+  't_ember':  ['1639152930550-4b18e9e461b6', 0.56, 'volcanic ash', 'bottom'],
+  't_frost':  ['1554176259-aa961fc32671', 0.56, 'a snow peak at night'],
 };
 
 /* ---------------------------------------------------------------

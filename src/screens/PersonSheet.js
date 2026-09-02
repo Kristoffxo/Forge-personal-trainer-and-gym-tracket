@@ -14,8 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { S, R, useTheme } from '../theme';
 import { Press } from '../ui/kit';
 import { useLang } from '../lang';
-import { MedalRow, RankCard } from '../ui/medals';
-import { rankOf } from '../rank';
+import { BadgeRow, StandingCard } from '../ui/medals';
 import { publicProfile } from '../social';
 
 export default function PersonSheet({ userId, name, onClose }) {
@@ -32,8 +31,6 @@ export default function PersonSheet({ userId, name, onClose }) {
     return () => { gone = true; };
   }, [userId]);
 
-  const medals = (who && who.medals) || {};
-  const rank = rankOf(medals);
 
   return (
     <Modal transparent visible animationType="slide" onRequestClose={onClose}>
@@ -61,11 +58,10 @@ export default function PersonSheet({ userId, name, onClose }) {
               <Text style={styles.who}>{who.name || name}</Text>
             </View>
 
-            <RankCard level={who.level} rank={rank}
-              current={who.current_streak} longest={who.best_streak} />
+            <StandingCard days={who.days_trained || 0} />
 
             <View style={styles.medals}>
-              <MedalRow medals={medals} size={56} />
+              <BadgeRow days={who.days_trained || 0} size={42} />
             </View>
           </>
         )}

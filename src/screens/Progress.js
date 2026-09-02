@@ -20,7 +20,7 @@ import { Card, Label, Btn, FadeIn, useCountUp, useTabPad } from '../ui/kit';
 import { loadRange, totals, todayKey } from '../diary';
 import { num } from '../num';
 import { useLang } from '../lang';
-import { RankCard, MedalRow } from '../ui/medals';
+import { StandingCard, BadgeRow } from '../ui/medals';
 import { myStanding } from '../challenge';
 
 const WKEY = 'nemea:weights';     // see the note in src/lang.js
@@ -138,10 +138,9 @@ export default function Progress({ user, profile }) {
     <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       {standing ? (
         <FadeIn>
-          <RankCard level={standing.level} rank={standing.rank}
-            current={standing.current} longest={standing.longest} />
+          <StandingCard days={standing.trained} />
           <View style={styles.medalBox}>
-            <MedalRow medals={standing.medals} size={56} />
+            <BadgeRow days={standing.trained} size={42} />
           </View>
         </FadeIn>
       ) : null}

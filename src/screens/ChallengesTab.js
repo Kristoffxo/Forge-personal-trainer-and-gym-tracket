@@ -15,13 +15,11 @@ import { S, R, useTheme } from '../theme';
 import { Press } from '../ui/kit';
 import { useLang } from '../lang';
 import Compete from './Compete';
-import Journey from './Journey';
 import Tools from './Tools';
 import Admin from './Admin';
 
 const PAGES = [
   { key: 'compete', label: 'Compete' },
-  { key: 'journey', label: 'Journey' },
   { key: 'numbers', label: 'Numbers' },
 ];
 
@@ -55,7 +53,6 @@ export default function ChallengesTab({ user, profile, onProfile }) {
 
       <View style={{ flex: 1 }}>
         {page === 'compete' ? <Compete user={user} profile={profile} />
-          : page === 'journey' ? <Journey user={user} profile={profile} />
             : page === 'admin' ? <Admin />
               : <Tools user={user} profile={profile} onProfile={onProfile} />}
       </View>

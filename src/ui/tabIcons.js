@@ -89,16 +89,25 @@ function Trophy({ c }) {
   );
 }
 
-/* Trainer — a person. */
-function Person({ c }) {
+/* Journey — a peak with a smaller one behind it. Two rotated squares
+   clipped by the box, which is cheaper than a path and reads as a
+   mountain at 20px, which is the only size it is ever drawn at. */
+function Peak({ c }) {
   return (
-    <View style={BOX}>
-      <View style={{ alignItems: 'center' }}>
-        <View style={{ width: 8.5, height: 8.5, borderRadius: 5, backgroundColor: c }} />
+    <View style={[BOX, { overflow: 'hidden', justifyContent: 'flex-end' }]}>
+      <View style={{ height: 15, width: 22, alignItems: 'center', justifyContent: 'flex-end' }}>
         <View style={{
-          width: 16, height: 9, marginTop: 2.5, backgroundColor: c,
-          borderTopLeftRadius: 8, borderTopRightRadius: 8,
+          position: 'absolute', left: 0, bottom: 0,
+          width: 12, height: 12, backgroundColor: c, opacity: 0.55,
+          transform: [{ rotate: '45deg' }, { translateY: 3 }],
         }} />
+        <View style={{
+          position: 'absolute', right: 1, bottom: 0,
+          width: 15, height: 15, backgroundColor: c,
+          transform: [{ rotate: '45deg' }, { translateY: 4 }],
+        }} />
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 4,
+                       backgroundColor: 'transparent' }} />
       </View>
     </View>
   );
@@ -109,7 +118,7 @@ export const TAB_ICON = {
   food: Leaf,
   feed: Compass,
   you: Trophy,
-  trainer: Person,
+  journey: Peak,
 };
 
 export function TabIcon({ name, colour }) {

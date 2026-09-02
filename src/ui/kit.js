@@ -54,7 +54,8 @@ export function Btn({ label, onPress, color, dark, disabled, busy, style, full =
   );
 }
 
-export function Press({ children, onPress, onLongPress, style, scaleTo = 0.98, disabled }) {
+export function Press({ children, onPress, onLongPress, style, scaleTo = 0.98, disabled,
+                        hitSlop = 8 }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
   const s = useRef(new Animated.Value(1)).current;
@@ -67,7 +68,12 @@ export function Press({ children, onPress, onLongPress, style, scaleTo = 0.98, d
      to nothing on Android, which distributes zero of an unknown
      height. That is why the Progress / Numbers / Settings switcher
      rendered as an empty coloured strip on a phone and read perfectly
-     in a browser. */
+     in a browser.
+
+     Everything gets 8px of slop by default. A row of small controls
+     laid out to look right is almost always laid out too tight to
+     hit with a thumb, and the misses read as a dead button rather
+     than as a near miss. */
   const flat = StyleSheet.flatten(style) || {};
   const { flex, flexGrow, flexShrink, flexBasis, alignSelf, ...inner } = flat;
   const outer = (flex !== undefined || alignSelf !== undefined
@@ -77,7 +83,7 @@ export function Press({ children, onPress, onLongPress, style, scaleTo = 0.98, d
 
   return (
     <Pressable onPress={onPress} onLongPress={onLongPress} disabled={disabled}
-      style={outer}
+      hitSlop={hitSlop} style={outer}
       onPressIn={() => to(scaleTo)} onPressOut={() => to(1)}>
       <Animated.View style={[inner, { transform:[{ scale:s }] }]}>{children}</Animated.View>
     </Pressable>

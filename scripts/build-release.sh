@@ -68,15 +68,26 @@ print('   signing config patched in')
 PY
 
 cd android
-echo "→ .aab for Play (every architecture, Google splits it per device)"
-./gradlew bundleRelease --no-daemon -q
-echo "→ .apk for sideloading (arm64 only, half the size)"
+
+#  The .apk is what you sideload and what you test with. The .aab is
+#  only for uploading to Play, takes twice as long to build, and a
+#  stale one sitting in the output folder is something you might
+#  upload by accident — so it is opt-in:
+#
+#    scripts/build-release.sh --aab
+#
+echo "→ .apk (arm64, half the size of a universal build)"
 ./gradlew assembleRelease --no-daemon -q -PreactNativeArchitectures=arm64-v8a
 
 mkdir -p "$OUT"
-cp app/build/outputs/bundle/release/app-release.aab "$OUT/reppo.aab"
 cp app/build/outputs/apk/release/app-release.apk "$OUT/reppo.apk"
+
+if [ "${1:-}" = "--aab" ]; then
+  echo "→ .aab for Play (every architecture, Google splits it per device)"
+  ./gradlew bundleRelease --no-daemon -q
+  cp app/build/outputs/bundle/release/app-release.aab "$OUT/reppo.aab"
+fi
 
 echo
 echo "Done:"
-ls -lh "$OUT"/reppo.aab "$OUT"/reppo.apk | awk '{print "  "$9"  "$5}'
+ls -lh "$OUT"/reppo.apk "$OUT"/reppo.aab 2>/dev/null | awk '{print "  "$9"  "$5}'

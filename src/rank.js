@@ -178,6 +178,11 @@ export function analyse(days, today) {
     ...r,
     medals,
     level,
+    /* The only number the journey cares about: how many days have
+       been trained, ever, in any order. Runs and streaks are still
+       computed above because the older screens read them, but this
+       is what drives the map and the badges. */
+    trained: new Set(days || []).size,
     rank: rankOf(medals),
     trainedToday: (days || []).includes(dayKey(today ? new Date(today) : undefined)),
     /* what the next medal needs */

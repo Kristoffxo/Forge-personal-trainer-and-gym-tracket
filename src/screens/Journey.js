@@ -100,7 +100,7 @@ export default function Journey({ user, profile }) {
 
           <View style={styles.mapTop}>
             <View style={styles.pill}>
-              <Text style={styles.pillTxt}>{me.days} {t('days trained')}</Text>
+              <Text style={styles.pillTxt}>{me.days} {t('days')}</Text>
             </View>
           </View>
         </View>
@@ -110,14 +110,14 @@ export default function Journey({ user, profile }) {
         <View style={{ padding: S.lg }}>
           <View style={styles.startCard}>
             <View style={styles.startHead}>
-              <Text style={styles.startTitle}>{t('Your Starting Point')}</Text>
+              <Text style={styles.startTitle}>{t('Start')}</Text>
               <Text style={T.tiny}>{t('Day')} 0</Text>
             </View>
             <Stat label={t('Weight')} value={start && start.weight_kg} unit="kg" C={C} T={T} />
             <Stat label={t('BMI')} value={start && start.bmi} unit="" C={C} T={T} />
             <Stat label={t('Muscle')} value={start && start.muscle_kg} unit="kg" C={C} T={T} />
             <Press
-              onPress={() => setOpen({ n: 0, at: 0, medals: [], place: 'Your Starting Point',
+              onPress={() => setOpen({ n: 0, at: 0, place: 'Your Starting Point',
                 terrain: 'meadow' })}
               scaleTo={0.97}>
               <Text style={[styles.startLink, { color: C.ember }]}>
@@ -128,20 +128,17 @@ export default function Journey({ user, profile }) {
 
           {me.next ? (
             <FadeIn>
-              <View style={[styles.next, { borderColor: MEDAL_COLOUR[me.next.medals[0].grade] }]}>
-                <Label style={{ color: MEDAL_COLOUR[me.next.medals[0].grade] }}>{t('Next')}</Label>
+              <View style={[styles.next, { borderColor: MEDAL_COLOUR[me.next.grade] }]}>
+                <Label style={{ color: MEDAL_COLOUR[me.next.grade] }}>{t('Next')}</Label>
                 <Text style={styles.nextName}>{t(me.next.place)}</Text>
-                <Text style={[T.small, { marginTop: 2 }]}>
-                  {me.next.medals.map((x) => `${x.tier} ${t('day')} ${t(x.grade)}`).join(' · ')}
-                </Text>
-                <Text style={[styles.nextGo, { color: MEDAL_COLOUR[me.next.medals[0].grade] }]}>
-                  {me.toGo === 1 ? t('1 more day of training') : `${me.toGo} ${t('more days of training')}`}
+                <Text style={[styles.nextGo, { color: MEDAL_COLOUR[me.next.grade] }]}>
+                  {me.toGo === 1 ? t('1 day to go') : `${me.toGo} ${t('days to go')}`}
                 </Text>
               </View>
             </FadeIn>
           ) : (
             <View style={[styles.next, { borderColor: C.lime }]}>
-              <Text style={styles.nextName}>{t('You reached the summit')}</Text>
+              <Text style={styles.nextName}>{t('Summit reached')}</Text>
             </View>
           )}
 
@@ -152,7 +149,7 @@ export default function Journey({ user, profile }) {
           <Press
             onPress={() => sheet.tell({
               title: t('How it works'),
-              message: t('Every day you train counts, in any order. Rest days take nothing away. Reach 360 days of training and you reach the summit — it does not matter whether that takes a year or three.'),
+              message: t('Every day you train counts. Rest days take nothing away. 360 training days reaches the summit, however long that takes.'),
             })}
             scaleTo={0.98} style={styles.rowBtn}>
             <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('How it works')}</Text>
@@ -190,8 +187,7 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
 
   const reached = milestone.n === 0 || days >= milestone.at;
   const terrain = terrainOf(milestone) || { accent: C.ember, sky: ['#16161B', '#0B0B0E'] };
-  const lead = milestone.medals[0];
-  const colour = lead ? MEDAL_COLOUR[lead.grade] : terrain.accent;
+  const colour = milestone.grade ? MEDAL_COLOUR[milestone.grade] : terrain.accent;
 
   const [weight, setWeight] = useState(entry && entry.weight_kg != null ? String(entry.weight_kg) : '');
   const [bmi, setBmi] = useState(entry && entry.bmi != null ? String(entry.bmi) : '');
@@ -233,13 +229,11 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
                 {milestone.n || '0'}
               </Text>
             </View>
-            {lead ? (
+            {milestone.grade ? (
               <View style={styles.mPlate}>
-                {milestone.medals.map((md) => (
-                  <Text key={md.tier + md.grade} style={[styles.mPlateTxt, { color: MEDAL_COLOUR[md.grade] }]}>
-                    {md.tier} {t('DAY')} {t(md.grade.toUpperCase())}
-                  </Text>
-                ))}
+                <Text style={[styles.mPlateTxt, { color: colour }]}>
+                  {t(milestone.grade.toUpperCase())}
+                </Text>
                 <Text style={styles.mPlateDay}>{t('Day')} {milestone.at}</Text>
               </View>
             ) : null}
@@ -253,10 +247,10 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
               ? t('Where you began.')
               : reached
                 ? t('Reached.')
-                : `${milestone.at - days} ${t('more days of training')}`}
+                : `${milestone.at - days} ${t('days to go')}`}
           </Text>
 
-          <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record your progress')}</Label>
+          <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record')}</Label>
           <Field label={t('Weight')} unit="kg" value={weight} onChange={setWeight} C={C} T={T} />
           <Field label={t('BMI')} unit="" value={bmi} onChange={setBmi} C={C} T={T} />
           <Field label={t('Muscle')} unit="kg" value={muscle} onChange={setMuscle} C={C} T={T} />
@@ -268,7 +262,7 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
             multiline maxLength={400} style={styles.noteBox}
           />
 
-          <Btn label={t('Save progress')} color={colour} busy={busy}
+          <Btn label={t('Save')} color={colour} busy={busy}
             onPress={save} style={{ marginTop: S.lg }} />
         </View>
       </ScrollView>
@@ -326,20 +320,17 @@ function ListView({ days, entries, onPick, onBack }) {
                 return (
                   <Press key={m.n} onPress={() => onPick(m)} scaleTo={0.985} style={styles.listRow}>
                     <View style={[styles.listMedal, {
-                      borderColor: MEDAL_COLOUR[m.medals[0].grade],
-                      backgroundColor: reached ? MEDAL_COLOUR[m.medals[0].grade] : 'transparent',
+                      borderColor: MEDAL_COLOUR[m.grade],
+                      backgroundColor: reached ? MEDAL_COLOUR[m.grade] : 'transparent',
                     }]}>
-                      <Text style={[styles.listNum, { color: reached ? '#0B0B0E' : MEDAL_COLOUR[m.medals[0].grade] }]}>
+                      <Text style={[styles.listNum, { color: reached ? '#0B0B0E' : MEDAL_COLOUR[m.grade] }]}>
                         {m.n}
                       </Text>
                     </View>
                     <View style={{ flex: 1, marginLeft: 12 }}>
-                      {m.medals.map((md) => (
-                        <Text key={md.tier + md.grade}
-                          style={[styles.listName, { color: reached ? C.text : C.dim }]}>
-                          {md.tier} {t('day')} <Text style={{ color: MEDAL_COLOUR[md.grade] }}>{t(md.grade)}</Text>
-                        </Text>
-                      ))}
+                      <Text style={[styles.listName, { color: reached ? C.text : C.dim }]}>
+                        {t(m.place)}
+                      </Text>
                       {e && e.weight_kg != null ? (
                         <Text style={T.tiny}>{e.weight_kg} kg</Text>
                       ) : null}

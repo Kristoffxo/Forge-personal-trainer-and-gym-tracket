@@ -1,95 +1,98 @@
 /* ---------------------------------------------------------------
-   Medals, levels and the line that names your rank.
+   Where somebody stands, and the badges they have.
 
-   Shared by the Challenges screen, your own profile and anybody
-   else's, so a medal looks the same wherever it turns up.
+   There used to be two answers to "how am I doing" living in the
+   same app: a streak-and-tier system with sixteen medals called
+   things like "15 day silver", and the journey map. They disagreed,
+   and the tier names meant nothing on their own — nobody could tell
+   you whether 15 day silver beat 30 day bronze.
+
+   There is one answer now. Days trained, in any order, place you
+   have reached on the map, one badge per place. Shared by the
+   Challenges screen, your own numbers and anybody else's profile,
+   so a badge looks the same wherever it turns up.
    --------------------------------------------------------------- */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { S, R, useTheme } from '../theme';
-import { TIERS, GRADES, GRADE_COLOUR, gradeOf, LEVEL_NAME } from '../rank';
+import { MILESTONES, MEDAL_COLOUR, journeyFrom } from '../journey';
 
-/* One tier's badge: the ring is the grade, the number is the length. */
-export function Medal({ tier, count, size = 62 }) {
+/* One badge: a disc in its grade colour, the place's number inside.
+   Earned ones are filled, the rest are outlines. */
+export function Badge({ milestone, earned, size = 44 }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
-  const grade = gradeOf(count || 0);
-  const colour = grade ? GRADE_COLOUR[grade] : C.line;
+  const colour = MEDAL_COLOUR[milestone.grade];
 
   return (
-    <View style={{ alignItems: 'center', width: size + 10 }}>
+    <View style={{ alignItems: 'center', width: size + 8 }}>
       <View style={[
         styles.disc,
         { width: size, height: size, borderRadius: size / 2, borderColor: colour },
-        grade ? { backgroundColor: colour + '1F' } : { opacity: 0.45 },
+        earned ? { backgroundColor: colour } : { opacity: 0.32 },
       ]}>
-        <Text style={[styles.discNum, { color: grade ? colour : C.faint, fontSize: size * 0.36 }]}>
-          {tier}
+        <Text style={[styles.discNum, {
+          color: earned ? '#0B0B0E' : colour, fontSize: size * 0.38,
+        }]}>
+          {milestone.n}
         </Text>
-        <Text style={[styles.discDay, { color: grade ? colour : C.faint }]}>day</Text>
       </View>
-
-      {/* four pips: how many of the four grades are in */}
-      <View style={styles.pips}>
-        {GRADES.map((g, i) => (
-          <View key={g} style={[
-            styles.pip,
-            { backgroundColor: i < (count || 0) ? GRADE_COLOUR[g] : C.line },
-          ]} />
-        ))}
-      </View>
-
-      <Text style={[styles.grade, { color: grade ? GRADE_COLOUR[grade] : C.faint }]}>
-        {grade ? grade : 'locked'}
-      </Text>
     </View>
   );
 }
 
-/* All four tiers in a row. */
-export function MedalRow({ medals, size = 62 }) {
+/* Every badge, wrapped. Thirteen of them fit three rows deep on a
+   phone, which is the whole set visible at once — the point being
+   that you can see how much is still to come. */
+export function BadgeRow({ days, size = 44 }) {
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-      {TIERS.map((tier) => (
-        <Medal key={tier} tier={tier} count={(medals || {})[tier] || 0} size={size} />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+      {MILESTONES.map((m) => (
+        <Badge key={m.n} milestone={m} earned={(days || 0) >= m.at} size={size} />
       ))}
     </View>
   );
 }
 
-/* The headline: level, rank, and the streak carrying them. */
-export function RankCard({ level, rank, current, longest, accent }) {
+/* The headline. Level, the place you are standing in, and the two
+   numbers that matter: days trained and badges held. */
+export function StandingCard({ days, accent }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
-  const unranked = !rank || rank.label === 'Unranked';
-  const colour = unranked ? C.faint : (GRADE_COLOUR[rank.grade] || accent || C.gold);
+  const j = journeyFrom(days || 0);
+  const here = j.reached[j.reached.length - 1] || null;
+  const colour = here ? MEDAL_COLOUR[here.grade] : (accent || C.faint);
 
   return (
     <View style={[styles.rank, { borderColor: colour }]}>
       <View style={[styles.levelChip, { backgroundColor: colour + '22', borderColor: colour }]}>
-        <Text style={[styles.levelTxt, { color: colour }]}>{LEVEL_NAME[level] || 'Level 1'}</Text>
+        <Text style={[styles.levelTxt, { color: colour }]}>
+          {j.level ? `LEVEL ${j.level}` : 'SETTING OUT'}
+        </Text>
       </View>
 
-      <Text style={[styles.rankTxt, { color: unranked ? C.dim : C.text }]}>
-        {unranked ? 'Unranked' : rank.label}
+      <Text style={[styles.rankTxt, { color: here ? C.text : C.dim }]}>
+        {here ? here.place : 'The Meadow'}
       </Text>
 
-      {unranked ? (
+      {j.next ? (
         <Text style={[T.small, { marginTop: 4 }]}>
-          Train seven days in a row for your first medal.
+          {j.toGo} {j.toGo === 1 ? 'day' : 'days'} to {j.next.place}
         </Text>
       ) : (
-        <View style={styles.streakRow}>
-          <View style={styles.streakBit}>
-            <Text style={[styles.streakNum, { color: colour }]}>{current}</Text>
-            <Text style={T.tiny}>day streak</Text>
-          </View>
-          <View style={styles.streakBit}>
-            <Text style={styles.streakNum}>{longest}</Text>
-            <Text style={T.tiny}>best ever</Text>
-          </View>
-        </View>
+        <Text style={[T.small, { marginTop: 4, color: colour }]}>The summit</Text>
       )}
+
+      <View style={styles.numRow}>
+        <View style={styles.numBit}>
+          <Text style={[styles.num, { color: colour }]}>{j.days}</Text>
+          <Text style={T.tiny}>days trained</Text>
+        </View>
+        <View style={styles.numBit}>
+          <Text style={styles.num}>{j.badges.length}</Text>
+          <Text style={T.tiny}>of {MILESTONES.length} badges</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -98,16 +101,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   disc: {
     borderWidth: 2.5, alignItems: 'center', justifyContent: 'center',
   },
-  discNum: { fontFamily: 'WorkSans_600SemiBold', lineHeight: 26 },
-  discDay: { fontFamily: 'WorkSans_400Regular', fontSize: 9, letterSpacing: 0.5, marginTop: -2 },
-
-  pips: { flexDirection: 'row', gap: 3, marginTop: 7 },
-  pip: { width: 8, height: 3, borderRadius: 2 },
-
-  grade: {
-    fontFamily: 'WorkSans_500Medium', fontSize: 9.5,
-    letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 5,
-  },
+  discNum: { fontFamily: 'WorkSans_600SemiBold' },
 
   rank: {
     backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
@@ -120,7 +114,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   levelTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 11, letterSpacing: 1 },
   rankTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, color: C.text },
 
-  streakRow: { flexDirection: 'row', gap: S.xl, marginTop: S.md },
-  streakBit: { alignItems: 'center' },
-  streakNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, color: C.text, lineHeight: 34 },
+  numRow: { flexDirection: 'row', gap: S.xl, marginTop: S.md },
+  numBit: { alignItems: 'center' },
+  num: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, color: C.text, lineHeight: 34 },
 });

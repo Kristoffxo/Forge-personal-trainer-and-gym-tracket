@@ -58,6 +58,63 @@ $$;
 
 grant execute on function public.days_trained() to authenticated;
 
+-- ------------------------------------------------------------
+--  3. The board ranks by days trained, not by longest run
+--
+--  Ranking people by their longest unbroken run rewards whoever
+--  most recently had a clear fortnight. Days trained rewards
+--  turning up, which is the thing the app is actually for, and it
+--  is the same number the journey map counts.
+-- ------------------------------------------------------------
+alter table public.profiles
+  add column if not exists days_trained integer not null default 0;
+
+create or replace function public.leaderboard(top integer default 20)
+returns table (
+  id             uuid,
+  name           text,
+  level          integer,
+  medals         jsonb,
+  best_streak    integer,
+  current_streak integer,
+  days_trained   integer
+)
+language sql security definer stable set search_path = public as $$
+  select p.id,
+         split_part(coalesce(nullif(trim(p.full_name), ''), 'Someone'), ' ', 1),
+         p.level, p.medals, p.best_streak, p.current_streak, p.days_trained
+    from public.profiles p
+   where auth.uid() is not null
+     and p.days_trained > 0
+   order by p.days_trained desc, p.created_at asc
+   limit greatest(1, least(coalesce(top, 20), 100))
+$$;
+
+grant execute on function public.leaderboard(integer) to authenticated;
+
+--  and the same number on somebody's profile card, or tapping a name
+--  on the board shows a journey with nothing in it
+create or replace function public.public_profile(uid uuid)
+returns table (
+  id             uuid,
+  name           text,
+  level          integer,
+  medals         jsonb,
+  best_streak    integer,
+  current_streak integer,
+  days_trained   integer
+)
+language sql security definer stable set search_path = public as $$
+  select p.id,
+         split_part(coalesce(nullif(trim(p.full_name), ''), 'Someone'), ' ', 1),
+         p.level, p.medals, p.best_streak, p.current_streak, p.days_trained
+    from public.profiles p
+   where auth.uid() is not null
+     and p.id = uid
+$$;
+
+grant execute on function public.public_profile(uuid) to authenticated;
+
 -- ============================================================
 --  Done.
 -- ============================================================

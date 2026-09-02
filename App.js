@@ -25,12 +25,17 @@ import Train    from './src/screens/Train';
 import Discover from './src/screens/Feed';
 import ChallengesTab from './src/screens/ChallengesTab';
 import Settings from './src/screens/Settings';
-import Trainer  from './src/screens/Trainer';
+import Journey  from './src/screens/Journey';
+
 import Onboarding from './src/screens/Onboarding';
 
-/* Four tabs, in the order they are used. Train is first because it
-   is what most days open the app for; You holds the things you set
-   once and check weekly. */
+/* Five tabs, in the order they are used. Train is first because it
+   is what most days open the app for. Journey is last and on its
+   own: it is the thing you scroll to look at rather than the thing
+   you came in to do, and burying it as a sub-tab of Challenges meant
+   nobody found it. The Trainer tab it replaces is gone for now —
+   there is no trainer to ask yet, and a tab that only says "coming
+   soon" is a tab that teaches people not to press it. */
 const TABS = [
   { key:'train', label:'Train', icon:'▲', colorKey:'ember',
     title:'Train',           sub:'Today’s workout' },
@@ -39,9 +44,9 @@ const TABS = [
   { key:'feed',  label:'Discover', icon:'◈', colorKey:'gold',
     title:'Discover',        sub:'How everyone is doing' },
   { key:'you',   label:'Challenges', icon:'✦', colorKey:'violet',
-    title:'Challenges',      sub:'Race, medals, numbers' },
-  { key:'trainer', label:'Trainer', icon:'✆', colorKey:'teal',
-    title:'Trainer',         sub:'Ask a real trainer' },
+    title:'Challenges',      sub:'Race and numbers' },
+  { key:'journey', label:'Journey', icon:'⛰', colorKey:'teal',
+    title:'Journey',         sub:'How far you have come' },
 ];
 
 /* Spell every edge out. react-native-safe-area-context's web SafeAreaView falls
@@ -216,8 +221,8 @@ function Root() {
                       onAdd={(meal) => setAdding(meal)} />
               ) : tab === 'feed' ? (
                 <Discover user={user} profile={profile} />
-              ) : tab === 'trainer' ? (
-                <Trainer />
+              ) : tab === 'journey' ? (
+                <Journey user={user} profile={profile} />
               ) : (
                 <ChallengesTab user={user} profile={profile} onProfile={setProfile} />
               )}

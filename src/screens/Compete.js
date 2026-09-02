@@ -198,7 +198,7 @@ export default function Compete({ user, profile }) {
               </View>
             ) : (
               <View style={styles.tiles}>
-                <Tile label={t('TARGET')} value={move.key === 'plank' ? t('Longest') : t('Max Reps')} C={C} T={T} />
+                <Tile label={t('TARGET')} value={t('Max Reps')} C={C} T={T} />
                 <Tile label={t('DURATION')} value={`${ROUND_SECONDS} ${t('Seconds')}`} C={C} T={T} />
                 <Tile label={t('COUNTING')}
                   value={watching ? t('Camera') : t('Tap')} C={C} T={T} />
