@@ -13,6 +13,7 @@
 import { supabase } from './supabase';
 import { dayKey } from './challengeRules';
 import { analyse } from './rank';
+import { journeyFrom } from './journey';
 
 export { dayKey, progress, message } from './challengeRules';
 
@@ -49,6 +50,54 @@ export async function allTrainedDays(userId) {
 /* Where you stand, without a round trip to anyone else. */
 export async function myStanding(userId) {
   return analyse(await allTrainedDays(userId));
+}
+
+/* ---------------------------------------------------------------
+   Where you are on the journey.
+
+   Counted in days trained, not days in a row. A gap takes nothing
+   away, which is why this reads the length of the list rather than
+   walking it looking for runs.
+   --------------------------------------------------------------- */
+export async function myJourney(userId) {
+  const days = await allTrainedDays(userId);
+  return { ...journeyFrom(days.length), trainedToday: days.includes(dayKey()) };
+}
+
+/* The measurements written at each place, keyed by milestone number.
+   Milestone 0 is the starting point. */
+export async function journeyEntries(userId) {
+  const { data, error } = await supabase
+    .from('journey_entries')
+    .select('*')
+    .eq('user_id', userId)
+    .order('milestone');
+  if (error) return {};
+  const out = {};
+  (data || []).forEach((r) => { out[r.milestone] = r; });
+  return out;
+}
+
+export async function saveJourneyEntry(userId, milestone, values) {
+  const row = {
+    user_id: userId,
+    milestone,
+    day_count: values.dayCount || 0,
+    weight_kg: values.weight === '' || values.weight == null ? null : Number(values.weight),
+    bmi: values.bmi === '' || values.bmi == null ? null : Number(values.bmi),
+    muscle_kg: values.muscle === '' || values.muscle == null ? null : Number(values.muscle),
+    note: (values.note || '').trim().slice(0, 400) || null,
+  };
+  const { error } = await supabase
+    .from('journey_entries')
+    .upsert(row, { onConflict: 'user_id,milestone' });
+  if (error) {
+    if (/does not exist|schema cache/i.test(error.message)) {
+      return { error: 'The journey is not set up on the database yet — run supabase-v8.sql.' };
+    }
+    return { error: error.message };
+  }
+  return { ok: true };
 }
 
 export async function markWorkout(userId, kind, name) {

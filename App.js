@@ -13,6 +13,7 @@ import { LangProvider, useLang } from './src/lang';
 import { Press } from './src/ui/kit';
 import { SheetProvider, useSheet } from './src/ui/sheet';
 import { Mark } from './src/ui/logo';
+import { TabIcon } from './src/ui/tabIcons';
 import { getSession, onAuthChange, getProfile } from './src/auth';
 import { useWebChrome } from './src/webChrome';
 import * as push from './src/push';
@@ -238,7 +239,7 @@ function Root() {
                 return (
                   <Press key={t.key} onPress={() => setTab(t.key)} scaleTo={0.9} style={styles.tab}>
                     <View style={[styles.iconWrap, on && { backgroundColor: c + '26' }]}>
-                      <Text style={[styles.icon, { color: on ? c : C.faint }]}>{t.icon}</Text>
+                      <TabIcon name={t.key} colour={on ? c : C.faint} />
                     </View>
                     <Text style={[styles.tabLabel,
                       { color: on ? c : C.faint,

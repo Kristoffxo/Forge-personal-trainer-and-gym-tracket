@@ -19,7 +19,7 @@
 -- ------------------------------------------------------------
 create table if not exists public.rounds (
   id          uuid primary key default gen_random_uuid(),
-  move        text not null check (move in ('pushups', 'squats')),
+  move        text not null check (move in ('pushups', 'squats', 'situps', 'plank', 'burpees')),
   seconds     integer not null default 60,
 
   a_id        uuid not null references auth.users on delete cascade,
@@ -74,7 +74,7 @@ returns public.rounds language plpgsql security definer set search_path = public
 declare
   found public.rounds;
 begin
-  if p_move not in ('pushups', 'squats') then
+  if p_move not in ('pushups', 'squats', 'situps', 'plank', 'burpees') then
     raise exception 'unknown move';
   end if;
 
@@ -154,6 +154,17 @@ returns void language sql security definer set search_path = public as $$
   delete from public.rounds
    where created_at < now() - interval '1 day';
 $$;
+
+-- ------------------------------------------------------------
+--  6. Running this a second time, after the moves widened
+--
+--  The check constraint was written when there were two exercises.
+--  Dropping and re-adding it is what lets an existing database take
+--  the other three.
+-- ------------------------------------------------------------
+alter table public.rounds drop constraint if exists rounds_move_check;
+alter table public.rounds add constraint rounds_move_check
+  check (move in ('pushups', 'squats', 'situps', 'plank', 'burpees'));
 
 -- ============================================================
 --  Done.

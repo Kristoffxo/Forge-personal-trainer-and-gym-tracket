@@ -55,7 +55,7 @@ export default function ChallengesTab({ user, profile, onProfile }) {
 
       <View style={{ flex: 1 }}>
         {page === 'compete' ? <Compete user={user} profile={profile} />
-          : page === 'journey' ? <Journey user={user} />
+          : page === 'journey' ? <Journey user={user} profile={profile} />
             : page === 'admin' ? <Admin />
               : <Tools user={user} profile={profile} onProfile={onProfile} />}
       </View>

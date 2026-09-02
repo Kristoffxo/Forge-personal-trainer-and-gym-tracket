@@ -1,208 +1,438 @@
 /* ---------------------------------------------------------------
-   The journey.
+   The Journey tab.
 
-   Where you are, what is next, and how far. Deliberately few words:
-   a ring that fills, the medal you are working towards, and the
-   sixteen of them laid out in order — the ones behind you filled in,
-   the ones ahead still outlines.
+   A map you climb, a card at each place where you write down what
+   you weighed when you got there, and a list for when you want the
+   whole thing at a glance.
 
-   Nothing here is a new number. src/rank.js already worked all of it
-   out from the days you trained; this screen only shows it.
+   The streak is gone from here entirely. Progress is the number of
+   days you have trained in this app, ever. Three hundred and sixty
+   of them reaches the summit whether that takes a year or three, and
+   a fortnight off takes nothing away — which is the difference
+   between a thing that rewards training and a thing that punishes
+   living.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, Animated, Easing, ActivityIndicator } from 'react-native';
+import {
+  View, Text, ScrollView, StyleSheet, TextInput, ActivityIndicator,
+  useWindowDimensions, KeyboardAvoidingView, Platform,
+} from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { FadeIn, Label, useTabPad } from '../ui/kit';
+import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
+import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
-import { myStanding } from '../challenge';
-import { TIERS, GRADES, GRADE_COLOUR, LEVEL_NAME } from '../rank';
-import { Ring } from '../ui/ring';
+import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
+import { MILESTONES, MEDAL_COLOUR, terrainOf, TOP } from '../journey';
+import { JourneyMap, MAP_HEIGHT } from '../ui/journeyMap';
 
-/* The four levels, by longest streak. Same numbers as src/rank.js. */
-const LEVELS = [
-  { level: 1, at: 0 },
-  { level: 2, at: 30 },
-  { level: 3, at: 90 },
-  { level: 4, at: 360 },
-];
-
-/* Every medal in the app, in the order they are earned: four grades
-   at each of the four tiers. `need` is how many complete runs of
-   that length it takes. */
-function allMedals() {
-  const out = [];
-  TIERS.forEach((tier) => {
-    GRADES.forEach((grade, i) => {
-      out.push({
-        key: tier + grade,
-        tier,
-        grade,
-        need: i + 1,
-        label: cap(grade) + ' · ' + tier + ' day',
-        days: tier * (i + 1),
-      });
-    });
-  });
-  return out.sort((a, b) => a.days - b.days);
-}
-const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-
-export default function Journey({ user }) {
+export default function Journey({ user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
+  const sheet = useSheet();
   const tabPad = useTabPad();
-  const [me, setMe] = useState(null);
+  const { width } = useWindowDimensions();
 
-  const load = useCallback(async () => { setMe(await myStanding(user.id)); }, [user.id]);
+  const [me, setMe] = useState(null);
+  const [entries, setEntries] = useState({});
+  const [open, setOpen] = useState(null);      // a milestone being read
+  const [list, setList] = useState(false);
+  const scroller = useRef(null);
+  const viewH = useRef(0);
+  const ready = useRef(false);
+  const placed = useRef(false);
+
+  /* Put the foot of the map on screen, once. */
+  const place = useCallback(() => {
+    if (placed.current || !ready.current || !viewH.current || !scroller.current) return;
+    placed.current = true;
+    scroller.current.scrollTo({
+      y: Math.max(0, MAP_HEIGHT - viewH.current + 56), animated: false,
+    });
+  }, []);
+
+  const load = useCallback(async () => {
+    setMe(await myJourney(user.id));
+    setEntries(await journeyEntries(user.id));
+  }, [user.id]);
   useEffect(() => { load(); }, [load]);
 
   if (!me) return <View style={styles.boot}><ActivityIndicator color={C.violet} /></View>;
 
-  const won = (m) => (me.medals[m.tier] || 0) >= m.need;
-  const medals = allMedals();
-  const behind = medals.filter(won);
-  const ahead = medals.filter((m) => !won(m));
+  const start = entries[0] || null;
 
-  /* level progress, on the longest streak ever run */
-  const here = LEVELS.filter((l) => me.longest >= l.at).pop() || LEVELS[0];
-  const nextLevel = LEVELS.find((l) => l.at > me.longest) || null;
-  const levelPct = nextLevel
-    ? (me.longest - here.at) / (nextLevel.at - here.at)
-    : 1;
-
-  const nextMedal = me.next
-    ? { colour: GRADE_COLOUR[me.next.grade],
-        label: cap(me.next.grade) + ' · ' + me.next.tier + ' day',
-        toGo: me.next.daysToGo }
-    : null;
+  if (open) {
+    return (
+      <Milestone
+        milestone={open}
+        days={me.days}
+        entry={entries[open.n]}
+        onBack={() => setOpen(null)}
+        onSaved={() => { setOpen(null); load(); }}
+        user={user}
+        profile={profile}
+      />
+    );
+  }
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
-      <FadeIn>
-        <View style={styles.hero}>
-          <Ring size={200} stroke={11} progress={Math.max(0.015, Math.min(1, levelPct))}
-            color={nextMedal ? nextMedal.colour : C.lime} track={C.line}>
-            <Text style={styles.big}>{me.current}</Text>
-            <Text style={T.tiny}>{t('day streak')}</Text>
-          </Ring>
-          <Text style={styles.rank}>{t(me.rank.label)}</Text>
-          <Text style={T.small}>
-            {t(LEVEL_NAME[me.level] || 'Level 1')}
-            {nextLevel ? ` · ${nextLevel.at - me.longest} ${t('to the next')}` : ''}
-          </Text>
+    <View style={{ flex: 1, backgroundColor: '#07070B' }}>
+      {/* Opens with the foot of the map on screen — where the journey
+          starts and where you are — and you climb from there. Not
+          scrollToEnd: that goes past the map to the cards underneath
+          it, and shows a map nobody has seen the start of. */}
+      <ScrollView
+        ref={scroller}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: tabPad }}
+        /* Both of these have to have happened before the scroll can be
+           worked out, and they do not fire in a fixed order — measuring
+           the content first leaves the height at zero and sends the map
+           right off the bottom. So either one triggers the attempt and
+           `place` does nothing until it has both. */
+        onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; place(); }}
+        onContentSizeChange={() => { ready.current = true; place(); }}
+      >
+        {/* the map, tallest at the bottom — you climb it */}
+        <View style={{ width, height: MAP_HEIGHT }}>
+          <JourneyMap width={width} days={me.days} onPick={setOpen} />
+
+          <View style={styles.mapTop}>
+            <View style={styles.pill}>
+              <Text style={styles.pillTxt}>{me.days} {t('days trained')}</Text>
+            </View>
+          </View>
         </View>
-      </FadeIn>
 
-      {nextMedal ? (
-        <FadeIn delay={40}>
-          <View style={[styles.nextCard, { borderColor: nextMedal.colour }]}>
-            <Label style={{ color: nextMedal.colour }}>{t('Next medal')}</Label>
-            <Text style={styles.nextName}>{nextMedal.label}</Text>
-            <Bar value={me.next.tier - nextMedal.toGo} max={me.next.tier}
-              colour={nextMedal.colour} C={C} />
-            <Text style={[T.small, { marginTop: 10 }]}>
-              {nextMedal.toGo === 1
-                ? t('1 more day')
-                : `${nextMedal.toGo} ${t('more days')}`}
-            </Text>
+        {/* Under the map. The starting point used to sit on top of it
+            and covered whichever milestone happened to be behind it. */}
+        <View style={{ padding: S.lg }}>
+          <View style={styles.startCard}>
+            <View style={styles.startHead}>
+              <Text style={styles.startTitle}>{t('Your Starting Point')}</Text>
+              <Text style={T.tiny}>{t('Day')} 0</Text>
+            </View>
+            <Stat label={t('Weight')} value={start && start.weight_kg} unit="kg" C={C} T={T} />
+            <Stat label={t('BMI')} value={start && start.bmi} unit="" C={C} T={T} />
+            <Stat label={t('Muscle')} value={start && start.muscle_kg} unit="kg" C={C} T={T} />
+            <Press
+              onPress={() => setOpen({ n: 0, at: 0, medals: [], place: 'Your Starting Point',
+                terrain: 'meadow' })}
+              scaleTo={0.97}>
+              <Text style={[styles.startLink, { color: C.ember }]}>
+                {start ? t('Change it') : t('Set it')}
+              </Text>
+            </Press>
           </View>
-        </FadeIn>
-      ) : (
-        <FadeIn delay={40}>
-          <View style={[styles.nextCard, { borderColor: C.lime }]}>
-            <Text style={styles.nextName}>{t('Every medal is yours')}</Text>
-          </View>
-        </FadeIn>
-      )}
 
-      <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Ahead')}</Label>
-      {ahead.length ? ahead.slice(0, 6).map((m, i) => (
-        <FadeIn key={m.key} delay={i * 22} from={6}>
-          <Row m={m} styles={styles} C={C} T={T} t={t} />
-        </FadeIn>
-      )) : (
-        <Text style={T.small}>{t('Nothing left to earn.')}</Text>
-      )}
-
-      {behind.length ? (
-        <>
-          <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Behind you')}</Label>
-          {behind.slice().reverse().map((m, i) => (
-            <FadeIn key={m.key} delay={i * 20} from={6}>
-              <Row m={m} won styles={styles} C={C} T={T} t={t} />
+          {me.next ? (
+            <FadeIn>
+              <View style={[styles.next, { borderColor: MEDAL_COLOUR[me.next.medals[0].grade] }]}>
+                <Label style={{ color: MEDAL_COLOUR[me.next.medals[0].grade] }}>{t('Next')}</Label>
+                <Text style={styles.nextName}>{t(me.next.place)}</Text>
+                <Text style={[T.small, { marginTop: 2 }]}>
+                  {me.next.medals.map((x) => `${x.tier} ${t('day')} ${t(x.grade)}`).join(' · ')}
+                </Text>
+                <Text style={[styles.nextGo, { color: MEDAL_COLOUR[me.next.medals[0].grade] }]}>
+                  {me.toGo === 1 ? t('1 more day of training') : `${me.toGo} ${t('more days of training')}`}
+                </Text>
+              </View>
             </FadeIn>
-          ))}
-        </>
-      ) : (
-        <Text style={[T.tiny, { marginTop: S.md }]}>
-          {t('Train seven days in a row for the first one.')}
-        </Text>
-      )}
-    </ScrollView>
-  );
-}
+          ) : (
+            <View style={[styles.next, { borderColor: C.lime }]}>
+              <Text style={styles.nextName}>{t('You reached the summit')}</Text>
+            </View>
+          )}
 
-function Row({ m, won, styles, C, T, t }) {
-  const colour = GRADE_COLOUR[m.grade];
-  return (
-    <View style={[styles.row, won && { borderColor: colour }]}>
-      <View style={[styles.dot, {
-        borderColor: colour,
-        backgroundColor: won ? colour : 'transparent',
-      }]} />
-      <Text style={[styles.rowName, won && { color: C.text }]}>{m.label}</Text>
-      <View style={{ flex: 1 }} />
-      <Text style={T.tiny}>{won ? t('earned') : `${m.days} ${t('days')}`}</Text>
+          <Press onPress={() => setList(true)} scaleTo={0.98} style={styles.rowBtn}>
+            <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('List view')}</Text>
+            <Text style={{ color: C.dim }}>{'›'}</Text>
+          </Press>
+          <Press
+            onPress={() => sheet.tell({
+              title: t('How it works'),
+              message: t('Every day you train counts, in any order. Rest days take nothing away. Reach 360 days of training and you reach the summit — it does not matter whether that takes a year or three.'),
+            })}
+            scaleTo={0.98} style={styles.rowBtn}>
+            <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('How it works')}</Text>
+            <Text style={{ color: C.dim }}>{'›'}</Text>
+          </Press>
+        </View>
+      </ScrollView>
+
+      {list ? <ListView days={me.days} entries={entries}
+        onPick={(m) => { setList(false); setOpen(m); }} onBack={() => setList(false)} /> : null}
     </View>
   );
 }
 
-/* Fills once, on arrival. */
-function Bar({ value, max, colour, C }) {
-  const a = useRef(new Animated.Value(0)).current;
-  const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
-  useEffect(() => {
-    Animated.timing(a, {
-      toValue: pct, duration: 760, delay: 140,
-      easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: false,
-    }).start();
-  }, [pct, a]);
-
+function Stat({ label, value, unit, C, T }) {
   return (
-    <View style={styles0(C).track}>
-      <Animated.View style={[styles0(C).fill, {
-        backgroundColor: colour,
-        width: a.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
-      }]} />
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 7 }}>
+      <Text style={[T.small, { flex: 1 }]}>{label}</Text>
+      <Text style={{ fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: C.text }}>
+        {value == null ? '—' : `${value}${unit ? ' ' + unit : ''}`}
+      </Text>
     </View>
   );
 }
-const styles0 = (C) => ({
-  track: { height: 8, borderRadius: 4, backgroundColor: C.line, marginTop: 14, overflow: 'hidden' },
-  fill: { height: 8, borderRadius: 4 },
-});
+
+/* ---------------------------------------------------------------
+   One place, and what you weighed when you got there.
+   --------------------------------------------------------------- */
+function Milestone({ milestone, days, entry, onBack, onSaved, user }) {
+  const { C, T } = useTheme();
+  const { t } = useLang();
+  const styles = makeStyles(C, T);
+  const sheet = useSheet();
+  const tabPad = useTabPad();
+
+  const reached = milestone.n === 0 || days >= milestone.at;
+  const terrain = terrainOf(milestone) || { accent: C.ember, sky: ['#16161B', '#0B0B0E'] };
+  const lead = milestone.medals[0];
+  const colour = lead ? MEDAL_COLOUR[lead.grade] : terrain.accent;
+
+  const [weight, setWeight] = useState(entry && entry.weight_kg != null ? String(entry.weight_kg) : '');
+  const [bmi, setBmi] = useState(entry && entry.bmi != null ? String(entry.bmi) : '');
+  const [muscle, setMuscle] = useState(entry && entry.muscle_kg != null ? String(entry.muscle_kg) : '');
+  const [note, setNote] = useState((entry && entry.note) || '');
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    setBusy(true);
+    const r = await saveJourneyEntry(user.id, milestone.n, {
+      dayCount: days, weight, bmi, muscle, note,
+    });
+    setBusy(false);
+    if (r.error) { await sheet.tell({ title: t('Could not save'), message: r.error }); return; }
+    onSaved();
+  }
+
+  return (
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.bg }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={{ paddingBottom: tabPad }} keyboardShouldPersistTaps="handled">
+
+        <View style={{ height: 232 }}>
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: terrain.sky[0] }]} />
+          <View style={[styles.hill, { backgroundColor: terrain.ground ? terrain.ground[0] : '#1A2712' }]} />
+
+          <View style={styles.mHead}>
+            <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
+              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Map')}</Text>
+            </Press>
+          </View>
+
+          <View style={styles.mCentre}>
+            <View style={[styles.mMedal, {
+              borderColor: colour,
+              backgroundColor: reached ? colour : 'rgba(8,8,12,0.7)',
+            }]}>
+              <Text style={[styles.mMedalNum, { color: reached ? '#0B0B0E' : colour }]}>
+                {milestone.n || '0'}
+              </Text>
+            </View>
+            {lead ? (
+              <View style={styles.mPlate}>
+                {milestone.medals.map((md) => (
+                  <Text key={md.tier + md.grade} style={[styles.mPlateTxt, { color: MEDAL_COLOUR[md.grade] }]}>
+                    {md.tier} {t('DAY')} {t(md.grade.toUpperCase())}
+                  </Text>
+                ))}
+                <Text style={styles.mPlateDay}>{t('Day')} {milestone.at}</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={{ padding: S.lg }}>
+          <Text style={styles.mPlace}>{t(milestone.place)}</Text>
+          <Text style={[T.small, { marginTop: 2 }]}>
+            {milestone.n === 0
+              ? t('Where you began.')
+              : reached
+                ? t('Reached.')
+                : `${milestone.at - days} ${t('more days of training')}`}
+          </Text>
+
+          <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record your progress')}</Label>
+          <Field label={t('Weight')} unit="kg" value={weight} onChange={setWeight} C={C} T={T} />
+          <Field label={t('BMI')} unit="" value={bmi} onChange={setBmi} C={C} T={T} />
+          <Field label={t('Muscle')} unit="kg" value={muscle} onChange={setMuscle} C={C} T={T} />
+
+          <Label style={{ marginTop: S.md, marginBottom: 6 }}>{t('Notes')}</Label>
+          <TextInput
+            value={note} onChangeText={setNote}
+            placeholder={t('How are you feeling?')} placeholderTextColor={C.faint}
+            multiline maxLength={400} style={styles.noteBox}
+          />
+
+          <Btn label={t('Save progress')} color={colour} busy={busy}
+            onPress={save} style={{ marginTop: S.lg }} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function Field({ label, unit, value, onChange, C, T }) {
+  const styles = makeStyles(C, T);
+  return (
+    <View style={styles.field}>
+      <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{label}</Text>
+      <TextInput
+        value={value} onChangeText={onChange}
+        keyboardType="decimal-pad" placeholder="—" placeholderTextColor={C.faint}
+        style={styles.fieldInput}
+      />
+      {unit ? <Text style={[T.tiny, { width: 22 }]}>{unit}</Text> : <View style={{ width: 22 }} />}
+    </View>
+  );
+}
+
+/* ---------------------------------------------------------------
+   The same thirteen places, as a list, grouped by level.
+   --------------------------------------------------------------- */
+function ListView({ days, entries, onPick, onBack }) {
+  const { C, T } = useTheme();
+  const { t } = useLang();
+  const styles = makeStyles(C, T);
+  const tabPad = useTabPad();
+
+  const levels = [1, 2, 3, 4];
+  const endOf = { 1: 5, 2: 8, 3: 12, 4: 13 };
+  const startOf = { 1: 1, 2: 6, 3: 9, 4: 13 };
+
+  return (
+    <View style={styles.overlay}>
+      <View style={styles.listHead}>
+        <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
+          <Text style={[T.small, { color: C.ember }]}>{'←'} {t('Map')}</Text>
+        </Press>
+        <Text style={styles.listTitle}>{t('Journey')}</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
+        {levels.map((lv) => {
+          const rows = MILESTONES.filter((m) => m.n >= startOf[lv] && m.n <= endOf[lv]);
+          if (!rows.length) return null;
+          return (
+            <View key={lv} style={{ marginBottom: S.lg }}>
+              <Label style={{ marginBottom: S.sm }}>{t('Level')} {lv}</Label>
+              {rows.map((m) => {
+                const reached = days >= m.at;
+                const e = entries[m.n];
+                return (
+                  <Press key={m.n} onPress={() => onPick(m)} scaleTo={0.985} style={styles.listRow}>
+                    <View style={[styles.listMedal, {
+                      borderColor: MEDAL_COLOUR[m.medals[0].grade],
+                      backgroundColor: reached ? MEDAL_COLOUR[m.medals[0].grade] : 'transparent',
+                    }]}>
+                      <Text style={[styles.listNum, { color: reached ? '#0B0B0E' : MEDAL_COLOUR[m.medals[0].grade] }]}>
+                        {m.n}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      {m.medals.map((md) => (
+                        <Text key={md.tier + md.grade}
+                          style={[styles.listName, { color: reached ? C.text : C.dim }]}>
+                          {md.tier} {t('day')} <Text style={{ color: MEDAL_COLOUR[md.grade] }}>{t(md.grade)}</Text>
+                        </Text>
+                      ))}
+                      {e && e.weight_kg != null ? (
+                        <Text style={T.tiny}>{e.weight_kg} kg</Text>
+                      ) : null}
+                    </View>
+                    <Text style={T.tiny}>{t('Day')} {m.at}</Text>
+                    <Text style={{ color: C.faint, marginLeft: 8 }}>{'›'}</Text>
+                  </Press>
+                );
+              })}
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
 
 const makeStyles = (C, T) => StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: C.bg },
   boot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
 
-  hero: { alignItems: 'center', paddingTop: S.sm },
-  big: { fontFamily: 'WorkSans_600SemiBold', fontSize: 56, lineHeight: 60, color: C.text },
-  rank: { fontFamily: 'WorkSans_600SemiBold', fontSize: 25, color: C.text, marginTop: S.md },
-
-  nextCard: {
+  startCard: {
     backgroundColor: C.surface, borderRadius: R.md, padding: S.md,
-    borderWidth: 1.5, marginTop: S.xl,
+    borderWidth: 1, borderColor: C.line, marginBottom: S.md,
   },
-  nextName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 22, color: C.text, marginTop: 4 },
+  startHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  startTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13.5, color: C.text, flex: 1 },
+  startLink: { fontFamily: 'WorkSans_500Medium', fontSize: 13, marginTop: 10 },
 
-  row: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
-    borderRadius: R.sm, padding: S.md, marginBottom: 8,
-    borderWidth: 1, borderColor: 'transparent',
+  mapTop: { position: 'absolute', right: S.md, bottom: S.md, alignItems: 'flex-end' },
+  pill: {
+    backgroundColor: 'rgba(8,8,12,0.84)', borderRadius: 999,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
-  dot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, marginRight: 12 },
-  rowName: { fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.dim },
+  pillTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13, color: '#fff' },
+
+  next: { backgroundColor: C.surface, borderRadius: R.md, padding: S.md, borderWidth: 1.5 },
+  nextName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 22, color: C.text, marginTop: 4 },
+  nextGo: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, marginTop: 10 },
+
+  rowBtn: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.md, padding: S.md, marginTop: S.sm,
+  },
+
+  /* one place */
+  hill: {
+    position: 'absolute', left: -80, right: -80, bottom: -140,
+    height: 260, borderRadius: 400,
+  },
+  mHead: { position: 'absolute', left: S.lg, top: S.md },
+  mCentre: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 18 },
+  mMedal: {
+    width: 78, height: 78, borderRadius: 39, borderWidth: 3,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  mMedalNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30 },
+  mPlate: {
+    marginTop: 10, backgroundColor: 'rgba(8,8,12,0.82)', borderRadius: 9,
+    paddingHorizontal: 12, paddingVertical: 7, alignItems: 'center',
+  },
+  mPlateTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 11, letterSpacing: 0.6 },
+  mPlateDay: { fontFamily: 'WorkSans_400Regular', fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 1 },
+  mPlace: { fontFamily: 'WorkSans_600SemiBold', fontSize: 28, lineHeight: 33, color: C.text },
+
+  field: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.md, paddingHorizontal: S.md, paddingVertical: 4, marginBottom: 9,
+  },
+  fieldInput: {
+    width: 86, textAlign: 'right', paddingVertical: 12,
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: C.text,
+  },
+  noteBox: {
+    backgroundColor: C.surface, borderRadius: R.md, padding: S.md, minHeight: 74,
+    fontFamily: 'WorkSans_400Regular', fontSize: 15, color: C.text, textAlignVertical: 'top',
+  },
+
+  /* the list */
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: C.bg },
+  listHead: {
+    paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.md,
+    backgroundColor: C.surface,
+  },
+  listTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 27, color: C.text, marginTop: 6 },
+  listRow: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.md, padding: S.sm, marginBottom: 8,
+  },
+  listMedal: {
+    width: 40, height: 40, borderRadius: 20, borderWidth: 2,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  listNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 16 },
+  listName: { fontFamily: 'WorkSans_500Medium', fontSize: 14 },
 });

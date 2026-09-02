@@ -16,10 +16,26 @@
    --------------------------------------------------------------- */
 import { supabase } from './supabase';
 
+/* The five you can race on. Push-ups and squats are counted from the
+   camera where the camera can be read; the other three are counted by
+   hand, and the screen says which is which rather than leaving you to
+   find out at the end of a minute. */
 export const MOVES = [
-  { key: 'pushups', name: 'Push-ups', hint: 'Phone on the floor, propped against something.' },
-  { key: 'squats', name: 'Squats', hint: 'Phone against a wall, a few steps back.' },
+  { key: 'pushups', name: 'Push-ups', demo: 'Push-up',
+    hint: 'Phone on the floor, propped up.', camera: true },
+  { key: 'squats', name: 'Squats', demo: 'Bodyweight Squat',
+    hint: 'Phone against a wall, a few steps back.', camera: true },
+  { key: 'situps', name: 'Sit-ups', demo: 'Air Bike',
+    hint: 'Phone beside you, on the floor.', camera: false },
+  { key: 'plank', name: 'Plank', demo: 'Plank',
+    hint: 'Hold it. Longest wins.', camera: false },
+  { key: 'burpees', name: 'Burpees', demo: 'Mountain Climber',
+    hint: 'Give yourself room.', camera: false },
 ];
+
+export function moveByKey(key) {
+  return MOVES.find((m) => m.key === key) || MOVES[0];
+}
 
 export const ROUND_SECONDS = 60;
 

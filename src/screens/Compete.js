@@ -1,28 +1,34 @@
 /* ---------------------------------------------------------------
    Compete.
 
-   Sixty seconds against somebody else who is doing it right now.
-   Both scores are on both screens the whole time.
+   Sixty seconds against somebody else who is doing the same thing at
+   the same moment, with both scores on both screens the whole way.
 
-   Reps are counted from the camera where the camera can be read —
-   MediaPipe's pose landmarker, running on the phone, feeding
-   src/pose.js. Where it cannot, they are tapped, and the screen says
-   which one it is doing rather than leaving you to wonder whether it
-   is watching.
+   The counting is honest about itself. Push-ups and squats are read
+   from the camera where the camera can be read — MediaPipe feeding
+   src/pose.js — and everything else is tapped. The screen says which
+   one it is doing before the minute starts rather than after.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Vibration, Platform } from 'react-native';
+import {
+  View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Vibration, Platform,
+} from 'react-native';
 
 import { S, R, useTheme } from '../theme';
 import { Btn, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
+import { Ring } from '../ui/ring';
+import {
+  MOVES, ROUND_SECONDS, joinRound, sendScore, leaveRound, watchRound, sidesOf,
+} from '../compete';
+import { makeCounter } from '../pose';
+import { poseAvailable } from '../ui/poseCam';
+import { PoseView } from '../ui/poseView';
 import { framesFor } from '../exercisePhotos';
 import { photoForMuscle } from '../photos';
-import { MOVES, ROUND_SECONDS, joinRound, sendScore, leaveRound, watchRound, sidesOf } from '../compete';
-import { makeCounter } from '../pose';
-import { poseAvailable, startPose } from '../ui/poseCam';
-import { PoseView } from '../ui/poseView';
+
+const demoOf = (m) => (framesFor({ n: m.demo }) || [photoForMuscle('Chest')])[0];
 
 export default function Compete({ user, profile }) {
   const { C, T } = useTheme();
@@ -31,49 +37,40 @@ export default function Compete({ user, profile }) {
   const sheet = useSheet();
   const tabPad = useTabPad();
 
-  const [move, setMove] = useState(null);      // chosen exercise
-  const [round, setRound] = useState(null);    // the row
+  const [move, setMove] = useState(MOVES[0]);
+  const [picking, setPicking] = useState(false);
+  const [round, setRound] = useState(null);
   const [busy, setBusy] = useState(false);
   const [score, setScore] = useState(0);
   const [left, setLeft] = useState(ROUND_SECONDS);
-  const [phase, setPhase] = useState('idle');  // idle | waiting | running | over
+  const [phase, setPhase] = useState('idle');   // idle | waiting | running | over
+  const [seeing, setSeeing] = useState(false);
 
   const endsAt = useRef(0);
   const pending = useRef(0);
   const roundId = useRef(null);
-
-  /* the camera counter, when there is one */
-  const [seeing, setSeeing] = useState(false);      // body in frame
   const counter = useRef(null);
-  const canWatch = poseAvailable();
+
+  const watching = poseAvailable() && move.camera;
 
   const onPose = useCallback((pts, tMs) => {
     if (!counter.current) return;
     const r = counter.current.push(pts, tMs);
     setSeeing(r.visible);
-    if (r.counted) {
-      pending.current = r.reps;
-      setScore(r.reps);
-    }
+    if (r.counted) { pending.current = r.reps; setScore(r.reps); }
   }, []);
 
-  /* ---- watch the other side ---- */
   useEffect(() => {
     if (!round) return undefined;
     roundId.current = round.id;
     return watchRound(round.id, (row) => setRound((old) => (old && old.id === row.id ? row : old)));
   }, [round && round.id]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ---- the moment somebody joins, the clock starts ---- */
   useEffect(() => {
     if (!round || phase !== 'waiting') return;
-    if (round.b_id) {
-      endsAt.current = Date.now() + ROUND_SECONDS * 1000;
-      setPhase('running');
-    }
+    if (round.b_id) { endsAt.current = Date.now() + ROUND_SECONDS * 1000; setPhase('running'); }
   }, [round, phase]);
 
-  /* ---- the clock ---- */
   useEffect(() => {
     if (phase !== 'running') return undefined;
     const id = setInterval(() => {
@@ -89,7 +86,6 @@ export default function Compete({ user, profile }) {
     return () => clearInterval(id);
   }, [phase]);
 
-  /* ---- push the score, at most twice a second ---- */
   useEffect(() => {
     if (phase !== 'running') return undefined;
     const id = setInterval(() => {
@@ -98,151 +94,210 @@ export default function Compete({ user, profile }) {
     return () => clearInterval(id);
   }, [phase]);
 
-  const start = useCallback(async (m) => {
+  const start = useCallback(async () => {
     setBusy(true);
-    const r = await joinRound(m.key, (profile && profile.full_name) || '');
+    const r = await joinRound(move.key, (profile && profile.full_name) || '');
     setBusy(false);
     if (r.error) { await sheet.tell({ title: t('Could not start'), message: r.error }); return; }
 
-    setMove(m);
-    setScore(0);
-    pending.current = 0;
-    counter.current = canWatch ? makeCounter(m.key) : null;
-    setLeft(ROUND_SECONDS);
+    setScore(0); pending.current = 0; setLeft(ROUND_SECONDS);
+    counter.current = watching ? makeCounter(move.key) : null;
     setRound(r.round);
 
-    if (r.round.b_id) {
-      endsAt.current = Date.now() + ROUND_SECONDS * 1000;
-      setPhase('running');
-    } else {
-      setPhase('waiting');
-    }
-  }, [profile, sheet, t]);
+    if (r.round.b_id) { endsAt.current = Date.now() + ROUND_SECONDS * 1000; setPhase('running'); }
+    else setPhase('waiting');
+  }, [move, profile, sheet, t, watching]);
 
   function tap() {
-    if (phase !== 'running' || canWatch) return;
+    if (phase !== 'running' || watching) return;
     pending.current += 1;
     setScore(pending.current);
   }
 
   async function quit() {
     if (round && phase === 'waiting') await leaveRound(round.id);
-    setRound(null); setMove(null); setPhase('idle'); setScore(0);
-    pending.current = 0;
+    setRound(null); setPhase('idle'); setScore(0); pending.current = 0; setLeft(ROUND_SECONDS);
   }
 
-  /* ---------- pick an exercise ---------- */
-  if (phase === 'idle') {
+  const side = round ? sidesOf(round, user.id) : null;
+  const them = side ? side.theirScore : 0;
+
+  /* ---------- before the round ---------- */
+  if (phase === 'idle' || phase === 'waiting') {
+    const waiting = phase === 'waiting';
     return (
       <View style={[styles.wrap, { paddingBottom: tabPad }]}>
         <FadeIn style={{ padding: S.lg }}>
-          <Text style={styles.h1}>{t('One minute. Someone else.')}</Text>
-          <Text style={[T.small, { marginTop: 6 }]}>
-            {t('Pick one. You are matched with whoever is waiting.')}
-          </Text>
+          <View style={styles.card}>
+            <Text style={styles.h1}>
+              <Text style={{ color: C.violet }}>{t('You')}</Text> {t('vs All')}
+            </Text>
+            <Text style={[T.small, styles.centre]}>
+              {ROUND_SECONDS} {t('seconds, who can do max reps?')}
+            </Text>
 
-          {MOVES.map((m, i) => (
-            <FadeIn key={m.key} delay={40 + i * 24}>
-              <Pressable onPress={() => start(m)} disabled={busy}
-                style={({ pressed }) => [styles.pick, pressed && { opacity: 0.85 }]}>
-                <Image
-                  source={(framesFor({ n: m.key === 'pushups' ? 'Push-up' : 'Bodyweight Squat' })
-                    || [photoForMuscle('Chest')])[0]}
-                  style={styles.pickImg} resizeMode="cover" />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.pickName}>{t(m.name)}</Text>
-                  <Text style={T.tiny}>{t(m.hint)}</Text>
+            <View style={styles.faces}>
+              <View style={styles.face}>
+                <View style={[styles.avatar, { borderColor: C.violet }]}>
+                  <Text style={styles.avatarTxt}>
+                    {((profile && profile.full_name) || 'Y').trim().charAt(0).toUpperCase()}
+                  </Text>
                 </View>
-                <Text style={[styles.pickGo, { color: C.ember }]}>{'→'}</Text>
-              </Pressable>
-            </FadeIn>
-          ))}
+                <Text style={[styles.faceName, { color: C.violet }]}>{t('You')}</Text>
+              </View>
 
-          {busy ? <ActivityIndicator color={C.ember} style={{ marginTop: S.lg }} /> : null}
+              <Text style={styles.vs}>{t('VS')}</Text>
 
-          <Text style={[T.tiny, { marginTop: S.xl, lineHeight: 17 }]}>
-            {canWatch
+              <View style={styles.face}>
+                <View style={[styles.avatar, styles.avatarGhost]}>
+                  {waiting
+                    ? <ActivityIndicator color={C.violet} />
+                    : <Text style={[styles.avatarTxt, { color: C.faint }]}>?</Text>}
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.faceName}>{t('Stranger')}</Text>
+                  <View style={[styles.live, { backgroundColor: C.lime }]} />
+                </View>
+              </View>
+            </View>
+
+            {/* the exercise, and the list behind it */}
+            <Pressable onPress={() => !waiting && setPicking(!picking)}
+              style={({ pressed }) => [styles.select, pressed && { opacity: 0.85 }]}>
+              <Image source={demoOf(move)} style={styles.selectImg} resizeMode="cover" />
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Label>{t('Exercise')}</Label>
+                <Text style={styles.selectName}>{t(move.name)}</Text>
+              </View>
+              <Text style={styles.chev}>{picking ? '⌃' : '⌄'}</Text>
+            </Pressable>
+
+            {picking ? (
+              <View style={styles.list}>
+                {MOVES.map((m) => {
+                  const on = m.key === move.key;
+                  return (
+                    <Pressable key={m.key}
+                      onPress={() => { setMove(m); setPicking(false); }}
+                      style={({ pressed }) => [
+                        styles.listRow,
+                        on && { borderColor: C.violet, backgroundColor: 'rgba(139,92,246,0.12)' },
+                        pressed && { opacity: 0.85 },
+                      ]}>
+                      <Image source={demoOf(m)} style={styles.listImg} resizeMode="cover" />
+                      <Text style={[styles.listName, on && { color: C.text }]}>{t(m.name)}</Text>
+                      <View style={{ flex: 1 }} />
+                      {on ? (
+                        <View style={[styles.tick, { backgroundColor: C.violet }]}>
+                          <Text style={styles.tickTxt}>{'✓'}</Text>
+                        </View>
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={styles.tiles}>
+                <Tile label={t('TARGET')} value={move.key === 'plank' ? t('Longest') : t('Max Reps')} C={C} T={T} />
+                <Tile label={t('DURATION')} value={`${ROUND_SECONDS} ${t('Seconds')}`} C={C} T={T} />
+                <Tile label={t('COUNTING')}
+                  value={watching ? t('Camera') : t('Tap')} C={C} T={T} />
+              </View>
+            )}
+
+            {waiting ? (
+              <>
+                <Text style={[T.small, styles.centre, { marginTop: S.lg }]}>
+                  {t('Looking for someone')}
+                </Text>
+                <Btn label={t('Cancel')} dark color={C.dim} onPress={quit}
+                  style={{ marginTop: S.md }} />
+              </>
+            ) : (
+              <Btn label={t('Find someone')} color={C.violet} busy={busy}
+                onPress={start} style={{ marginTop: S.lg }} />
+            )}
+          </View>
+
+          <Text style={[T.tiny, styles.centre, { marginTop: S.md }]}>
+            {watching
               ? t('The camera counts. No video is saved or sent.')
-              : t('Tap to count. Camera counting is on the website.')}
+              : t('Tap the screen for each rep.')}
           </Text>
         </FadeIn>
       </View>
     );
   }
 
-  const side = round ? sidesOf(round, user.id) : null;
-
-  /* ---------- waiting for somebody ---------- */
-  if (phase === 'waiting') {
-    return (
-      <View style={[styles.wrap, styles.middle, { paddingBottom: tabPad }]}>
-        <ActivityIndicator color={C.ember} size="large" />
-        <Text style={[styles.h1, { marginTop: S.lg, textAlign: 'center' }]}>
-          {t('Looking for someone')}
-        </Text>
-        <Text style={[T.small, { marginTop: 6, textAlign: 'center' }]}>
-          {t(move.name)} · {ROUND_SECONDS} {t('seconds')}
-        </Text>
-        <Btn label={t('Cancel')} dark color={C.dim} full={false}
-          onPress={quit} style={{ marginTop: S.xl }} />
-      </View>
-    );
-  }
-
   /* ---------- the round, and the result ---------- */
   const over = phase === 'over';
-  const won = over && side && side.myScore >= 0 && score > side.theirScore;
-  const drew = over && side && score === side.theirScore;
+  const won = over && score > them;
+  const drew = over && score === them;
 
   return (
     <View style={[styles.wrap, { paddingBottom: tabPad }]}>
-      <View style={styles.scoreRow}>
-        <View style={styles.half}>
-          <Label>{t('You')}</Label>
-          <Text style={[styles.score, { color: C.ember }]}>{score}</Text>
-        </View>
-        <View style={styles.clockWrap}>
-          <Text style={[styles.clock, over && { color: C.dim }]}>{over ? t('Time') : left}</Text>
-        </View>
-        <View style={styles.half}>
-          <Label>{(side && side.theirName) || t('Them')}</Label>
-          <Text style={[styles.score, { color: C.teal }]}>{(side && side.theirScore) || 0}</Text>
-        </View>
-      </View>
-
       {over ? (
         <View style={styles.middle}>
-          <Text style={styles.result}>
+          <Text style={[styles.result, { color: drew ? C.text : won ? C.lime : C.dim }]}>
             {drew ? t('A draw') : won ? t('You won') : t('They won')}
           </Text>
-          <Text style={[T.small, { marginTop: 6 }]}>
-            {score} {t('to')} {(side && side.theirScore) || 0}
-          </Text>
+          <Text style={[styles.bigScore, { color: C.violet }]}>{score} — {them}</Text>
           {side && !side.theirDone ? (
             <Text style={[T.tiny, { marginTop: S.md }]}>{t('They are still finishing.')}</Text>
           ) : null}
-          <Btn label={t('Again')} color={C.ember} full={false}
+          <Btn label={t('Again')} color={C.violet} full={false}
             onPress={quit} style={{ marginTop: S.xl }} />
         </View>
       ) : (
-        canWatch ? (
-          <PoseView
-            move={move}
-            score={score}
-            seeing={seeing}
-            onFrame={onPose}
-            onError={(e) => sheet.tell({ title: t('Camera problem'), message: e.message })}
-          />
-        ) : (
-          <Pressable onPress={tap} style={({ pressed }) => [
-            styles.tapArea, pressed && { backgroundColor: C.raised },
-          ]}>
-            <Text style={styles.tapBig}>{score}</Text>
-            <Text style={styles.tapHint}>{t('Tap anywhere for each rep')}</Text>
-            <Text style={[T.tiny, { marginTop: 4 }]}>{t(move.name)}</Text>
-          </Pressable>
-        )
+        <>
+          {watching ? (
+            <PoseView move={move} score={score} seeing={seeing} onFrame={onPose}
+              onError={(e) => sheet.tell({ title: t('Camera problem'), message: e.message })} />
+          ) : (
+            <Pressable onPress={tap} style={({ pressed }) => [
+              styles.gauge, pressed && { opacity: 0.9 },
+            ]}>
+              <Ring size={236} stroke={12} progress={left / ROUND_SECONDS}
+                color={C.violet} track={C.line}>
+                <Label>{t('YOUR REPS')}</Label>
+                <Text style={styles.reps}>{score}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={[styles.live, { backgroundColor: C.lime }]} />
+                  <Text style={T.tiny}>{t('Counting…')}</Text>
+                </View>
+              </Ring>
+              <Text style={[T.tiny, { marginTop: S.md }]}>{t('Tap anywhere for each rep')}</Text>
+            </Pressable>
+          )}
+
+          <View style={styles.bar}>
+            <View style={styles.barCell}>
+              <Label>{t('OPPONENT')}</Label>
+              <Text style={[styles.barNum, { color: C.teal }]}>{them}</Text>
+            </View>
+            <View style={styles.barVs}><Text style={styles.barVsTxt}>{t('VS')}</Text></View>
+            <View style={styles.barCell}>
+              <Label>{t('TIME LEFT')}</Label>
+              <Text style={[styles.barNum, { color: C.violet }]}>
+                0:{String(left).padStart(2, '0')}
+              </Text>
+            </View>
+          </View>
+
+          <Btn label={t('Give up')} dark color={C.danger} onPress={quit}
+            style={{ marginHorizontal: S.lg, marginBottom: S.md }} />
+        </>
       )}
+    </View>
+  );
+}
+
+function Tile({ label, value, C, T }) {
+  const styles = makeStyles(C, T);
+  return (
+    <View style={styles.tile}>
+      <Label style={{ fontSize: 9 }}>{label}</Label>
+      <Text style={styles.tileVal}>{value}</Text>
     </View>
   );
 }
@@ -250,33 +305,73 @@ export default function Compete({ user, profile }) {
 const makeStyles = (C, T) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.bg },
   middle: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: S.lg },
-  h1: { fontFamily: 'WorkSans_600SemiBold', fontSize: 26, lineHeight: 31, color: C.text },
+  centre: { textAlign: 'center' },
 
-  pick: {
+  card: {
+    backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
+    borderWidth: 1, borderColor: C.line,
+  },
+  h1: {
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 27, color: C.text,
+    textAlign: 'center',
+  },
+
+  faces: { flexDirection: 'row', alignItems: 'center', marginTop: S.lg },
+  face: { flex: 1, alignItems: 'center' },
+  avatar: {
+    width: 92, height: 92, borderRadius: 46, borderWidth: 2.5,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: C.raised,
+  },
+  avatarGhost: { borderColor: C.line, borderStyle: 'dashed' },
+  avatarTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 34, color: C.text },
+  faceName: { fontFamily: 'WorkSans_500Medium', fontSize: 13, color: C.dim, marginTop: 8 },
+  live: { width: 7, height: 7, borderRadius: 4, marginLeft: 6 },
+  vs: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20, color: C.violet, width: 44, textAlign: 'center' },
+
+  select: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.raised,
+    borderRadius: R.md, padding: S.sm, marginTop: S.lg,
+    borderWidth: 1, borderColor: C.line,
+  },
+  selectImg: { width: 54, height: 46, borderRadius: R.sm, backgroundColor: C.surface },
+  selectName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20, color: C.text },
+  chev: { fontSize: 20, color: C.dim, paddingHorizontal: 8 },
+
+  list: {
+    marginTop: S.sm, backgroundColor: C.raised, borderRadius: R.md,
+    borderWidth: 1, borderColor: C.line, overflow: 'hidden',
+  },
+  listRow: {
+    flexDirection: 'row', alignItems: 'center', padding: S.sm,
+    borderWidth: 1.5, borderColor: 'transparent', borderRadius: R.md,
+  },
+  listImg: { width: 46, height: 40, borderRadius: R.sm, backgroundColor: C.surface },
+  listName: { fontFamily: 'WorkSans_500Medium', fontSize: 16, color: C.dim, marginLeft: 12 },
+  tick: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  tickTxt: { color: '#fff', fontSize: 12, fontFamily: 'WorkSans_600SemiBold' },
+
+  tiles: { flexDirection: 'row', marginTop: S.sm, gap: 8 },
+  tile: {
+    flex: 1, backgroundColor: C.raised, borderRadius: R.md,
+    paddingVertical: S.sm, paddingHorizontal: 8, alignItems: 'center',
+  },
+  tileVal: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13, color: C.text, marginTop: 3 },
+
+  gauge: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  reps: { fontFamily: 'WorkSans_600SemiBold', fontSize: 68, lineHeight: 74, color: C.text },
+
+  bar: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
-    borderRadius: R.md, padding: S.md, marginTop: S.md,
+    borderRadius: R.md, margin: S.lg, marginBottom: S.sm, padding: S.md,
   },
-  pickImg: { width: 58, height: 58, borderRadius: R.sm, backgroundColor: C.raised },
-  pickName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, color: C.text },
-  pickGo: { fontFamily: 'WorkSans_600SemiBold', fontSize: 20 },
-
-  scoreRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.sm,
-    backgroundColor: C.surface,
+  barCell: { flex: 1, alignItems: 'center' },
+  barNum: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34 },
+  barVs: {
+    width: 44, height: 44, borderRadius: 22, backgroundColor: C.raised,
+    alignItems: 'center', justifyContent: 'center',
   },
-  half: { flex: 1, alignItems: 'center' },
-  score: { fontFamily: 'WorkSans_600SemiBold', fontSize: 40, lineHeight: 45 },
-  clockWrap: { width: 74, alignItems: 'center' },
-  clock: { fontFamily: 'WorkSans_600SemiBold', fontSize: 26, color: C.text },
+  barVsTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13, color: C.dim },
 
-  tapArea: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    margin: S.lg, borderRadius: R.lg, borderWidth: 2, borderColor: C.line,
-    backgroundColor: C.surface,
-  },
-  tapBig: { fontFamily: 'WorkSans_600SemiBold', fontSize: 96, lineHeight: 104, color: C.text },
-  tapHint: { fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.dim, marginTop: 6 },
-
-  result: { fontFamily: 'WorkSans_600SemiBold', fontSize: 34, color: C.text },
+  result: { fontFamily: 'WorkSans_600SemiBold', fontSize: 34 },
+  bigScore: { fontFamily: 'WorkSans_600SemiBold', fontSize: 52, marginTop: 6 },
 });

@@ -26,8 +26,7 @@ import { View, Text, ScrollView, StyleSheet, ImageBackground } from 'react-nativ
 import { S, R, useTheme } from '../theme';
 import { Press, FadeIn, useTabPad } from '../ui/kit';
 import { useLang } from '../lang';
-import { myStanding } from '../challenge';
-import { GRADE_COLOUR } from '../rank';
+import { myJourney } from '../challenge';
 import { PHOTO } from '../photos';
 import { useSide } from '../side';
 
@@ -108,7 +107,7 @@ export default function Train({ user, profile }) {
   /* The streak is the one thing worth saying on the hub — it is the
      reason most people opened the app at all. */
   const load = useCallback(async () => {
-    setMe(await myStanding(user.id));
+    setMe(await myJourney(user.id));
   }, [user.id]);
 
   useEffect(() => { load(); }, [load, open]);
@@ -136,32 +135,26 @@ export default function Train({ user, profile }) {
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
+      {/* Days trained, not a streak. The streak went with the idea
+          that a rest day costs you something — it does not, and a
+          banner counting consecutive days was the loudest place that
+          idea lived. */}
       {me ? (
         <FadeIn>
-          <View
-            style={[styles.banner, {
-              borderColor: me.rank.grade ? GRADE_COLOUR[me.rank.grade] : C.violet,
-            }]}>
+          <View style={[styles.banner, { borderColor: C.violet }]}>
             <View style={styles.streakBadge}>
-              <Text style={[styles.streakNum, {
-                color: me.rank.grade ? GRADE_COLOUR[me.rank.grade] : C.violet,
-              }]}>
-                {me.current}
-              </Text>
+              <Text style={[styles.streakNum, { color: C.violet }]}>{me.days}</Text>
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.bannerTop}>
-                {me.current === 1
-                  ? t('1 day streak')
-                  : me.current + ' ' + t('day streak')}
-                {' · '}{t(me.rank.label)}
+                {me.days === 1 ? t('1 day trained') : `${me.days} ${t('days trained')}`}
               </Text>
               <Text style={T.tiny}>
                 {me.trainedToday
                   ? t('Today is logged ✓')
-                  : me.restUsedThisWeek
-                    ? t('Nothing today yet — this week’s rest day is gone')
-                    : t('Nothing today yet — one free rest day left')}
+                  : me.next
+                    ? `${me.toGo} ${t('more to')} ${t(me.next.place)}`
+                    : t('Every place reached.')}
               </Text>
             </View>
           </View>
