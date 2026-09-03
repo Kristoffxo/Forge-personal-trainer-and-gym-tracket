@@ -68,6 +68,17 @@ export default {
       });
     }
 
+    /* Deleting somebody else. Same machinery as deleting yourself,
+       but the caller has to be an admin — which is checked against
+       the database, not against anything they sent. */
+    if (url.pathname === '/api/admin/delete-user') {
+      if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+      return adminDeleteUser(request, env).catch((err) => {
+        console.error('admin delete failed', err && err.stack);
+        return json({ error: 'failed' }, 500);
+      });
+    }
+
     /* ---- the pages Google Play checks ----
        Served as real HTML before the single-page fallback gets a look
        at them. A reviewer following the privacy policy link does not
@@ -363,6 +374,57 @@ async function deleteAccount(request, env) {
   ).catch(() => {});
 
   const gone = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${user.id}`, {
+    method: 'DELETE',
+    headers: adminHeaders(env),
+  });
+  if (!gone.ok) {
+    console.error('admin delete refused', gone.status, await gone.text());
+    return json({ error: 'failed' }, 500);
+  }
+  return json({ deleted: true });
+}
+
+/* Is this caller an admin? Asked of the database with the service
+   key, so a client cannot answer it about itself. */
+async function isAdmin(env, userId) {
+  const res = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=is_admin`,
+    { headers: adminHeaders(env) },
+  );
+  if (!res.ok) return false;
+  const rows = await res.json();
+  return !!(rows && rows[0] && rows[0].is_admin);
+}
+
+/* ---------------------------------------------------------------
+   Deleting somebody else.
+
+   Everything the self-delete does, plus two guards: the caller has
+   to be an admin according to the database, and an admin cannot
+   delete themselves this way — that is what the ordinary account
+   deletion is for, and it stops the last administrator removing the
+   only account that can administer anything.
+   --------------------------------------------------------------- */
+async function adminDeleteUser(request, env) {
+  if (!env.SUPABASE_SERVICE_KEY) return json({ error: 'not_configured' }, 503);
+
+  const caller = await whoIsAsking(request, env);
+  if (!caller) return json({ error: 'unauthorised' }, 401);
+  if (!(await isAdmin(env, caller.id))) return json({ error: 'forbidden' }, 403);
+
+  let body = {};
+  try { body = await request.json(); } catch (e) { /* caught below */ }
+  const target = String(body.userId || '').trim();
+  if (!/^[0-9a-f-]{36}$/i.test(target)) return json({ error: 'bad_user' }, 400);
+  if (target === caller.id) return json({ error: 'use_delete_account' }, 400);
+
+  /* their feed photographs are not covered by the cascade */
+  await fetch(
+    `${env.SUPABASE_URL}/storage/v1/object/posts/${target}`,
+    { method: 'DELETE', headers: adminHeaders(env) },
+  ).catch(() => {});
+
+  const gone = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${target}`, {
     method: 'DELETE',
     headers: adminHeaders(env),
   });

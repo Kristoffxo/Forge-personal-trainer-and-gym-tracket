@@ -17,21 +17,27 @@ import { useLang } from '../lang';
 import Compete from './Compete';
 import Tools from './Tools';
 import Admin from './Admin';
+import AdminUsers from './AdminUsers';
 
 const PAGES = [
   { key: 'compete', label: 'Compete' },
   { key: 'numbers', label: 'Numbers' },
 ];
 
-/* Only whoever runs the app sees this one. */
-const ADMIN_PAGE = { key: 'admin', label: 'Feed' };
+/* Only whoever runs the app sees these two. Hiding them is a
+   convenience: every query behind them checks is_admin() in the
+   database, so an edited build would still be handed empty lists. */
+const ADMIN_PAGES = [
+  { key: 'people', label: 'People' },
+  { key: 'admin', label: 'Feed' },
+];
 
 export default function ChallengesTab({ user, profile, onProfile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
   const [page, setPage] = useState('compete');
-  const pages = profile && profile.is_admin ? PAGES.concat(ADMIN_PAGE) : PAGES;
+  const pages = profile && profile.is_admin ? PAGES.concat(ADMIN_PAGES) : PAGES;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -53,6 +59,7 @@ export default function ChallengesTab({ user, profile, onProfile }) {
 
       <View style={{ flex: 1 }}>
         {page === 'compete' ? <Compete user={user} profile={profile} />
+          : page === 'people' ? <AdminUsers />
             : page === 'admin' ? <Admin />
               : <Tools user={user} profile={profile} onProfile={onProfile} />}
       </View>

@@ -24,8 +24,10 @@ Contact: <a href="mailto:${CONTACT}">${CONTACT}</a>.</p>
       and your weight over time.</li>
   <li><strong>Photographs you choose to post</strong> to Discover, and any
       caption you write with them.</li>
-  <li><strong>Which mode you use</strong> — men, women or seniors — and, on the
-      women's side, that you opened the menstrual-pain sessions. This is health
+  <li><strong>A profile picture</strong>, if you set one. It is shown next to
+      your first name on Discover and when you race somebody.</li>
+  <li><strong>Which mode you use</strong> — men or women — and, on the women's
+      side, that you opened the menstrual-pain sessions. This is health
       information and is treated as such: it is stored against your account and
       shown to nobody else.</li>
   <li><strong>A notification token</strong>, only if you turn reminders on.</li>
@@ -36,9 +38,11 @@ Contact: <a href="mailto:${CONTACT}">${CONTACT}</a>.</p>
   <li>No location, ever. Photographs are re-encoded before upload, which strips
       the GPS coordinates a phone camera writes into them.</li>
   <li>No contacts, no call logs, no microphone.</li>
-  <li>No advertising identifier. There are no ads and no ad networks.</li>
+  <li>No advertising identifier. There are no ads and no ad networks in this
+      version. If that ever changes, this policy will be updated before the
+      version that changes it is released.</li>
   <li>No analytics or tracking SDK of any kind.</li>
-  <li>Nothing is sold or shared with anyone for advertising.</li>
+  <li>Nothing is sold or shared with anyone, for advertising or otherwise.</li>
 </ul>
 
 <h2>The camera</h2>
@@ -61,9 +65,16 @@ message is chosen on your own device after the notification arrives.</p>
   <li>Your food diary, your weight, your workouts, your numbers and your health
       information: only you. This is enforced by the database itself, not only
       by the app.</li>
-  <li>Photographs you post to Discover, and your first name: anyone signed in.
-      They delete themselves after seven days.</li>
+  <li>Photographs you post to Discover, your profile picture and your first
+      name: anyone signed in. Posts delete themselves after seven days.</li>
+  <li>Your league and how many days you have trained: anyone signed in, on the
+      leaderboard.</li>
   <li>Nobody can see who liked a post, including the person who posted it.</li>
+  <li>The developer, as the administrator, can see the list of accounts —
+      email, first name, join date, and counts of how much each has trained and
+      posted — in order to answer reports and remove accounts that break the
+      rules. The administrator cannot read anybody's food diary, weights or
+      journey notes; the database returns counts and dates only.</li>
 </ul>
 
 <h2>How long it is kept</h2>
@@ -72,7 +83,7 @@ posted. Everything else is kept until you delete your account, at which point it
 goes with it.</p>
 
 <h2>Deleting everything</h2>
-<p>In the app: the three dots at the top left, then Delete my account. It removes
+<p>In the app: the three dots at the top right, then Delete my account. It removes
 the account and everything attached to it, and cannot be undone.
 Or ask from a browser at <a href="/delete-account">reppo.app/delete-account</a>.</p>
 
