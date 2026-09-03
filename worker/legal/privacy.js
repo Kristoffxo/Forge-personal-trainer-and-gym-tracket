@@ -69,7 +69,13 @@ message is chosen on your own device after the notification arrives.</p>
       name: anyone signed in. Posts delete themselves after seven days.</li>
   <li>Your league and how many days you have trained: anyone signed in, on the
       leaderboard.</li>
-  <li>Nobody can see who liked a post, including the person who posted it.</li>
+  <li>Who liked a photograph: only the person who posted it, and only
+      their first name and league. Nobody else can see who liked
+      anything, and nobody at all can see what a given person has
+      liked.</li>
+  <li>Likes and comments on your own photographs are shown to you inside
+      the app when you open it. Nothing about them is pushed to your
+      phone's lock screen.</li>
   <li>The developer, as the administrator, can see the list of accounts —
       email, first name, join date, and counts of how much each has trained and
       posted — in order to answer reports and remove accounts that break the

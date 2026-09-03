@@ -16,6 +16,7 @@ import { Press } from './src/ui/kit';
 import { SheetProvider, useSheet } from './src/ui/sheet';
 import { Mark } from './src/ui/logo';
 import { TabIcon } from './src/ui/tabIcons';
+import { ActivityBanner } from './src/ui/activity';
 import { getSession, onAuthChange, getProfile } from './src/auth';
 import { useWebChrome } from './src/webChrome';
 import * as push from './src/push';
@@ -228,6 +229,11 @@ function Root() {
           <>
             <TitleBar tab={current} accent={accent}
               onSettings={() => setSettingsOpen(true)} />
+
+            {/* Slides in under the title bar when somebody likes or
+                comments on a photograph of theirs, and takes them to
+                Discover if they tap it. */}
+            <ActivityBanner user={user} onOpen={() => setTab('feed')} />
 
             <View style={{ flex:1 }}>
               {tab === 'train' ? (

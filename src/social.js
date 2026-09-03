@@ -170,6 +170,35 @@ export async function avatarsFor(userIds) {
   return out;
 }
 
+/* Who liked one of your photographs.
+
+   Only works on your own posts — the database checks that, not this
+   file. Comes back as first name, days trained (the screen turns
+   that into a league) and their picture. Empty on any failure: a
+   list that will not load is worth a quiet nothing, not an error
+   over a photograph. */
+export async function likersOf(postId) {
+  const { data, error } = await supabase.rpc('post_likers', { pid: postId });
+  if (error) {
+    if (/does not exist|schema cache/i.test(error.message || '')) {
+      return { error: 'Not set up yet — run supabase-v10.sql.' };
+    }
+    return { error: friendly(error.message) };
+  }
+  return { likers: data || [] };
+}
+
+/* Likes and comments on your posts since `since`.
+
+   Empty on any failure. This drives a small in-app banner, and a
+   banner that cannot load is worth nothing at all rather than an
+   error about a feature nobody asked to use. */
+export async function myActivity(since) {
+  const { data, error } = await supabase.rpc('my_activity', { since: since || null });
+  if (error) return [];
+  return data || [];
+}
+
 /* The public URL for somebody's picture, or null. `at` busts the CDN
    cache when they change it. */
 export function avatarUrl(path, at) {

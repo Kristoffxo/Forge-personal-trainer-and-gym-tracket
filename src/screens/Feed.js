@@ -19,13 +19,14 @@ import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { Avatar } from '../ui/avatar';
+import { journeyFrom } from '../journey';
 import { useLang } from '../lang';
 import PersonSheet from './PersonSheet';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import {
   loadFeed, createPost, deletePost, loadComments, addComment, deleteComment,
   report, blockUser, imageUrl, firstNameOf, ago, postedToday,
-  likeCounts, myLikes, setLike, avatarsFor,
+  likeCounts, myLikes, setLike, avatarsFor, likersOf,
 } from '../social';
 
 /* The photo's own aspect ratio, clamped. Resolved from the file
@@ -434,6 +435,8 @@ function PostView({ post, user, profile, onBack }) {
   const [list, setList] = useState(null);
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
+  const [faces, setFaces] = useState({});
+  const [likers, setLikers] = useState(null);   // null = not asked yet
   const scroller = useRef(null);
 
   const side = Math.min(width, 620) - S.lg * 2;
@@ -441,7 +444,15 @@ function PostView({ post, user, profile, onBack }) {
   const ratio = useAspect(postUri);
   const myName = firstNameOf(profile && profile.full_name);
 
-  const load = useCallback(() => { loadComments(post.id).then(setList); }, [post.id]);
+  const load = useCallback(async () => {
+    const rows = await loadComments(post.id);
+    setList(rows);
+    /* One round trip for every face on the thread, the same way the
+       feed itself does it — the comments table carries a name but
+       not a picture, and a picture copied onto a row goes stale the
+       moment somebody changes theirs. */
+    setFaces(await avatarsFor(rows.map((c) => c.user_id)));
+  }, [post.id]);
   useEffect(() => { load(); }, [load]);
 
   async function send() {
@@ -454,6 +465,21 @@ function PostView({ post, user, profile, onBack }) {
     setBody('');
     setList((list || []).concat(r.comment));
     setTimeout(() => scroller.current && scroller.current.scrollToEnd({ animated: true }), 60);
+  }
+
+  /* Only the person who posted it can ask, and the database is what
+     enforces that — this button is simply not shown to anybody
+     else. */
+  const mine = post.user_id === user.id;
+
+  async function showLikers() {
+    const r = await likersOf(post.id);
+    if (r.error) { await sheet.tell({ title: t('Could not load'), message: r.error }); return; }
+    if (!r.likers.length) {
+      await sheet.tell({ title: t('No likes yet'), message: t('Nobody has liked this one.') });
+      return;
+    }
+    setLikers(r.likers);
   }
 
   async function tapComment(c) {
@@ -496,7 +522,46 @@ function PostView({ post, user, profile, onBack }) {
           <Text style={[T.small, { color: C.gold }]}>{'←'} {t('Feed')}</Text>
         </Press>
         <Label style={{ color: C.text }}>{firstNameOf(post.name)}</Label>
+        <View style={{ flex: 1 }} />
+        {mine ? (
+          <Press onPress={showLikers} hitSlop={12} scaleTo={0.94}>
+            <Text style={[T.small, { color: C.ember }]}>{t('Who liked it')}</Text>
+          </Press>
+        ) : null}
       </View>
+
+      {/* the list of people, over the thread */}
+      {likers ? (
+        <View style={styles.likersWrap}>
+          <View style={styles.likersCard}>
+            <View style={styles.likersHead}>
+              <Label style={{ flex: 1 }}>
+                {likers.length} {likers.length === 1 ? t('like') : t('likes')}
+              </Label>
+              <Press onPress={() => setLikers(null)} hitSlop={14} scaleTo={0.9}>
+                <Text style={[T.small, { color: C.dim }]}>{t('Close')}</Text>
+              </Press>
+            </View>
+            <ScrollView style={{ maxHeight: 380 }}>
+              {likers.map((who, i) => {
+                const rank = journeyFrom(who.days_trained || 0).rank;
+                return (
+                  <View key={i} style={styles.likerRow}>
+                    <Avatar name={who.name} path={who.avatar_path} at={who.avatar_at}
+                      size={36} colour={rank ? rank.colour : C.line} />
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text style={styles.commentWho}>{who.name}</Text>
+                      <Text style={[T.tiny, rank ? { color: rank.colour } : null]}>
+                        {rank ? rank.name : t('Bronze 3')}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      ) : null}
 
       <ScrollView
         ref={scroller}
@@ -528,9 +593,9 @@ function PostView({ post, user, profile, onBack }) {
         ) : (
           list.map((c) => (
             <Press key={c.id} onPress={() => tapComment(c)} scaleTo={0.995} style={styles.comment}>
-              <View style={[styles.avatar, { width: 30, height: 30, borderRadius: 15 }]}>
-                <Text style={styles.avatarTxt}>{firstNameOf(c.name).charAt(0).toUpperCase()}</Text>
-              </View>
+              <Avatar name={c.name} size={30} colour={C.line}
+                path={(faces[c.user_id] || {}).avatar_path}
+                at={(faces[c.user_id] || {}).avatar_at} />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Text style={styles.commentWho}>{firstNameOf(c.name)}</Text>
@@ -633,6 +698,20 @@ const makeStyles = (C, T) => StyleSheet.create({
   err: { fontFamily: 'WorkSans_400Regular', fontSize: 13.5, color: C.danger, marginTop: S.md },
 
   rule: { height: 1, backgroundColor: C.line, marginVertical: S.lg },
+  likersWrap: {
+    ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center', justifyContent: 'center', padding: S.lg, zIndex: 10,
+  },
+  likersCard: {
+    width: '100%', maxWidth: 420, backgroundColor: C.surface,
+    borderRadius: R.lg, padding: S.lg,
+  },
+  likersHead: { flexDirection: 'row', alignItems: 'center', marginBottom: S.sm },
+  likerRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.line,
+  },
+
   comment: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: S.md },
   commentWho: { fontFamily: 'WorkSans_500Medium', fontSize: 13.5, color: C.text },
 
