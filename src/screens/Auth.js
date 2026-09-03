@@ -17,7 +17,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Pressable,
          ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { S, R, useTheme, REPPO_ORANGE } from '../theme';
-import { FadeIn } from '../ui/kit';
+import { FadeIn, useKeyboardHeight } from '../ui/kit';
 import { Lockup } from '../ui/logo';
 import { signIn, signUp } from '../auth';
 import { useLang } from '../lang';
@@ -64,22 +64,44 @@ export default function Auth({ onDone }) {
     setErr(''); setNote('');
   }
 
+  const kb = useKeyboardHeight();
+
   return (
     <KeyboardAvoidingView style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          /* Room under the form for the keyboard, and stop centring
+             it once there is one: `justifyContent: center` with
+             content shorter than the viewport pins the form in the
+             middle with nothing to scroll, which is how the password
+             box ended up underneath the keyboard with no way to
+             reach it. */
+          kb > 0 && { justifyContent: 'flex-start', paddingBottom: kb + 24 },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.column}>
 
           <Pressable onPress={toggleLang} hitSlop={12} style={styles.lang}>
             <Text style={styles.langTxt}>{lang === 'hi' ? 'Hinglish' : 'English'}</Text>
           </Pressable>
 
+          {/* The mark shrinks out of the way once somebody is
+              typing. A 196pt logo and a tagline is most of a short
+              phone, and the point of this screen at that moment is
+              the two boxes, not the branding. */}
           <FadeIn style={{ alignItems: 'center' }}>
-            <Lockup width={196} />
-            <Text style={styles.tagline}>{t('Performance, redefined.')}</Text>
+            <Lockup width={kb > 0 ? 108 : 196} />
+            {kb > 0 ? null : (
+              <Text style={styles.tagline}>{t('Performance, redefined.')}</Text>
+            )}
           </FadeIn>
 
-          <FadeIn delay={70} style={{ width: '100%', marginTop: 46 }}>
+          <FadeIn delay={70} style={{ width: '100%', marginTop: kb > 0 ? 22 : 46 }}>
             {isUp ? (
               <Field value={name} onChange={setName} placeholder={t('Your name')}
                 autoCap="words" />

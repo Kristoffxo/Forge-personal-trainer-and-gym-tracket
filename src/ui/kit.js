@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated, Easing, ActivityIndicator } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Animated, Easing, ActivityIndicator,
+         Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { S, R, useTheme } from '../theme';
 
@@ -17,6 +18,40 @@ const EASE = Easing.bezier(0.22, 1, 0.36, 1);
    One number, read from the device, used everywhere.
    --------------------------------------------------------------- */
 export const TAB_BAR = 58;
+
+/* ---------------------------------------------------------------
+   How much of the screen the keyboard is covering.
+
+   KeyboardAvoidingView is not enough on Android any more. It relies
+   on the window being resized by `adjustResize`, and from Android 15
+   — which targetSdk 36 opts into — the app draws edge to edge and the
+   window no longer shrinks when the keyboard opens. The layout never
+   learns the keyboard is there, so a form that fitted before now has
+   its lower half underneath it with no way to scroll to it. That is
+   why the password box and the Sign in button were unreachable on
+   newer phones.
+
+   Asking the keyboard directly works on every version and both
+   platforms, which is the point.
+   --------------------------------------------------------------- */
+export function useKeyboardHeight() {
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    /* iOS fires the `will` pair with the animation, Android only ever
+       fires the `did` pair. */
+    const show = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hide = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const on = Keyboard.addListener(show, (e) => {
+      setHeight((e && e.endCoordinates && e.endCoordinates.height) || 0);
+    });
+    const off = Keyboard.addListener(hide, () => setHeight(0));
+    return () => { on.remove(); off.remove(); };
+  }, []);
+
+  return height;
+}
 
 export function useTabPad(extra = 20) {
   const insets = useSafeAreaInsets();
