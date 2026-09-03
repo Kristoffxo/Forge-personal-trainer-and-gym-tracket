@@ -16,6 +16,7 @@ import { View, Text, ScrollView, StyleSheet, Image, TextInput,
 import { S, R, useTheme } from '../theme';
 import { Btn, Press, FadeIn, Bar, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
+import Player from './Player';
 import { useLang } from '../lang';
 import { markWorkout } from '../challenge';
 import { framesFor } from '../exercisePhotos';
@@ -32,8 +33,9 @@ export default function Session({ title, exercises, user, profile, kind, name, o
   const sheet = useSheet();
 
   const [done, setDone] = useState({});
-  const [openIdx, setOpenIdx] = useState(0);
+  const [openIdx, setOpenIdx] = useState(null);
   const [finished, setFinished] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
   const total = exercises.length;
   const ticked = Object.keys(done).filter((k) => done[k]).length;
@@ -47,7 +49,33 @@ export default function Session({ title, exercises, user, profile, kind, name, o
     );
   }
 
-  /* one move, full screen */
+  /* The player. Runs the whole session on its own — a countdown in,
+     one move at a time, a rest between each. */
+  if (playing) {
+    return (
+      <Player
+        title={title}
+        exercises={exercises}
+        onQuit={(reached) => {
+          /* everything before where they stopped counts as done */
+          const upTo = {};
+          for (let k = 0; k < reached; k++) upTo[k] = true;
+          setDone(upTo);
+          setPlaying(false);
+        }}
+        onFinish={async () => {
+          const all = {};
+          exercises.forEach((_, k) => { all[k] = true; });
+          setDone(all);
+          setPlaying(false);
+          await markWorkout(user.id, kind, name || title);
+          setFinished(true);
+        }}
+      />
+    );
+  }
+
+  /* one move, full screen — reached by tapping a row to read it */
   if (openIdx !== null && exercises[openIdx]) {
     return (
       <Exercise
@@ -138,12 +166,21 @@ export default function Session({ title, exercises, user, profile, kind, name, o
           );
         })}
 
+        {/* One button, and it starts the thing. The list above is
+            for reading before you begin, not for ticking your way
+            through — that is the player's job now. */}
         <Btn
-          label={allDone ? t('Finish — well done') : t('Finish workout')}
-          color={allDone ? C.lime : C.ember} dark={!allDone}
-          onPress={finish} style={{ marginTop: S.xl }}
+          label={ticked ? t('Carry on') : t('Start')}
+          color={C.ember}
+          onPress={() => setPlaying(true)}
+          style={{ marginTop: S.xl }}
         />
-        <Text style={[T.tiny, { textAlign: 'center', marginTop: S.sm }]}>
+        <Press onPress={finish} scaleTo={0.98} style={{ paddingVertical: 14 }}>
+          <Text style={[T.small, { textAlign: 'center', color: C.dim }]}>
+            {allDone ? t('Finish — well done') : t('Finish without training')}
+          </Text>
+        </Press>
+        <Text style={[T.tiny, { textAlign: 'center' }]}>
           {t('Tap a move to see how it is done')}
         </Text>
       </View>
