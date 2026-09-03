@@ -22,7 +22,7 @@ import * as push from './src/push';
 import { trainedDays } from './src/challenge';
 
 import Auth     from './src/screens/Auth';
-import FoodTab  from './src/screens/FoodTab';
+import Food     from './src/screens/Food';
 import AddFood  from './src/screens/AddFood';
 import Train    from './src/screens/Train';
 import Discover from './src/screens/Feed';
@@ -43,7 +43,7 @@ const TABS = [
   { key:'train', label:'Train', icon:'▲', colorKey:'ember',
     title:'Train',           sub:'Today’s workout' },
   { key:'food',  label:'Food',  icon:'◍', colorKey:'amber',
-    title:'Food',            sub:'What you ate today' },
+    title:'Food',            sub:'' },
   { key:'feed',  label:'Discover', icon:'◈', colorKey:'gold',
     title:'Discover',        sub:'How everyone is doing' },
   { key:'you',   label:'Challenges', icon:'✦', colorKey:'violet',
@@ -233,9 +233,8 @@ function Root() {
               {tab === 'train' ? (
                 <Train user={user} profile={profile} />
               ) : tab === 'food' ? (
-                <FoodTab user={user} profile={profile} refreshKey={refreshKey}
+                <Food user={user} profile={profile} refreshKey={refreshKey}
                       justAdded={justAdded}
-                      onChanged={() => setRefreshKey((k) => k + 1)}
                       onAdd={(meal) => setAdding(meal)} />
               ) : tab === 'feed' ? (
                 <Discover user={user} profile={profile} />
@@ -295,10 +294,16 @@ function TitleBar({ tab, accent, onSettings }) {
     <View style={[styles.titleBar, { borderBottomColor: accent }]}>
       <Mark size={30} />
       {/* One line each. The switch takes real width, and a subtitle
-          that wraps makes the bar a different height on every tab. */}
+          that wraps makes the bar a different height on every tab.
+
+          A tab with no subtitle renders no second line at all —
+          an empty Text still takes its line height, which left the
+          Food bar a few points taller than the rest for nothing. */}
       <View style={{ flex:1, marginLeft: 10, marginRight: 8 }}>
         <Text style={styles.titleTxt} numberOfLines={1}>{t(tab.title)}</Text>
-        <Text style={styles.subTxt} numberOfLines={1}>{t(tab.sub)}</Text>
+        {tab.sub ? (
+          <Text style={styles.subTxt} numberOfLines={1}>{t(tab.sub)}</Text>
+        ) : null}
       </View>
       <SideSwitch />
       {/* Everything you set once lives behind these. To the right of

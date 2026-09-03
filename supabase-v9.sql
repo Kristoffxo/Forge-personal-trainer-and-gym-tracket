@@ -12,19 +12,6 @@
 -- ============================================================
 
 -- ------------------------------------------------------------
---  0. What somebody eats
---
---  Asked at sign-up and changeable in Challenges -> Numbers. The
---  diet planner reads it and never suggests anything outside it.
---  'both' is the default because it is the least wrong guess for
---  somebody who has not been asked yet — the planner leans
---  vegetarian for it, so an unanswered account is not shown meat.
--- ------------------------------------------------------------
-alter table public.profiles
-  add column if not exists diet text
-  check (diet is null or diet in ('veg', 'both', 'nonveg'));
-
--- ------------------------------------------------------------
 --  1. Everyone, with enough to judge them by
 --
 --  One row per account: who they are, when they joined, how much
