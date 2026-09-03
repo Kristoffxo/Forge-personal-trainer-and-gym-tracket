@@ -31,7 +31,10 @@ import { parseDuration } from '../duration';
 import { useClaimFullscreen } from '../fullscreen';
 
 const READY = 10;          // seconds before the first move
-const REST = 45;           // between sets, and between exercises
+/* The reference rests thirty. Forty-five between every set of every
+   exercise adds four or five minutes to a session and, more to the
+   point, reads as being stuck. */
+const REST = 30;
 const BLUE = '#1B6EF3';    // the rest screen, from the reference
 
 /* mm:ss, always two digits, because a timer that changes width

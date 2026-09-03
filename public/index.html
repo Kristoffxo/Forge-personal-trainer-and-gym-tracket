@@ -207,7 +207,20 @@
         /* ---- service worker: offline tolerance ---- */
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', function () {
-            navigator.serviceWorker.register('/sw.js').catch(function (e) {
+            navigator.serviceWorker.register('/sw.js').then(function (reg) {
+              /* Ask straight away, and again every time the app comes
+                 back to the front. Left to itself the browser only
+                 looks for a new worker on a navigation, so somebody
+                 who keeps the app open sits on the build they first
+                 loaded — which is how a fixed bug can still be on
+                 somebody's phone an hour after it was fixed. */
+              var check = function () { reg.update().catch(function () {}); };
+              check();
+              document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible') check();
+              });
+              setInterval(check, 15 * 60 * 1000);
+            }).catch(function (e) {
               console.warn('service worker registration failed', e);
             });
             /* A new build took over. Reload once so the page and the bundle it
