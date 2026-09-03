@@ -54,6 +54,13 @@ export async function publishStats(userId) {
   return a;
 }
 
+/* Just the count, for anything that needs the number and not the
+   list — the reminder text, mostly. */
+export async function trainedDays(userId) {
+  const days = await allTrainedDays(userId);
+  return new Set(days).size;
+}
+
 export async function allTrainedDays(userId) {
   const { data, error } = await supabase
     .from('workout_days').select('day').eq('user_id', userId).order('day');

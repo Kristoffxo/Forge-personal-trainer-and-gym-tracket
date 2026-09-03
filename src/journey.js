@@ -16,14 +16,20 @@
 
    Seven leagues of three, and then Titan.
 
-     Bronze 3 2 1     days 7   14  21
-     Silver 3 2 1          28  35  42
-     Gold 3 2 1            49  56  63
-     Platinum 3 2 1        70  77  84
-     Diamond 3 2 1         91  98  105
-     Champion 3 2 1        112 119 126
-     Master 3 2 1          133 140 147
-     Titan                 154
+     Bronze 3 2 1     days 0   7   14
+     Silver 3 2 1          21  28  35
+     Gold 3 2 1            42  49  56
+     Platinum 3 2 1        63  70  77
+     Diamond 3 2 1         84  91  98
+     Champion 3 2 1        105 112 119
+     Master 3 2 1          126 133 140
+     Titan                 147
+
+   Bronze 3 is day zero. Nobody is unranked: you are in a league from
+   the moment you open the app, and the first week promotes you out
+   of it rather than into one. An empty state that says "you have no
+   rank yet" is a worse first screen than one that says "Bronze 3,
+   seven days to Bronze 2".
 
    Tier 3 is the bottom of a league and tier 1 the top, the way every
    ladder people already know is numbered.
@@ -66,9 +72,8 @@ export const RANKS = (() => {
        into, so it does not need three tiers to climb through. */
     const tiers = lg.key === 'titan' ? [null] : [3, 2, 1];
     tiers.forEach((tier) => {
-      n += 1;
       out.push({
-        n,
+        n: n + 1,
         at: n * WEEK,
         league: lg.key,
         leagueName: lg.name,
@@ -79,6 +84,7 @@ export const RANKS = (() => {
         /* the rank that opens a new league is where the map says so */
         opensLeague: tier === 3 || tier == null,
       });
+      n += 1;
     });
   });
   return out;

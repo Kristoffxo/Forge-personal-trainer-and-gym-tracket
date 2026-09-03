@@ -20,6 +20,7 @@ import { useLang } from '../lang';
 import { supabase } from '../supabase';
 import { api } from '../api';
 import { saveProfile, signOut } from '../auth';
+import { trainedDays } from '../challenge';
 import { setAvatar, removeAvatar } from '../social';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import { Avatar } from '../ui/avatar';
@@ -101,7 +102,8 @@ export default function Settings({ user, profile, onProfile }) {
 
   async function toggleNotif() {
     setNotifBusy(true);
-    const r = notifOn ? await push.disable(user.id) : await push.enable(user.id, hour);
+    const r = notifOn ? await push.disable(user.id)
+      : await push.enable(user.id, hour, await trainedDays(user.id));
     setNotifBusy(false);
     if (r.error) { await sheet.tell({ title: t('Not switched on'), message: r.error }); return; }
     setNotifOn(await push.isOn());
@@ -123,7 +125,7 @@ export default function Settings({ user, profile, onProfile }) {
 
     const before = hour;
     setHour(picked);                       // move now, put it back if it fails
-    const r = await push.setHour(picked);
+    const r = await push.setHour(picked, await trainedDays(user.id));
     if (r.error) {
       setHour(before);
       await sheet.tell({ title: t('Could not change the time'), message: r.error });

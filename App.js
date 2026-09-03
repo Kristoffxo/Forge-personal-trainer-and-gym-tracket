@@ -10,7 +10,7 @@ import { WorkSans_400Regular, WorkSans_500Medium, WorkSans_600SemiBold,
 import { Caveat_600SemiBold, Caveat_700Bold } from '@expo-google-fonts/caveat';
 
 import { useTheme, ThemeProvider, SIDE_BLUE, SIDE_PINK } from './src/theme';
-import { SideProvider, useSide, MEN, WOMEN, SENIORS } from './src/side';
+import { SideProvider, useSide, MEN, WOMEN } from './src/side';
 import { LangProvider, useLang } from './src/lang';
 import { Press } from './src/ui/kit';
 import { SheetProvider, useSheet } from './src/ui/sheet';
@@ -19,6 +19,7 @@ import { TabIcon } from './src/ui/tabIcons';
 import { getSession, onAuthChange, getProfile } from './src/auth';
 import { useWebChrome } from './src/webChrome';
 import * as push from './src/push';
+import { trainedDays } from './src/challenge';
 
 import Auth     from './src/screens/Auth';
 import Food     from './src/screens/Food';
@@ -48,7 +49,7 @@ const TABS = [
   { key:'you',   label:'Challenges', icon:'✦', colorKey:'violet',
     title:'Challenges',      sub:'Race and numbers' },
   { key:'journey', label:'Journey', icon:'⛰', colorKey:'teal',
-    title:'Journey',         sub:'How far you have come' },
+    title:'Journey',         sub:'Your leagues' },
 ];
 
 /* Spell every edge out. react-native-safe-area-context's web SafeAreaView falls
@@ -141,7 +142,7 @@ function Root() {
       });
       if (!alive || !yes) return;
 
-      const done = await push.enable(session.user.id);
+      const done = await push.enable(session.user.id, undefined, await trainedDays(session.user.id));
       if (alive && done.error) {
         await sheet.tell({ title: tr('Not switched on'), message: done.error });
       }
@@ -149,6 +150,14 @@ function Root() {
 
     return () => { alive = false; };
   }, [session, profile, sheet, tr]);
+
+  /* The reminder names a league and a countdown, and both move as
+     somebody trains — so it is rewritten with today's numbers each
+     time the app opens. */
+  useEffect(() => {
+    if (!session || !session.user) return;
+    trainedDays(session.user.id).then((d) => push.refreshNudge(d)).catch(() => {});
+  }, [session, refreshKey]);
 
   useEffect(() => {
     const i = Math.max(0, TABS.findIndex((t) => t.key === tab));
@@ -279,25 +288,26 @@ function TitleBar({ tab, accent, onSettings }) {
   return (
     <View style={[styles.titleBar, { borderBottomColor: accent }]}>
       <Mark size={30} />
-      {/* Everything you set once lives behind these. */}
-      <Press onPress={onSettings} scaleTo={0.88} style={styles.dots}
-        accessibilityLabel={t('Settings')}>
-        <Text style={styles.dotsTxt}>{'⋮'}</Text>
-      </Press>
       {/* One line each. The switch takes real width, and a subtitle
           that wraps makes the bar a different height on every tab. */}
-      <View style={{ flex:1, marginRight: 8 }}>
+      <View style={{ flex:1, marginLeft: 10, marginRight: 8 }}>
         <Text style={styles.titleTxt} numberOfLines={1}>{t(tab.title)}</Text>
         <Text style={styles.subTxt} numberOfLines={1}>{t(tab.sub)}</Text>
       </View>
       <SideSwitch />
+      {/* Everything you set once lives behind these. To the right of
+          the switch, with a clear gap: pressed against it, a thumb
+          aiming for Women hits the menu about a third of the time. */}
+      <Press onPress={onSettings} scaleTo={0.88} hitSlop={10} style={styles.dots}
+        accessibilityLabel={t('Settings')}>
+        <Text style={styles.dotsTxt}>{'⋮'}</Text>
+      </Press>
     </View>
   );
 }
 
-/* Three ways the app can be. Men and women are the two colours the
-   logo already uses; seniors is the app's own accent, because it is
-   not a third gender — it is a third kind of training.
+/* Two ways the app can be, in the two colours the logo already
+   uses. There was a third — Seniors — and it is gone for now.
 
    The thumb springs across and overshoots slightly, which is most of
    the reason to animate it: you see which way it went.
@@ -306,8 +316,8 @@ function TitleBar({ tab, accent, onSettings }) {
    Somebody who taps this by accident should find out immediately,
    not three screens later when the workout is not the one they
    expected. */
-const SIDE_ORDER = [MEN, WOMEN, SENIORS];
-const HALF = 52;
+const SIDE_ORDER = [MEN, WOMEN];
+const HALF = 62;
 
 function SideSwitch() {
   const { C, T } = useTheme();
@@ -325,7 +335,7 @@ function SideSwitch() {
     }).start();
   }, [at, slide]);
 
-  const COLOUR = { [MEN]: SIDE_BLUE, [WOMEN]: SIDE_PINK, [SENIORS]: C.lime };
+  const COLOUR = { [MEN]: SIDE_BLUE, [WOMEN]: SIDE_PINK };
 
   const SAID = {
     [MEN]: {
@@ -335,10 +345,6 @@ function SideSwitch() {
     [WOMEN]: {
       title: 'You are in Women mode',
       body: 'Lower body focused — glutes, thighs and calves lead every session. Menstrual Exercises are on the Train screen. Switch back any time.',
-    },
-    [SENIORS]: {
-      title: 'You are in Seniors mode',
-      body: 'Home only, and nothing that strains a joint. Every movement is written out step by step, with what to watch for. Switch back any time.',
     },
   };
 
@@ -370,7 +376,7 @@ function SideSwitch() {
         style={[styles.sideThumb, {
           transform: [{
             translateX: slide.interpolate({
-              inputRange: [0, 1, 2], outputRange: [0, HALF, HALF * 2],
+              inputRange: [0, 1], outputRange: [0, HALF],
             }),
           }],
         }]}
@@ -383,7 +389,6 @@ function SideSwitch() {
 
       {half(MEN, 'Men', 0)}
       {half(WOMEN, 'Women', 1)}
-      {half(SENIORS, 'Seniors', 2)}
     </View>
   );
 }
@@ -417,7 +422,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   titleBar:{ flexDirection:'row', alignItems:'center', paddingHorizontal:18,
              paddingTop:12, paddingBottom:11,
              backgroundColor:C.surface, borderBottomWidth:2 },
-  dots:{ width:26, height:34, alignItems:'center', justifyContent:'center', marginRight:6 },
+  dots:{ width:30, height:36, alignItems:'center', justifyContent:'center', marginLeft:12 },
   dotsTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:21, color:C.dim, lineHeight:24 },
   close:{ paddingHorizontal:12, paddingVertical:8 },
   closeTxt:{ fontFamily:'WorkSans_600SemiBold', fontSize:15 },

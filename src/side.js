@@ -24,9 +24,13 @@ const KEY = 'nemea:side';         // see the note in src/lang.js
 
 export const MEN = 'men';
 export const WOMEN = 'women';
+/* Seniors is off the switch for now. The constant stays because a
+   phone that last had it selected still has 'seniors' in storage,
+   and `isSide` has to reject it so that phone lands back on Men
+   rather than on a mode with no way out of it. */
 export const SENIORS = 'seniors';
 
-export const SIDES = [MEN, WOMEN, SENIORS];
+export const SIDES = [MEN, WOMEN];
 const isSide = (v) => SIDES.indexOf(v) !== -1;
 
 const Ctx = createContext(null);
@@ -54,7 +58,7 @@ export function SideProvider({ children }) {
     return {
       side,
       isWomen: side === WOMEN,
-      isSenior: side === SENIORS,
+      isSenior: false,
       chosen,
       setSide: set,
       /* kept for anything still calling it; three sides need setSide */

@@ -26,7 +26,7 @@ import { Press } from './kit';
 import { useLang } from '../lang';
 import { RANKS, TERRAIN, journeyFrom } from '../journey';
 
-const PHOTO = {
+export const TERRAIN_PHOTO = {
   meadow: require('../../assets/photos/t_meadow.jpg'),
   forest: require('../../assets/photos/t_forest.jpg'),
   ember: require('../../assets/photos/t_ember.jpg'),
@@ -108,7 +108,7 @@ function Ground({ width }) {
           <View key={b.key} style={{ position: 'absolute', left: 0, right: 0, top: b.top, height: h,
                                      overflow: 'hidden' }}>
             <Image
-              source={PHOTO[b.key]}
+              source={TERRAIN_PHOTO[b.key]}
               style={z.anchor === 'bottom'
                 ? { position: 'absolute', left: 0, bottom: 0, width, height: h * z.scale }
                 : { width, height: h }}
@@ -204,8 +204,8 @@ function Node({ spot, width, days, onPress, isNext }) {
        touchable the transparent corner of one eats the taps meant
        for the next. */
     <View pointerEvents="box-none"
-      style={{ position: 'absolute', left: spot.x * width - 50, top: spot.y - size / 2 - 8,
-               width: 100, alignItems: 'center' }}>
+      style={{ position: 'absolute', left: spot.x * width - 58, top: spot.y - size / 2 - 8,
+               width: 116, alignItems: 'center' }}>
       <Press onPress={() => onPress(r)} scaleTo={0.88} hitSlop={14} style={{ alignItems: 'center' }}>
         <View style={{ width: size + 24, height: size + 24, alignItems: 'center', justifyContent: 'center' }}>
           {isNext ? (
@@ -244,20 +244,92 @@ function Node({ spot, width, days, onPress, isNext }) {
           </View>
         </View>
 
-        {/* the tier, small, directly under the emblem — the only
-            printed character on the map */}
-        {r.tier ? (
-          <Text style={[styles.tier, {
-            color: colour,
-            opacity: reached || isNext ? 0.95 : 0.5,
-            textShadowColor: colour,
-          }]}>
-            {r.tier}
-          </Text>
-        ) : null}
+        {/* The whole name, not just the tier. A bare "2" under an
+            emblem asks you to remember which league you were looking
+            at; "Bronze 2" does not. */}
+        <Text numberOfLines={1} style={[styles.tier, {
+          color: colour,
+          opacity: reached || isNext ? 0.98 : 0.55,
+          textShadowColor: colour,
+        }]}>
+          {r.name}
+        </Text>
       </Press>
     </View>
   );
+}
+
+/* ---------------------------------------------------------------
+   Things written along the way.
+
+   Twenty-two stops is a long scroll, and a long scroll of nothing
+   but emblems is a long scroll. These are notes left on the ground
+   between them — a line every few ranks, alternating sides so the
+   eye keeps moving, and never on the leg being walked, which
+   already has the countdown on it.
+
+   They are indexed rather than random: the same note sits in the
+   same place every time the map is opened, which is what makes it
+   feel like a place rather than a slot machine.
+   --------------------------------------------------------------- */
+const ALONG = [
+  'the first week is the hardest',
+  'nobody starts strong',
+  'rest days are part of it',
+  'you have come further than you think',
+  'a gap costs you nothing here',
+  'this is where most people stop',
+  'keep turning up',
+  'halfway is still halfway',
+  'the hard part is behind you',
+  'almost nobody gets this far',
+  'the air gets thin up here',
+  'the summit is close',
+];
+
+function Along({ width, days }) {
+  const spots = layout();
+  const me = journeyFrom(days);
+  const notes = [];
+
+  /* one every third leg, starting above the second rank */
+  for (let i = 2; i < spots.length - 1; i += 3) {
+    const a = spots[i];
+    const b = spots[i + 1];
+    if (!b) break;
+
+    /* not on the leg being walked — the countdown is written there */
+    if (me.next && me.next.n === b.r.n) continue;
+
+    const which = Math.floor(i / 3) % ALONG.length;
+
+    /* Pinned to whichever margin is furthest from BOTH ends of the
+       leg. Splitting the difference puts the note exactly where a
+       rank's name is printed — which is how "the first week is the
+       hardest" ended up written through the words "Silver 3". */
+    const far = (edge) => Math.min(Math.abs(a.x - edge), Math.abs(b.x - edge));
+    const xf = far(0.17) >= far(0.83) ? 0.17 : 0.83;
+    const x = Math.max(6, Math.min(width - 206, xf * width - 100));
+
+    notes.push(
+      /* Not the midpoint of the leg. A rank's name is printed about
+         forty-six points below its disc, and the midpoint lands
+         thirteen points under that — which is how "rest days are
+         part of it" ended up written through "Platinum 3". Three
+         quarters of the way down the leg clears it. */
+      <View key={i} style={{ position: 'absolute', left: x, top: b.y + STEP * 0.74,
+                             width: 200, alignItems: 'center' }}>
+        <Text style={[styles.handAlong, {
+          /* lit once you are past it, ghosted while it is still ahead */
+          color: days >= b.r.at ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.4)',
+        }]}>
+          {ALONG[which]}
+        </Text>
+      </View>,
+    );
+  }
+
+  return <View style={StyleSheet.absoluteFill} pointerEvents="none">{notes}</View>;
 }
 
 /* ---------------------------------------------------------------
@@ -281,7 +353,6 @@ function Notes({ width, days, t }) {
       <View key="here" style={{ position: 'absolute', left: here.x * width - 100, top: here.y + 52,
                                 width: 200, alignItems: 'center' }}>
         <Text style={[styles.hand, { color: '#fff' }]}>{t('you are here')}</Text>
-        <Text style={[styles.handSmall, { color: here.r.colour }]}>{me.rank.name}</Text>
       </View>,
     );
   } else if (nextSpot) {
@@ -352,6 +423,7 @@ export function JourneyMap({ width, days, onPick }) {
         <Node key={s.r.n} spot={s} width={width} days={days}
           onPress={onPick} isNext={s.r.n === nextN} />
       ))}
+      <Along width={width} days={days} />
       <Notes width={width} days={days} t={t} />
     </View>
   );
@@ -371,8 +443,8 @@ const styles = StyleSheet.create({
   ping: { position: 'absolute', borderWidth: 2.5 },
 
   tier: {
-    fontFamily: 'WorkSans_600SemiBold', fontSize: 12.5, marginTop: 3,
-    letterSpacing: 0.5,
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 11.5, marginTop: 4,
+    letterSpacing: 0.3,
     textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 8,
   },
 
@@ -385,6 +457,11 @@ const styles = StyleSheet.create({
   },
   handSmall: {
     fontFamily: 'Caveat_600SemiBold', fontSize: 21, lineHeight: 25,
+    textShadowColor: 'rgba(0,0,0,0.95)',
+    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 7,
+  },
+  handAlong: {
+    fontFamily: 'Caveat_600SemiBold', fontSize: 19, lineHeight: 23, textAlign: 'center',
     textShadowColor: 'rgba(0,0,0,0.95)',
     textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 7,
   },

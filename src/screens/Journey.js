@@ -23,9 +23,10 @@ import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
-import { RANKS, LEAGUES, terrainOf, TOP, journeyFrom } from '../journey';
+import { RANKS, LEAGUES, TERRAIN, terrainOf, TOP, journeyFrom } from '../journey';
 import { bmiFrom, bandOf, healthyRange, scalePos } from '../bmi';
-import { JourneyMap, MAP_HEIGHT, LEAGUE_ICON } from '../ui/journeyMap';
+import { JourneyMap, MAP_HEIGHT, LEAGUE_ICON, TERRAIN_PHOTO } from '../ui/journeyMap';
+import { LinearGradient } from 'expo-linear-gradient';
 
 /* react-native-web hands every focused input the browser's own blue
    focus ring, which lands on top of the app's border and reads as a
@@ -193,9 +194,20 @@ function RankSheet({ milestone, days, entry, onBack, onSaved, user, profile }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ paddingBottom: tabPad }} keyboardShouldPersistTaps="handled">
 
-        <View style={{ height: 232 }}>
+        {/* The photograph this rank sits on, rather than a flat
+            green hill. The map behind a rank and the header above it
+            should be the same country. */}
+        <View style={{ height: 232, overflow: 'hidden' }}>
           <View style={[StyleSheet.absoluteFill, { backgroundColor: terrain.sky[0] }]} />
-          <View style={[styles.hill, { backgroundColor: terrain.ground ? terrain.ground[0] : '#1A2712' }]} />
+          {TERRAIN_PHOTO[milestone.terrain] ? (
+            <Image source={TERRAIN_PHOTO[milestone.terrain]}
+              style={StyleSheet.absoluteFill} resizeMode="cover" />
+          ) : null}
+          <LinearGradient
+            colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.28)', 'rgba(0,0,0,0.72)']}
+            locations={[0, 0.45, 1]}
+            style={StyleSheet.absoluteFill}
+          />
 
           {/* mCentre is flex:1 and fills this whole box, and a later
               sibling paints over an earlier one — so with the header

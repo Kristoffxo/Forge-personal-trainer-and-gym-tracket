@@ -24,6 +24,7 @@
    --------------------------------------------------------------- */
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { journeyFrom } from './journey';
 import * as Notifications from 'expo-notifications';
 import { supabase } from './supabase';
 
@@ -109,12 +110,48 @@ export function permission() {
    --------------------------------------------------------------- */
 const NATIVE_ID = 'reppo-daily';
 
-const NUDGE = {
-  title: 'Reppo',
-  body: 'A few minutes today is what the streak is made of. Open it and log something.',
-};
+/* What the reminder says.
 
-async function scheduleNative(hour) {
+   "A few minutes today" is true of every day forever, which is why
+   nobody reads it twice. Naming the league and the number of days
+   left gives the reminder a reason to exist today in particular —
+   and the number goes down as they train, which the generic line
+   could never do.
+
+   `days` is how many days they have trained. It is optional: the
+   reminder is scheduled the moment somebody switches it on, which
+   can be before the app knows their total, so there is a plain line
+   to fall back to. */
+export function nudgeText(days) {
+  if (days == null) {
+    return { title: 'Reppo', body: 'A few minutes today. Open it and log something.' };
+  }
+
+  const me = journeyFrom(days);
+
+  if (me.atTop) {
+    return {
+      title: 'Titan',
+      body: 'You are at the top. Today is about staying there.',
+    };
+  }
+
+  const left = me.toGo;
+  const goal = me.next.name;
+
+  /* one day out is worth its own sentence */
+  if (left <= 1) {
+    return { title: `1 day from ${goal}`, body: `Train today and ${goal} is yours.` };
+  }
+
+  return {
+    title: `${left} days to ${goal}`,
+    body: `Train ${left} more days for ${goal}. You can do it.`,
+  };
+}
+
+async function scheduleNative(hour, days) {
+  const nudge = nudgeText(days);
   await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
   await Notifications.setNotificationChannelAsync('daily', {
     name: 'Daily reminder',
@@ -124,7 +161,7 @@ async function scheduleNative(hour) {
 
   await Notifications.scheduleNotificationAsync({
     identifier: NATIVE_ID,
-    content: { title: NUDGE.title, body: NUDGE.body, sound: true },
+    content: { title: nudge.title, body: nudge.body, sound: true },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour,
@@ -134,12 +171,12 @@ async function scheduleNative(hour) {
   });
 }
 
-async function nativeEnable(hour) {
+async function nativeEnable(hour, days) {
   const asked = await Notifications.requestPermissionsAsync();
   if (!asked.granted && asked.status !== 'granted') {
     return { error: 'Notifications are switched off for Reppo. Turn them on in your phone settings.' };
   }
-  await scheduleNative(hour);
+  await scheduleNative(hour, days);
   await AsyncStorage.setItem(HOUR_KEY, String(hour)).catch(() => {});
   await remember(true);
   return { ok: true };
@@ -172,8 +209,8 @@ function urlBase64ToUint8Array(base64) {
    Turn it on. Resolves { ok } or { error } — never throws at the
    caller, because every failure here has a sentence worth showing.
    --------------------------------------------------------------- */
-export async function enable(userId, hour = DEFAULT_HOUR) {
-  if (!isWeb) return nativeEnable(hour);
+export async function enable(userId, hour = DEFAULT_HOUR, days = null) {
+  if (!isWeb) return nativeEnable(hour, days);
 
   const why = whyNot();
   if (why) return { error: why };
@@ -270,10 +307,10 @@ export async function getHour() {
   return data.send_hour;
 }
 
-export async function setHour(hour) {
+export async function setHour(hour, days = null) {
   if (!isWeb) {
     await AsyncStorage.setItem(HOUR_KEY, String(hour)).catch(() => {});
-    await scheduleNative(hour);
+    await scheduleNative(hour, days);
     return { ok: true };
   }
   const endpoint = await myEndpoint();
@@ -345,5 +382,29 @@ export async function isOn() {
     return !!(await reg.pushManager.getSubscription());
   } catch (e) {
     return false;
+  }
+}
+
+
+/* ---------------------------------------------------------------
+   Keep the reminder honest.
+
+   The text names a league and a number of days, and both change as
+   somebody trains — so the scheduled notification is rewritten with
+   today's numbers each time the app knows them. Cheap: it cancels
+   one trigger and sets another, on the device, with no network.
+
+   Silent about everything. A reminder that failed to reschedule is
+   not worth interrupting anybody over; the old text still fires.
+   --------------------------------------------------------------- */
+export async function refreshNudge(days) {
+  if (isWeb || days == null) return;
+  try {
+    if (!(await wanted())) return;
+    const perm = await Notifications.getPermissionsAsync();
+    if (!perm || !(perm.granted || perm.status === 'granted')) return;
+    await scheduleNative(await getHour(), days);
+  } catch {
+    /* nothing worth saying */
   }
 }
