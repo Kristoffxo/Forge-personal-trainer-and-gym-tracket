@@ -27,6 +27,7 @@ import { kitLabel } from '../exercises';
 import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
 import { Timer } from '../ui/timer';
+import { useClaimFullscreen } from '../fullscreen';
 import { parseDuration } from '../duration';
 import { STEP_NOTE } from '../seniorPlan';
 import { framesFor } from '../exercisePhotos';
@@ -70,12 +71,17 @@ function Neighbours({ list, index, onGo, C, T, styles, t }) {
   );
 }
 
-export default function Exercise({ exercise, index, total, list, onGo, onDone, onBack, previewOnly }) {
+export default function Exercise({ exercise, index, total, list, onGo, onDone, onStart,
+                                   onBack, previewOnly }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
   const tint = MUSCLE_C[exercise.m] || C.ember;
   const held = parseDuration(exercise.s);
+
+  /* Reading how a movement is done is the whole screen, the same as
+     doing it is. Nothing above it, nothing below it. */
+  useClaimFullscreen(!previewOnly);
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -162,13 +168,15 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
       </ScrollView>
 
       <View style={styles.foot}>
+        {/* One button, and it starts the workout — from the top,
+            not from whichever move happened to be tapped. Reading
+            about the third exercise is not a reason to skip the
+            first two. */}
         <Btn
-          label={previewOnly
-            ? t('Back to the list')
-            : index + 1 === total ? t('Done — finish workout') : t('Done — next exercise')}
+          label={previewOnly ? t('Back to the list') : t('Start workout')}
           color={tint}
           dark={previewOnly}
-          onPress={onDone}
+          onPress={previewOnly ? onDone : (onStart || onDone)}
         />
       </View>
     </View>

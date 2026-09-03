@@ -73,6 +73,7 @@ export default function Library({ place, user, profile, onBack }) {
         profile={profile}
         kind={place}
         name={picked.name}
+        autoStart
         onExit={() => { setRunning(false); setPicked(null); }}
       />
     );

@@ -94,6 +94,7 @@ export default function Training({ user, profile, onBack }) {
         profile={profile}
         kind="planner"
         name={day.title}
+        autoStart
         onExit={() => { setRunning(false); setDone({}); setOpenIdx(null); }}
       />
     );

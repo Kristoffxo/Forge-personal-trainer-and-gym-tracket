@@ -25,7 +25,8 @@ import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import { createPost, postedToday, firstNameOf } from '../social';
 import Exercise from './Exercise';
 
-export default function Session({ title, exercises, user, profile, kind, name, onExit }) {
+export default function Session({ title, exercises, user, profile, kind, name,
+                                  autoStart, onExit }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -35,7 +36,12 @@ export default function Session({ title, exercises, user, profile, kind, name, o
   const [done, setDone] = useState({});
   const [openIdx, setOpenIdx] = useState(null);
   const [finished, setFinished] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  /* Every screen that opens a Session has already shown the list of
+     moves and a Start button, so showing a second list with a second
+     Start was a step that existed only because two screens were
+     written at different times. Start means start. The list below is
+     still reachable by stopping the player. */
+  const [playing, setPlaying] = useState(!!autoStart);
 
   const total = exercises.length;
   const ticked = Object.keys(done).filter((k) => done[k]).length;
@@ -85,12 +91,8 @@ export default function Session({ title, exercises, user, profile, kind, name, o
         list={exercises}
         onGo={setOpenIdx}
         onBack={() => setOpenIdx(null)}
-        onDone={() => {
-          const next = { ...done, [openIdx]: true };
-          setDone(next);
-          const following = exercises.findIndex((_, i) => !next[i]);
-          setOpenIdx(following === -1 ? null : following);
-        }}
+        onStart={() => { setOpenIdx(null); setPlaying(true); }}
+        onDone={() => setOpenIdx(null)}
       />
     );
   }
@@ -170,7 +172,7 @@ export default function Session({ title, exercises, user, profile, kind, name, o
             for reading before you begin, not for ticking your way
             through — that is the player's job now. */}
         <Btn
-          label={ticked ? t('Carry on') : t('Start')}
+          label={t('Start workout')}
           color={C.ember}
           onPress={() => setPlaying(true)}
           style={{ marginTop: S.xl }}
