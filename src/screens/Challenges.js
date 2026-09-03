@@ -21,7 +21,7 @@ import { S, R, useTheme } from '../theme';
 import { Press, FadeIn, Label, Bar, useTabPad } from '../ui/kit';
 import { useLang } from '../lang';
 import { BadgeRow, StandingCard } from '../ui/medals';
-import { MEDAL_COLOUR, journeyFrom } from '../journey';
+import { journeyFrom } from '../journey';
 import { myStanding } from '../challenge';
 import { leaderboard } from '../social';
 
@@ -55,7 +55,7 @@ export default function Challenges({ user, onBack }) {
         </Press>
         <Text style={styles.title}>{t('Challenges')}</Text>
         <Text style={[T.small, { marginTop: 2 }]}>
-          {t('Just train. The badges come to you.')}
+          {t('Train seven days, go up a league.')}
         </Text>
       </View>
 
@@ -66,7 +66,7 @@ export default function Challenges({ user, onBack }) {
 
       {/* the badges */}
       <FadeIn delay={70} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
-        <Label style={{ marginBottom: S.md }}>{t('Your badges')}</Label>
+        <Label style={{ marginBottom: S.md }}>{t('Leagues')}</Label>
         <View style={styles.medalBox}>
           <BadgeRow days={me.trained} size={44} />
         </View>
@@ -75,15 +75,15 @@ export default function Challenges({ user, onBack }) {
           <View style={styles.nextBox}>
             <Text style={[T.small, { color: C.text }]}>
               {here.toGo} {here.toGo === 1 ? t('day') : t('days')} {t('to')}{' '}
-              <Text style={{ color: MEDAL_COLOUR[here.next.grade] }}>{t(here.next.place)}</Text>
+              <Text style={{ color: here.next.colour }}>{t(here.next.name)}</Text>
             </Text>
             <Bar value={here.progress} max={1}
-              color={MEDAL_COLOUR[here.next.grade]} height={6} style={{ marginTop: S.sm }} />
+              color={here.next.colour} height={6} style={{ marginTop: S.sm }} />
           </View>
         ) : (
           <View style={styles.nextBox}>
             <Text style={[T.small, { color: C.text }]}>
-              {t('Every badge earned. Nothing left to win — only to keep.')}
+              {t('Titan. Nothing left to win — only to keep.')}
             </Text>
           </View>
         )}
@@ -94,9 +94,9 @@ export default function Challenges({ user, onBack }) {
         <Label style={{ marginBottom: S.sm }}>{t('How it works')}</Label>
         {[
           t('Any workout counts — planner, gym or home.'),
-          t('Every day you train adds one. Rest days take nothing away.'),
-          t('Thirteen places on the map, one badge each.'),
-          t('Day 30 is Level 2. Day 90 is Level 3. Day 360 is the summit.'),
+          t('Seven days of training is a promotion. Rest days take nothing away.'),
+          t('Bronze, Silver, Gold, Platinum, Diamond, Champion, Master.'),
+          t('Three steps in each, and then you are a Titan.'),
         ].map((line, i) => (
           <View key={i} style={styles.ruleRow}>
             <Text style={[styles.ruleDot, { color: C.violet }]}>{'—'}</Text>
@@ -114,15 +114,15 @@ export default function Challenges({ user, onBack }) {
           </Text>
           {board.map((p, i) => {
             const mine = p.id === user.id;
-            const grade = (journeyFrom(p.days_trained || 0).reached.slice(-1)[0] || {}).grade;
+            const their = journeyFrom(p.days_trained || 0).rank;
             return (
               <View key={p.id} style={[styles.boardRow, mine && { borderColor: C.violet }]}>
                 <Text style={[styles.place, i < 3 && { color: C.gold }]}>{i + 1}</Text>
                 <Text style={[styles.boardName, mine && { color: C.violet }]}>
                   {p.name}{mine ? ' ' + t('(you)') : ''}
                 </Text>
-                <Text style={[T.tiny, { marginRight: 8 }]}>{t('Level')} {p.level}</Text>
-                <Text style={[styles.boardStreak, grade && { color: MEDAL_COLOUR[grade] }]}>
+                <Text style={[T.tiny, { marginRight: 8 }]}>{their ? t(their.name) : t('Unranked')}</Text>
+                <Text style={[styles.boardStreak, their && { color: their.colour }]}>
                   {p.days_trained || 0}
                 </Text>
               </View>

@@ -7,22 +7,23 @@
    and the tier names meant nothing on their own — nobody could tell
    you whether 15 day silver beat 30 day bronze.
 
-   There is one answer now. Days trained, in any order, place you
-   have reached on the map, one badge per place. Shared by the
+   There is one answer now: which league you are in. Days trained,
+   in any order, seven of them to a promotion. Shared by the
    Challenges screen, your own numbers and anybody else's profile,
-   so a badge looks the same wherever it turns up.
+   so a league looks the same wherever it turns up.
    --------------------------------------------------------------- */
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { S, R, useTheme } from '../theme';
-import { MILESTONES, MEDAL_COLOUR, journeyFrom } from '../journey';
+import { RANKS, LEAGUES, journeyFrom } from '../journey';
+import { LEAGUE_ICON } from './journeyMap';
 
 /* One badge: a disc in its grade colour, the place's number inside.
    Earned ones are filled, the rest are outlines. */
-export function Badge({ milestone, earned, size = 44 }) {
+export function Badge({ league, earned, size = 44 }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
-  const colour = MEDAL_COLOUR[milestone.grade];
+  const colour = league.colour;
 
   return (
     <View style={{ alignItems: 'center', width: size + 8 }}>
@@ -31,11 +32,10 @@ export function Badge({ milestone, earned, size = 44 }) {
         { width: size, height: size, borderRadius: size / 2, borderColor: colour },
         earned ? { backgroundColor: colour } : { opacity: 0.32 },
       ]}>
-        <Text style={[styles.discNum, {
-          color: earned ? '#0B0B0E' : colour, fontSize: size * 0.38,
-        }]}>
-          {milestone.n}
-        </Text>
+        <Image source={LEAGUE_ICON[league.key]}
+          style={{ width: size * 0.52, height: size * 0.52,
+                   tintColor: earned ? '#0B0B0E' : colour }}
+          resizeMode="contain" />
       </View>
     </View>
   );
@@ -47,9 +47,10 @@ export function Badge({ milestone, earned, size = 44 }) {
 export function BadgeRow({ days, size = 44 }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-      {MILESTONES.map((m) => (
-        <Badge key={m.n} milestone={m} earned={(days || 0) >= m.at} size={size} />
-      ))}
+      {LEAGUES.map((lg) => {
+        const first = RANKS.find((r) => r.league === lg.key);
+        return <Badge key={lg.key} league={lg} earned={(days || 0) >= first.at} size={size} />;
+      })}
     </View>
   );
 }
@@ -60,27 +61,27 @@ export function StandingCard({ days, accent }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
   const j = journeyFrom(days || 0);
-  const here = j.reached[j.reached.length - 1] || null;
-  const colour = here ? MEDAL_COLOUR[here.grade] : (accent || C.faint);
+  const here = j.rank;
+  const colour = here ? here.colour : (accent || C.faint);
 
   return (
     <View style={[styles.rank, { borderColor: colour }]}>
       <View style={[styles.levelChip, { backgroundColor: colour + '22', borderColor: colour }]}>
         <Text style={[styles.levelTxt, { color: colour }]}>
-          {j.level ? `LEVEL ${j.level}` : 'SETTING OUT'}
+          {here ? here.leagueName.toUpperCase() : 'UNRANKED'}
         </Text>
       </View>
 
       <Text style={[styles.rankTxt, { color: here ? C.text : C.dim }]}>
-        {here ? here.place : 'The Meadow'}
+        {here ? here.name : 'Unranked'}
       </Text>
 
       {j.next ? (
         <Text style={[T.small, { marginTop: 4 }]}>
-          {j.toGo} {j.toGo === 1 ? 'day' : 'days'} to {j.next.place}
+          {j.toGo} {j.toGo === 1 ? 'day' : 'days'} to {j.next.name}
         </Text>
       ) : (
-        <Text style={[T.small, { marginTop: 4, color: colour }]}>The summit</Text>
+        <Text style={[T.small, { marginTop: 4, color: colour }]}>The top of the ladder</Text>
       )}
 
       <View style={styles.numRow}>
@@ -89,8 +90,8 @@ export function StandingCard({ days, accent }) {
           <Text style={T.tiny}>days trained</Text>
         </View>
         <View style={styles.numBit}>
-          <Text style={styles.num}>{j.badges.length}</Text>
-          <Text style={T.tiny}>of {MILESTONES.length} badges</Text>
+          <Text style={styles.num}>{j.reached.length}</Text>
+          <Text style={T.tiny}>of {RANKS.length} weeks</Text>
         </View>
       </View>
     </View>

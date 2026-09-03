@@ -1,107 +1,89 @@
-#!/usr/bin/env node
-/* The journey, which is now counted in days trained rather than days
-   in a row. Run with: node scripts/test-journey.mjs */
-import { MILESTONES, TOP, journeyFrom, isReached, terrainOf, label } from '../src/journey.js';
+/* The leagues. Run: node scripts/test-journey.mjs */
+import {
+  RANKS, LEAGUES, WEEK, TOP, label, journeyFrom, isReached, terrainOf,
+} from '../src/journey.js';
 
-let pass = 0, fail = 0;
-const is = (name, got, want) => {
-  const ok = JSON.stringify(got) === JSON.stringify(want);
-  if (ok) pass++; else { fail++; console.log(`  FAIL ${name}\n    got  ${JSON.stringify(got)}\n    want ${JSON.stringify(want)}`); }
+let pass = 0; let fail = 0;
+const is = (what, got, want) => {
+  const a = JSON.stringify(got); const b = JSON.stringify(want);
+  if (a === b) { pass += 1; return; }
+  fail += 1;
+  console.log(`  FAIL ${what}\n    got  ${a}\n    want ${b}`);
 };
 
-console.log('the map itself');
-is('thirteen places', MILESTONES.length, 13);
-is('the days are the ones asked for',
-  MILESTONES.map((m) => m.at), [7, 14, 15, 21, 28, 30, 45, 60, 90, 120, 180, 270, 360]);
-is('they only ever go up',
-  MILESTONES.every((m, i) => i === 0 || m.at > MILESTONES[i - 1].at), true);
-is('numbered one to thirteen', MILESTONES.map((m) => m.n), [1,2,3,4,5,6,7,8,9,10,11,12,13]);
-is('the top is day 360', TOP, 360);
-is('four levels, in the right places',
-  MILESTONES.filter((m) => m.level).map((m) => [m.n, m.at, m.level]),
-  [[1, 7, 1], [6, 30, 2], [9, 90, 3], [13, 360, 4]]);
-is('one badge per place, thirteen in all',
-  MILESTONES.filter((m) => !!m.grade).length, 13);
-is('every badge is a real grade',
-  MILESTONES.every((m) => ['bronze','silver','gold','diamond'].includes(m.grade)), true);
-is('the grade only ever climbs', (() => {
-  const rank = { bronze: 0, silver: 1, gold: 2, diamond: 3 };
-  return MILESTONES.every((m, i) => i === 0 || rank[m.grade] >= rank[MILESTONES[i - 1].grade]);
-})(), true);
-is('four bronze, four silver, four gold, one diamond',
-  ['bronze','silver','gold','diamond'].map((g) => MILESTONES.filter((m) => m.grade === g).length),
-  [5, 3, 4, 1]);
-is('every place has terrain', MILESTONES.every((m) => !!terrainOf(m)), true);
-is('a badge reads as a place, not a formula',
-  label({ place: 'First Camp', grade: 'bronze' }), 'First Camp \u00b7 Bronze');
+console.log('the ladder');
+is('eight leagues', LEAGUES.map((l) => l.name),
+  ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Champion', 'Master', 'Titan']);
+is('seven leagues of three, then Titan alone', RANKS.length, 22);
+is('a week is seven training days', WEEK, 7);
+is('every rank is one week above the last',
+  RANKS.every((r, i) => r.at === (i + 1) * WEEK), true);
+is('tiers count down inside a league',
+  RANKS.filter((r) => r.league === 'silver').map((r) => r.tier), [3, 2, 1]);
+is('Titan has no tier', RANKS[21].tier, null);
+is('every rank has terrain', RANKS.every((r) => !!terrainOf(r)), true);
+is('the top is day 154', TOP, 154);
 
-/* every place the brief named, checked one at a time */
-console.log('the places, as specified');
-const at = (day) => label(MILESTONES.find((m) => m.at === day));
-is('day 7', at(7), 'First Camp · Bronze');
-is('day 14', at(14), 'The Crossing · Bronze');
-is('day 15', at(15), 'Old Mill · Bronze');
-is('day 21', at(21), 'Riverbend · Bronze');
-is('day 28', at(28), 'The Falls · Bronze');
-is('day 30', at(30), 'Watchtower · Silver');
-is('day 45', at(45), 'Hollow Pass · Silver');
-is('day 60', at(60), 'Deepwood · Silver');
-is('day 90', at(90), 'Emberfall · Gold');
-is('day 120', at(120), 'The Forge · Gold');
-is('day 180', at(180), 'Snowline · Gold');
-is('day 270', at(270), 'The Spire · Gold');
-is('day 360', at(360), 'The Summit · Diamond');
+console.log('\nthe names and days, as specified');
+const at = (day) => label(RANKS.find((r) => r.at === day));
+is('day 7',   at(7),   'Bronze 3');
+is('day 14',  at(14),  'Bronze 2');
+is('day 21',  at(21),  'Bronze 1');
+is('day 28',  at(28),  'Silver 3');
+is('day 35',  at(35),  'Silver 2');
+is('day 42',  at(42),  'Silver 1');
+is('day 49',  at(49),  'Gold 3');
+is('day 63',  at(63),  'Gold 1');
+is('day 70',  at(70),  'Platinum 3');
+is('day 84',  at(84),  'Platinum 1');
+is('day 91',  at(91),  'Diamond 3');
+is('day 105', at(105), 'Diamond 1');
+is('day 112', at(112), 'Champion 3');
+is('day 126', at(126), 'Champion 1');
+is('day 133', at(133), 'Master 3');
+is('day 147', at(147), 'Master 1');
+is('day 154', at(154), 'Titan');
 
-console.log('where somebody is');
-is('day zero is nowhere', journeyFrom(0).reached.length, 0);
-is('and the first place is next', journeyFrom(0).next.at, 7);
-is('and it is seven days away', journeyFrom(0).toGo, 7);
-is('day zero is level zero', journeyFrom(0).level, 0);
+console.log('\nwhere somebody is');
+is('nobody is in a league before their first week', journeyFrom(6).rank, null);
+is('and the first week is what they are climbing to', journeyFrom(6).next.name, 'Bronze 3');
+is('day 7 is Bronze 3', journeyFrom(7).rank.name, 'Bronze 3');
+is('day 13 is still Bronze 3', journeyFrom(13).rank.name, 'Bronze 3');
+is('day 14 is a promotion', journeyFrom(14).rank.name, 'Bronze 2');
+is('day 27 is still Bronze 1', journeyFrom(27).rank.name, 'Bronze 1');
+is('day 28 changes league', journeyFrom(28).leagueName, 'Silver');
+is('day 95 is Diamond 3', journeyFrom(95).rank.name, 'Diamond 3');
+is('the top is Titan', journeyFrom(154).rank.name, 'Titan');
+is('the top has nothing ahead', journeyFrom(154).next, null);
+is('and says so', journeyFrom(154).atTop, true);
+is('past the top stays Titan', journeyFrom(9000).rank.name, 'Titan');
+is('every rank is behind you at the top', journeyFrom(154).reached.length, 22);
 
-is('day 7 arrives', journeyFrom(7).reached.length, 1);
-is('day 7 is level 1', journeyFrom(7).level, 1);
-is('day 29 has five behind it', journeyFrom(29).reached.length, 5);
-is('day 29 is still level 1', journeyFrom(29).level, 1);
-is('day 30 is level 2', journeyFrom(30).level, 2);
-is('day 30 hands over exactly one badge',
-  journeyFrom(30).badges.filter((b) => b.at === 30).length, 1);
-is('and it is the first silver',
-  journeyFrom(30).badges.filter((b) => b.grade === 'silver').length, 1);
-is('day 89 is level 2', journeyFrom(89).level, 2);
-is('day 90 is level 3', journeyFrom(90).level, 3);
-is('day 359 is level 3', journeyFrom(359).level, 3);
-is('day 360 is level 4', journeyFrom(360).level, 4);
-is('the top has nothing ahead', journeyFrom(360).next, null);
-is('and says so', journeyFrom(360).atTop, true);
-is('past the top stays at the top', journeyFrom(9000).level, 4);
-is('and collects every badge', journeyFrom(9000).badges.length, 13);
-
-console.log('the path between two places');
-is('halfway from 30 to 45', Math.round(journeyFrom(37).progress * 100) / 100, 0.47);
-is('just arrived is zero', journeyFrom(30).progress, 0);
-is('progress never exceeds one', journeyFrom(360).progress, 1);
+console.log('\nthe week you are in the middle of');
+is('just promoted is zero', journeyFrom(28).progress, 0);
+is('halfway through a week', journeyFrom(31).progress, 3 / 7);
+is('six days in, one to go', journeyFrom(34).toGo, 1);
+is('progress never exceeds one', journeyFrom(154).progress, 1);
 is('progress is never negative', journeyFrom(0).progress >= 0, true);
 
-console.log('rest days cost nothing');
+console.log('\nrest days cost nothing');
 {
-  /* the old engine counted runs, so a gap reset you. This one cannot
-     tell the difference between 90 days straight and 90 days spread
-     over three years — which is the entire point. */
-  const straight = journeyFrom(90);
-  const scattered = journeyFrom(90);
-  is('the same total is the same place', straight.level, scattered.level);
-  is('and the same badges', straight.badges.length, scattered.badges.length);
-  is('nothing can be taken away',
-    MILESTONES.every((m) => isReached(m, 400)), true);
+  /* The engine cannot tell 28 days straight from 28 days spread over
+     a year, which is the entire point. */
+  const straight = journeyFrom(28);
+  const scattered = journeyFrom(28);
+  is('the same total is the same rank', straight.rank.name, scattered.rank.name);
+  is('nothing can be taken away', RANKS.every((r) => isReached(r, 200)), true);
   is('and a day never un-happens',
     journeyFrom(100).reached.length >= journeyFrom(99).reached.length, true);
 }
 
-console.log('nonsense in');
-is('negative days', journeyFrom(-5).reached.length, 0);
-is('nothing', journeyFrom(null).level, 0);
-is('a string of a number still works', journeyFrom('30').level, 2);
-is('fractions round down', journeyFrom(29.9).level, 1);
+console.log('\nnonsense in');
+is('no days', journeyFrom(0).rank, null);
+is('negative', journeyFrom(-5).days, 0);
+is('rubbish', journeyFrom('abc').days, 0);
+is('nothing at all', journeyFrom(undefined).days, 0);
+is('a fraction rounds down', journeyFrom(13.9).rank.name, 'Bronze 3');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

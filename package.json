@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "@expo-google-fonts/caveat": "^0.4.2",
     "@expo-google-fonts/forum": "^0.4.1",
     "@expo-google-fonts/work-sans": "^0.4.2",
     "@expo/metro-runtime": "~6.1.2",

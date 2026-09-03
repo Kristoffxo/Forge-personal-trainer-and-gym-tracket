@@ -225,3 +225,27 @@ create policy posts_img_update on storage.objects for update
     bucket_id = 'posts'
     and auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- ------------------------------------------------------------
+--  Pictures on the feed
+--
+--  profiles_read only lets you see your own row, so the feed could
+--  never look up anybody else's picture — every post but your own
+--  fell back to a letter. Posts do carry a copy of the path, but
+--  only from the moment this shipped, and a copy goes stale the
+--  first time somebody changes their picture.
+--
+--  This returns nothing but a picture and the time it changed, for
+--  a list of people, in one round trip per page of the feed.
+-- ------------------------------------------------------------
+create or replace function public.avatars_for(ids uuid[])
+returns table (id uuid, avatar_path text, avatar_at timestamptz)
+language sql security definer stable set search_path = public as $$
+  select p.id, p.avatar_path, p.avatar_at
+    from public.profiles p
+   where auth.uid() is not null
+     and p.id = any(ids)
+     and p.avatar_path is not null
+$$;
+
+grant execute on function public.avatars_for(uuid[]) to authenticated;

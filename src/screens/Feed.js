@@ -25,7 +25,7 @@ import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import {
   loadFeed, createPost, deletePost, loadComments, addComment, deleteComment,
   report, blockUser, imageUrl, firstNameOf, ago, postedToday,
-  likeCounts, myLikes, setLike,
+  likeCounts, myLikes, setLike, avatarsFor,
 } from '../social';
 
 /* The photo's own aspect ratio, clamped. Resolved from the file
@@ -61,6 +61,7 @@ export default function Feed({ user, profile }) {
   const [person, setPerson] = useState(null);      // whose profile is open
   const [likes, setLikes] = useState({});          // post id -> how many
   const [mine, setMine] = useState(new Set());     // which ones I liked
+  const [faces, setFaces] = useState({});          // user id -> picture
 
   const load = useCallback(async () => {
     const r = await loadFeed();
@@ -74,6 +75,7 @@ export default function Feed({ user, profile }) {
     const ids = r.posts.map((p) => p.id);
     setLikes(await likeCounts(ids));
     setMine(await myLikes(user.id, ids));
+    setFaces(await avatarsFor(r.posts.map((p) => p.user_id)));
   }, [user.id]);
 
   /* Optimistic: the number moves the instant you tap. A like that
@@ -96,6 +98,7 @@ export default function Feed({ user, profile }) {
     setPosts(posts.concat(r.posts));
     setCounts({ ...counts, ...r.counts });
     setMore(r.posts.length >= 12);
+    setFaces({ ...faces, ...(await avatarsFor(r.posts.map((p) => p.user_id))) });
   }
 
   if (view === 'compose') {
@@ -155,7 +158,7 @@ export default function Feed({ user, profile }) {
       ) : (
         posts.map((p, i) => (
           <PostCard
-            key={p.id} post={p} index={i} user={user}
+            key={p.id} post={p} index={i} user={user} face={faces[p.user_id]}
             comments={counts[p.id] || 0}
             likes={likes[p.id] || 0}
             liked={mine.has(p.id)}
@@ -183,7 +186,7 @@ export default function Feed({ user, profile }) {
 /* ---------------------------------------------------------------
    One post in the list
    --------------------------------------------------------------- */
-function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, onPerson, onChanged }) {
+function PostCard({ post, index, user, face, comments, likes, liked, onLike, onOpen, onPerson, onChanged }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -199,7 +202,7 @@ function PostCard({ post, index, user, comments, likes, liked, onLike, onOpen, o
       <View style={styles.cardHead}>
         <Press onPress={onPerson} scaleTo={0.94}
           style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <Avatar name={post.name} path={post.avatar_path} at={post.avatar_at}
+          <Avatar name={post.name} path={face && face.avatar_path} at={face && face.avatar_at}
             size={34} colour={C.line} />
           <Text style={styles.who}>{firstNameOf(post.name)}</Text>
         </Press>

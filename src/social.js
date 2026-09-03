@@ -152,6 +152,24 @@ export async function removeAvatar(userId) {
   return error ? { error: friendly(error.message) } : {};
 }
 
+/* Everybody's picture, for one page of the feed.
+
+   The feed cannot read other people's profile rows — that policy is
+   deliberate — so this goes through a function that returns nothing
+   but the picture. Live rather than the copy stored on the post,
+   because a copy is wrong the moment somebody changes their photo.
+   Returns {} on any failure: a missing picture is a letter, not an
+   error worth showing anybody. */
+export async function avatarsFor(userIds) {
+  const ids = [...new Set((userIds || []).filter(Boolean))];
+  if (!ids.length) return {};
+  const { data, error } = await supabase.rpc('avatars_for', { ids });
+  if (error) return {};
+  const out = {};
+  (data || []).forEach((r) => { out[r.id] = r; });
+  return out;
+}
+
 /* The public URL for somebody's picture, or null. `at` busts the CDN
    cache when they change it. */
 export function avatarUrl(path, at) {

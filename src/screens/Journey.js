@@ -23,9 +23,9 @@ import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
-import { MILESTONES, MEDAL_COLOUR, terrainOf, TOP } from '../journey';
+import { RANKS, LEAGUES, terrainOf, TOP, journeyFrom } from '../journey';
 import { bmiFrom, bandOf, healthyRange, scalePos } from '../bmi';
-import { JourneyMap, MAP_HEIGHT, PLACE_ICON } from '../ui/journeyMap';
+import { JourneyMap, MAP_HEIGHT, LEAGUE_ICON } from '../ui/journeyMap';
 
 /* react-native-web hands every focused input the browser's own blue
    focus ring, which lands on top of the app's border and reads as a
@@ -70,7 +70,7 @@ export default function Journey({ user, profile }) {
 
   if (open) {
     return (
-      <Milestone
+      <RankSheet
         milestone={open}
         days={me.days}
         entry={entries[open.n]}
@@ -104,23 +104,6 @@ export default function Journey({ user, profile }) {
         <View style={{ width, height: MAP_HEIGHT }}>
           <JourneyMap width={width} days={me.days} onPick={setOpen} />
 
-          {/* bottom right of the map, over the landscape */}
-          <View style={styles.mapCorner}>
-            <View style={styles.daysCard}>
-              <Text style={styles.daysBig}>
-                {me.days} {me.days === 1 ? t('DAY') : t('DAYS')}
-              </Text>
-              <Text style={styles.daysSub}>{t('TRAINED')}</Text>
-              <View style={styles.dashRow}>
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <View key={i} style={[styles.dash, {
-                    backgroundColor: i / 5 < me.progress ? MEDAL_COLOUR[(me.next || MILESTONES[12]).grade]
-                      : 'rgba(255,255,255,0.18)',
-                  }]} />
-                ))}
-              </View>
-            </View>
-          </View>
         </View>
 
         {/* Under the map. The starting point used to sit on top of it
@@ -134,8 +117,8 @@ export default function Journey({ user, profile }) {
             <Stat label={t('Weight')} value={start && start.weight_kg} unit="kg" C={C} T={T} />
             <Stat label={t('BMI')} value={start && start.bmi} unit="" C={C} T={T} />
             <Press
-              onPress={() => setOpen({ n: 0, at: 0, place: 'Your Starting Point',
-                terrain: 'meadow' })}
+              onPress={() => setOpen({ n: 0, at: 0, name: 'Your Starting Point',
+                league: 'bronze', colour: LEAGUES[0].colour, terrain: 'meadow' })}
               scaleTo={0.97}>
               <Text style={[styles.startLink, { color: C.ember }]}>
                 {start ? t('Change it') : t('Set it')}
@@ -145,53 +128,8 @@ export default function Journey({ user, profile }) {
 
           <BmiCard profile={profile} entries={entries} C={C} T={T} t={t} styles={styles} />
 
-          {/* Plainly, once, near the top. Somebody opening a map of
-              thirteen glowing symbols deserves a sentence telling
-              them what any of it is for. */}
-          <FadeIn delay={45}>
-            <View style={styles.explain}>
-              <Text style={styles.explainTitle}>{t('How the levels work')}</Text>
-              {[
-                t('Every day you train moves you one day up the mountain.'),
-                t('The numbers on the map are training days, not dates. Rest days take nothing away.'),
-                t('Reach a place and it lights up, and you can record your weight there.'),
-                t('360 training days reaches the summit. Keep going.'),
-              ].map((line, i) => (
-                <View key={i} style={styles.explainRow}>
-                  <View style={[styles.explainDot, { backgroundColor: C.ember }]} />
-                  <Text style={[T.small, { flex: 1, color: C.text }]}>{line}</Text>
-                </View>
-              ))}
-            </View>
-          </FadeIn>
-
-          {me.next ? (
-            <FadeIn>
-              <View style={[styles.next, { borderColor: MEDAL_COLOUR[me.next.grade] }]}>
-                <Label style={{ color: MEDAL_COLOUR[me.next.grade] }}>{t('Next')}</Label>
-                <Text style={styles.nextName}>{t(me.next.place)}</Text>
-                <Text style={[styles.nextGo, { color: MEDAL_COLOUR[me.next.grade] }]}>
-                  {me.toGo === 1 ? t('1 day to go') : `${me.toGo} ${t('days to go')}`}
-                </Text>
-              </View>
-            </FadeIn>
-          ) : (
-            <View style={[styles.next, { borderColor: C.lime }]}>
-              <Text style={styles.nextName}>{t('Summit reached')}</Text>
-            </View>
-          )}
-
           <Press onPress={() => setList(true)} scaleTo={0.98} style={styles.rowBtn}>
             <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('List view')}</Text>
-            <Text style={{ color: C.dim }}>{'›'}</Text>
-          </Press>
-          <Press
-            onPress={() => sheet.tell({
-              title: t('How it works'),
-              message: t('Every day you train counts. Rest days take nothing away. 360 training days reaches the summit, however long that takes.'),
-            })}
-            scaleTo={0.98} style={styles.rowBtn}>
-            <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('How it works')}</Text>
             <Text style={{ color: C.dim }}>{'›'}</Text>
           </Press>
         </View>
@@ -217,7 +155,7 @@ function Stat({ label, value, unit, C, T }) {
 /* ---------------------------------------------------------------
    One place, and what you weighed when you got there.
    --------------------------------------------------------------- */
-function Milestone({ milestone, days, entry, onBack, onSaved, user, profile }) {
+function RankSheet({ milestone, days, entry, onBack, onSaved, user, profile }) {
   const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
@@ -226,7 +164,7 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user, profile }) {
 
   const reached = milestone.n === 0 || days >= milestone.at;
   const terrain = terrainOf(milestone) || { accent: C.ember, sky: ['#16161B', '#0B0B0E'] };
-  const colour = milestone.grade ? MEDAL_COLOUR[milestone.grade] : terrain.accent;
+  const colour = milestone.colour || terrain.accent;
 
   const [weight, setWeight] = useState(entry && entry.weight_kg != null ? String(entry.weight_kg) : '');
   const [note, setNote] = useState((entry && entry.note) || '');
@@ -269,18 +207,18 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user, profile }) {
               borderColor: colour,
               backgroundColor: reached ? colour : 'rgba(8,8,12,0.7)',
             }]}>
-              {PLACE_ICON[milestone.n] ? (
-                <Image source={PLACE_ICON[milestone.n]}
+              {LEAGUE_ICON[milestone.league] ? (
+                <Image source={LEAGUE_ICON[milestone.league]}
                   style={{ width: 46, height: 46,
                            tintColor: reached ? '#0B0B0E' : colour,
                            opacity: reached ? 1 : 0.6 }}
                   resizeMode="contain" />
               ) : null}
             </View>
-            {milestone.grade ? (
+            {milestone.n ? (
               <View style={styles.mPlate}>
                 <Text style={[styles.mPlateTxt, { color: colour }]}>
-                  {t(milestone.grade.toUpperCase())}
+                  {t('WEEK')} {milestone.n}
                 </Text>
                 <Text style={styles.mPlateDay}>{t('Day')} {milestone.at}</Text>
               </View>
@@ -295,7 +233,7 @@ function Milestone({ milestone, days, entry, onBack, onSaved, user, profile }) {
         </View>
 
         <View style={{ padding: S.lg }}>
-          <Text style={styles.mPlace}>{t(milestone.place)}</Text>
+          <Text style={styles.mPlace}>{t(milestone.name)}</Text>
           <Text style={[T.small, { marginTop: 2 }]}>
             {milestone.n === 0
               ? t('Where you began.')
@@ -462,49 +400,50 @@ function ListView({ days, entries, onPick, onBack }) {
   const styles = makeStyles(C, T);
   const tabPad = useTabPad();
 
-  const levels = [1, 2, 3, 4];
-  const endOf = { 1: 5, 2: 8, 3: 12, 4: 13 };
-  const startOf = { 1: 1, 2: 6, 3: 9, 4: 13 };
-
   return (
-    <View style={styles.overlay}>
-      <View style={styles.listHead}>
-        <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
-          <Text style={[T.small, { color: C.ember }]}>{'←'} {t('Map')}</Text>
-        </Press>
-        <Text style={styles.listTitle}>{t('Journey')}</Text>
-      </View>
-
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: C.bg }]}>
       <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
-        {levels.map((lv) => {
-          const rows = MILESTONES.filter((m) => m.n >= startOf[lv] && m.n <= endOf[lv]);
-          if (!rows.length) return null;
+        <Press onPress={onBack} hitSlop={16} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+          <Text style={[T.small, { color: C.ember }]}>{'\u2190'} {t('Map')}</Text>
+        </Press>
+        <Text style={styles.listTitle}>{t('Leagues')}</Text>
+        <Text style={[T.small, { marginBottom: S.lg }]}>
+          {t('Every seven days you train is a promotion.')}
+        </Text>
+
+        {LEAGUES.map((lg) => {
+          const ranks = RANKS.filter((r) => r.league === lg.key);
           return (
-            <View key={lv} style={{ marginBottom: S.lg }}>
-              <Label style={{ marginBottom: S.sm }}>{t('Level')} {lv}</Label>
-              {rows.map((m) => {
-                const reached = days >= m.at;
-                const e = entries[m.n];
+            <View key={lg.key} style={{ marginBottom: S.lg }}>
+              <View style={styles.lgHead}>
+                <Image source={LEAGUE_ICON[lg.key]}
+                  style={{ width: 20, height: 20, tintColor: lg.colour }} resizeMode="contain" />
+                <Text style={[styles.lgName, { color: lg.colour }]}>{t(lg.name)}</Text>
+              </View>
+
+              {ranks.map((r) => {
+                const reached = days >= r.at;
+                const e = entries[r.n];
                 return (
-                  <Press key={m.n} onPress={() => onPick(m)} scaleTo={0.985} style={styles.listRow}>
+                  <Press key={r.n} onPress={() => onPick(r)} scaleTo={0.985} style={styles.listRow}>
                     <View style={[styles.listMedal, {
-                      borderColor: MEDAL_COLOUR[m.grade],
-                      backgroundColor: reached ? MEDAL_COLOUR[m.grade] : 'transparent',
+                      borderColor: lg.colour,
+                      backgroundColor: reached ? lg.colour : 'transparent',
                     }]}>
-                      <Text style={[styles.listNum, { color: reached ? '#0B0B0E' : MEDAL_COLOUR[m.grade] }]}>
-                        {m.n}
+                      <Text style={[styles.listNum, { color: reached ? '#0B0B0E' : lg.colour }]}>
+                        {r.tier || '\u2605'}
                       </Text>
                     </View>
                     <View style={{ flex: 1, marginLeft: 12 }}>
                       <Text style={[styles.listName, { color: reached ? C.text : C.dim }]}>
-                        {t(m.place)}
+                        {t(r.name)}
                       </Text>
                       {e && e.weight_kg != null ? (
                         <Text style={T.tiny}>{e.weight_kg} kg</Text>
                       ) : null}
                     </View>
-                    <Text style={T.tiny}>{t('Day')} {m.at}</Text>
-                    <Text style={{ color: C.faint, marginLeft: 8 }}>{'›'}</Text>
+                    <Text style={T.tiny}>{t('Day')} {r.at}</Text>
+                    <Text style={{ color: C.faint, marginLeft: 8 }}>{'\u203A'}</Text>
                   </Press>
                 );
               })}
@@ -569,6 +508,9 @@ const makeStyles = (C, T) => StyleSheet.create({
   explainTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 16, color: C.text, marginBottom: S.sm },
   explainRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 8 },
   explainDot: { width: 5, height: 5, borderRadius: 3, marginTop: 7, marginRight: 10 },
+
+  lgHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: S.sm },
+  lgName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 13, letterSpacing: 1.4 },
 
   bmiCard: {
     backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,

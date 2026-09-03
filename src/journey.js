@@ -1,20 +1,32 @@
 /* ---------------------------------------------------------------
-   The journey.
+   The journey, as leagues.
 
-   Thirteen places on a map, reached by training. Not by training
-   *in a row* — the streak is gone, and with it the idea that a rest
-   day costs you something. What counts is the number of days you
-   have trained in this app, ever. Three hundred and sixty of them
-   gets you to the top whether that takes a year or three.
+   You are in a league. Every week you train, you go up one. That is
+   the whole rule, and it is the reason this replaced the old system:
+   sixteen medals with names like "15 day silver" told you nothing
+   about whether you were doing well, whereas "Silver 2, one week
+   from Silver 1" tells you exactly where you stand and exactly what
+   the next thing is.
 
-   That change is the whole point of this file. The old engine walked
-   the calendar looking for unbroken runs and handed out medals for
-   them, which meant a fortnight of flu could delete a month of work.
-   This one counts days and never takes anything back.
+   A week here is seven days of training, not seven days on the
+   calendar. The streak is gone and stays gone: rest days take
+   nothing away, and a fortnight off costs you nothing but time.
+   Seven training days is a promotion whether they take you a week
+   or a month.
 
-   Each place is one day-count and one badge. Four of them are also
-   levels, and the badge grade simply follows the level — bronze at
-   the bottom, diamond only at the summit.
+   Seven leagues of three, and then Titan.
+
+     Bronze 3 2 1     days 7   14  21
+     Silver 3 2 1          28  35  42
+     Gold 3 2 1            49  56  63
+     Platinum 3 2 1        70  77  84
+     Diamond 3 2 1         91  98  105
+     Champion 3 2 1        112 119 126
+     Master 3 2 1          133 140 147
+     Titan                 154
+
+   Tier 3 is the bottom of a league and tier 1 the top, the way every
+   ladder people already know is numbered.
    --------------------------------------------------------------- */
 
 /* Terrain, low to high. The map gets colder and cleaner as it goes
@@ -27,97 +39,101 @@ export const TERRAIN = {
   frost:  { name: 'The Frostpeak', sky: ['#101E33', '#0C1930'], ground: ['#152742', '#0B1526'], accent: '#6FD8E8' },
 };
 
-/* Vivid rather than metallic. These sit on top of a photograph in
-   the dark, where a muted bronze reads as brown mud and a muted
-   silver disappears into fog. The names stay — they are the ladder
-   people talk in — but the colours are the ones that glow. */
-export const MEDAL_COLOUR = {
-  bronze: '#FF8A2B',
-  silver: '#D5DDE8',
-  gold: '#B06CFF',
-  diamond: '#35DCF0',
-};
+/* One week of training. Everything else counts in these. */
+export const WEEK = 7;
 
-/* ---------------------------------------------------------------
-   One badge per place, and the grade is simply how far up you are.
-
-   It used to be four tiers crossed with four grades, which produced
-   sixteen medals with names like "15 day silver" — a formula rather
-   than a thing, and nobody could tell you whether that was better or
-   worse than "30 day bronze". Now the grade is the stretch of the
-   journey you are in: bronze at the bottom, then silver, then gold,
-   and diamond only at the summit. One idea instead of two.
-
-     Level 1   places 1-5     bronze
-     Level 2   places 6-8     silver
-     Level 3   places 9-12    gold
-     Level 4   place 13       diamond
-   --------------------------------------------------------------- */
-export const MILESTONES = [
-  { n: 1,  at: 7,   terrain: 'meadow', place: 'First Camp',   grade: 'bronze',  level: 1 },
-  { n: 2,  at: 14,  terrain: 'meadow', place: 'The Crossing', grade: 'bronze' },
-  { n: 3,  at: 15,  terrain: 'meadow', place: 'Old Mill',     grade: 'bronze' },
-  { n: 4,  at: 21,  terrain: 'meadow', place: 'Riverbend',    grade: 'bronze' },
-  { n: 5,  at: 28,  terrain: 'forest', place: 'The Falls',    grade: 'bronze' },
-  { n: 6,  at: 30,  terrain: 'forest', place: 'Watchtower',   grade: 'silver',  level: 2 },
-  { n: 7,  at: 45,  terrain: 'forest', place: 'Hollow Pass',  grade: 'silver' },
-  { n: 8,  at: 60,  terrain: 'forest', place: 'Deepwood',     grade: 'silver' },
-  { n: 9,  at: 90,  terrain: 'ember',  place: 'Emberfall',    grade: 'gold',    level: 3 },
-  { n: 10, at: 120, terrain: 'ember',  place: 'The Forge',    grade: 'gold' },
-  { n: 11, at: 180, terrain: 'frost',  place: 'Snowline',     grade: 'gold' },
-  { n: 12, at: 270, terrain: 'frost',  place: 'The Spire',    grade: 'gold' },
-  { n: 13, at: 360, terrain: 'frost',  place: 'The Summit',   grade: 'diamond', level: 4 },
+/* The eight leagues, in order. Vivid rather than metallic — these
+   sit on a dark photograph, where a muted bronze reads as brown mud
+   and a muted silver disappears into fog. */
+export const LEAGUES = [
+  { key: 'bronze',   name: 'Bronze',   colour: '#FF8A2B', terrain: 'meadow' },
+  { key: 'silver',   name: 'Silver',   colour: '#D5DDE8', terrain: 'meadow' },
+  { key: 'gold',     name: 'Gold',     colour: '#FFC53D', terrain: 'forest' },
+  { key: 'platinum', name: 'Platinum', colour: '#7DE2D1', terrain: 'forest' },
+  { key: 'diamond',  name: 'Diamond',  colour: '#35DCF0', terrain: 'ember' },
+  { key: 'champion', name: 'Champion', colour: '#B06CFF', terrain: 'ember' },
+  { key: 'master',   name: 'Master',   colour: '#FF4D6D', terrain: 'frost' },
+  { key: 'titan',    name: 'Titan',    colour: '#FFE066', terrain: 'frost' },
 ];
 
-export const TOP = MILESTONES[MILESTONES.length - 1].at;
+/* Every rank, built from the leagues rather than typed out, so the
+   day counts cannot drift out of step with the names. */
+export const RANKS = (() => {
+  const out = [];
+  let n = 0;
+  LEAGUES.forEach((lg) => {
+    /* Titan is the summit. There is nothing above it to be promoted
+       into, so it does not need three tiers to climb through. */
+    const tiers = lg.key === 'titan' ? [null] : [3, 2, 1];
+    tiers.forEach((tier) => {
+      n += 1;
+      out.push({
+        n,
+        at: n * WEEK,
+        league: lg.key,
+        leagueName: lg.name,
+        colour: lg.colour,
+        terrain: lg.terrain,
+        tier,
+        name: tier == null ? lg.name : `${lg.name} ${tier}`,
+        /* the rank that opens a new league is where the map says so */
+        opensLeague: tier === 3 || tier == null,
+      });
+    });
+  });
+  return out;
+})();
 
-/* "First Camp · Bronze" — a place and a grade, not a formula. */
-export function label(m) {
-  return `${m.place} · ${m.grade.charAt(0).toUpperCase()}${m.grade.slice(1)}`;
+export const TOP = RANKS[RANKS.length - 1].at;
+
+/* "Silver 2", or "Titan". */
+export function label(rank) {
+  return rank ? rank.name : '';
+}
+
+export function colourOf(rank) {
+  return rank ? rank.colour : LEAGUES[0].colour;
 }
 
 /* Where somebody is, from the number of days they have trained.
 
    Returns:
-     days        what went in
-     reached     the milestones behind them, in order
-     ahead       the ones in front
-     next        the very next one, or null at the top
-     toGo        days until it
-     level       1-4
-     progress    0-1 between the last one and the next, for the path
-     badges      one per place reached
+     days      what went in
+     reached   the ranks behind them, in order
+     rank      the one they are in now, or null before the first week
+     next      the one they are climbing towards, or null at the top
+     toGo      training days until it
+     league    the league they are in now
+     progress  0-1 through the current week, for the trail
+     atTop     Titan
 */
 export function journeyFrom(days) {
   const d = Math.max(0, Math.floor(Number(days) || 0));
 
-  const reached = MILESTONES.filter((m) => d >= m.at);
-  const ahead = MILESTONES.filter((m) => d < m.at);
+  const reached = RANKS.filter((r) => d >= r.at);
+  const ahead = RANKS.filter((r) => d < r.at);
+  const rank = reached.length ? reached[reached.length - 1] : null;
   const next = ahead[0] || null;
-  const from = reached.length ? reached[reached.length - 1].at : 0;
-
-  const level = reached.reduce((lv, m) => (m.level ? m.level : lv), 0);
+  const from = rank ? rank.at : 0;
 
   return {
     days: d,
     reached,
     ahead,
+    rank,
     next,
     toGo: next ? next.at - d : 0,
-    level,
+    league: rank ? rank.league : null,
+    leagueName: rank ? rank.leagueName : null,
     progress: next ? (d - from) / (next.at - from) : 1,
-    badges: reached.map((m) => ({ n: m.n, at: m.at, place: m.place, grade: m.grade })),
     atTop: !next,
   };
 }
 
-/* Has this milestone been reached? Used by the map to decide whether
-   a place is lit or still dark. */
-export function isReached(milestone, days) {
-  return Number(days) >= milestone.at;
+export function isReached(rank, days) {
+  return Number(days) >= rank.at;
 }
 
-/* The band a milestone belongs to, with its colours. */
-export function terrainOf(milestone) {
-  return TERRAIN[milestone.terrain];
+export function terrainOf(rank) {
+  return rank ? TERRAIN[rank.terrain] : null;
 }

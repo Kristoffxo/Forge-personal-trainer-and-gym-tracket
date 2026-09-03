@@ -6,6 +6,8 @@ import { SafeAreaView, SafeAreaProvider, useSafeAreaInsets } from 'react-native-
 import { useFonts } from 'expo-font';
 import { WorkSans_400Regular, WorkSans_500Medium, WorkSans_600SemiBold,
          WorkSans_700Bold } from '@expo-google-fonts/work-sans';
+/* The map is annotated in handwriting rather than in boxes. */
+import { Caveat_600SemiBold, Caveat_700Bold } from '@expo-google-fonts/caveat';
 
 import { useTheme, ThemeProvider, SIDE_BLUE, SIDE_PINK } from './src/theme';
 import { SideProvider, useSide, MEN, WOMEN, SENIORS } from './src/side';
@@ -79,7 +81,8 @@ function Root() {
   const sheet = useSheet();
   const styles = makeStyles(C, T);
   const insets = useSafeAreaInsets();
-  const [fontsLoaded] = useFonts({ WorkSans_600SemiBold, WorkSans_400Regular, WorkSans_500Medium });
+  const [fontsLoaded] = useFonts({ WorkSans_600SemiBold, WorkSans_400Regular, WorkSans_500Medium,
+                                   Caveat_600SemiBold, Caveat_700Bold });
   const [session, setSession] = useState(undefined);   // undefined = still checking
   const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState('train');
