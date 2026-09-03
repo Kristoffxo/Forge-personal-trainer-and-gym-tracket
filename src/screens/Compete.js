@@ -137,6 +137,17 @@ export default function Compete({ user, profile }) {
               {ROUND_SECONDS} {t('seconds, who can do max reps?')}
             </Text>
 
+            {/* The camera never leaves the phone — only the count is
+                sent. Worth saying plainly and up front: somebody
+                deciding whether to point a camera at themselves in
+                their front room should not have to guess. */}
+            <View style={styles.privacy}>
+              <Text style={styles.privacyIcon}>{'\u25C9'}</Text>
+              <Text style={[T.tiny, { flex: 1, marginLeft: 8 }]}>
+                {t('They never see you. Only your rep count is sent.')}
+              </Text>
+            </View>
+
             <View style={styles.faces}>
               <View style={styles.face}>
                 <Avatar name={(profile && profile.full_name) || 'You'}
@@ -317,6 +328,13 @@ const makeStyles = (C, T) => StyleSheet.create({
 
   faces: { flexDirection: 'row', alignItems: 'center', marginTop: S.lg },
   face: { flex: 1, alignItems: 'center' },
+  privacy: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'center',
+    marginTop: S.sm, paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: R.pill, backgroundColor: C.bg,
+    borderWidth: 1, borderColor: C.line, maxWidth: 300,
+  },
+  privacyIcon: { color: C.lime, fontSize: 12 },
   avatar: {
     width: 92, height: 92, borderRadius: 46, borderWidth: 2.5,
     alignItems: 'center', justifyContent: 'center', backgroundColor: C.raised,

@@ -201,7 +201,7 @@ function Trail({ width, days }) {
       : days <= from ? 0
         : (days - from) / (b.m.at - from);
 
-    const n = 9;
+    const n = 11;
     for (let k = 1; k <= n; k++) {
       const t = k / (n + 1);
       /* eased sideways, linear vertically: the trail bends into each
@@ -213,13 +213,15 @@ function Trail({ width, days }) {
       const colour = MEDAL_COLOUR[b.m.grade];
 
       marks.push(
+        /* Small and bright, not big and flat. A lit dash glows in
+           its colour; an unlit one is a dim bead of the same size,
+           so the trail reads as one line the whole way up. */
         <View key={`${i}-${k}`} style={[styles.mark, {
-          left: x - 5, top: y - 5,
-          backgroundColor: lit ? colour : 'rgba(255,255,255,0.30)',
-          borderColor: lit ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.3)',
+          left: x - 4, top: y - 4,
+          backgroundColor: lit ? colour : 'rgba(220,228,240,0.42)',
           shadowColor: lit ? colour : '#000',
-          shadowOpacity: lit ? 0.85 : 0,
-          shadowRadius: lit ? 7 : 0,
+          shadowOpacity: lit ? 1 : 0,
+          shadowRadius: lit ? 8 : 0,
         }]} />,
       );
     }
@@ -230,10 +232,14 @@ function Trail({ width, days }) {
 /* ---------------------------------------------------------------
    One place.
 
-   Reached: a filled medallion in its grade colour, name underneath.
-   Next: the same, hollow, with a ring breathing around it.
-   Locked: a dark disc and the day it opens. No name — that is the
-   point of a map.
+   A dark glass disc with a glowing rim and its symbol lit inside.
+   Every place looks like this — reached, next and locked alike —
+   because a map where the far end is drawn in a different style
+   stops looking like one place after another and starts looking
+   like a settings list. What changes is how brightly it burns:
+   reached places glow, the next one breathes, and the ones beyond
+   are dimmed down but still legible, so you can see the forge long
+   before you can reach it.
    --------------------------------------------------------------- */
 function Node({ spot, width, days, onPress, isNext, t }) {
   const { m } = spot;
@@ -264,97 +270,178 @@ function Node({ spot, width, days, onPress, isNext, t }) {
       style={{ position: 'absolute', left: spot.x * width - 76, top: spot.y - size / 2 - 30,
                width: 152, alignItems: 'center' }}>
       {/* a level banner, only on the four places that are one */}
-      {m.level ? (
-        <View style={[styles.banner, reached
-          ? { backgroundColor: colour, borderColor: colour }
-          : { borderColor: 'rgba(255,255,255,0.4)' }]}>
-          <Text style={[styles.bannerTxt, reached && { color: '#0B0B0E' }]}>
-            {t('LEVEL')} {m.level}
-          </Text>
-        </View>
-      ) : <View style={{ height: 24 }} />}
+      {m.level ? <Chevron label={`${t('LEVEL')} ${m.level}`} colour={colour} dim={!reached} />
+        : <View style={{ height: 26 }} />}
 
       <Press onPress={() => onPress(m)} scaleTo={0.9}
         hitSlop={10} style={{ alignItems: 'center' }}>
-        <View style={{ width: size + 26, height: size + 26, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: size + 30, height: size + 30, alignItems: 'center', justifyContent: 'center' }}>
           {/* the breathing ring on the place you are walking towards */}
           {isNext ? (
             <Animated.View style={[styles.ping, {
-              width: size + 22, height: size + 22, borderRadius: (size + 22) / 2, borderColor: colour,
-              opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 0] }),
-              transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.35] }) }],
+              width: size + 26, height: size + 26, borderRadius: (size + 26) / 2, borderColor: colour,
+              opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.9, 0] }),
+              transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.86, 1.32] }) }],
             }]} />
+          ) : null}
+
+          {/* an outer halo, so a lit place throws light onto the
+              landscape behind it instead of sitting flat on top */}
+          {reached || isNext ? (
+            <View style={{
+              position: 'absolute', width: size + 14, height: size + 14,
+              borderRadius: (size + 14) / 2, backgroundColor: colour,
+              opacity: 0.18,
+            }} />
           ) : null}
 
           <View style={[
             styles.medal,
-            { width: size, height: size, borderRadius: size / 2, borderColor: colour },
-            reached
-              ? { backgroundColor: colour, shadowColor: colour, shadowOpacity: 0.9, shadowRadius: 12 }
-              : { backgroundColor: 'rgba(6,6,10,0.8)' },
+            {
+              width: size, height: size, borderRadius: size / 2,
+              borderColor: colour,
+              shadowColor: colour,
+              shadowOpacity: reached ? 0.95 : isNext ? 0.8 : 0.3,
+              shadowRadius: reached ? 16 : isNext ? 14 : 6,
+              opacity: reached || isNext ? 1 : 0.72,
+            },
           ]}>
+            {/* the disc is glass, not paint: a dark fill, a lit rim,
+                and a soft highlight across the top third */}
+            <LinearGradient
+              colors={['rgba(255,255,255,0.14)', 'rgba(255,255,255,0.03)', 'rgba(0,0,0,0.55)']}
+              locations={[0, 0.4, 1]}
+              style={StyleSheet.absoluteFill}
+            />
             <Image
               source={PLACE_ICON[m.n]}
-              style={{ width: size * 0.62, height: size * 0.62,
-                       /* the glyphs are white; dark on a lit badge,
-                          the grade colour on an unlit one */
-                       tintColor: reached ? '#0B0B0E' : colour,
-                       opacity: reached ? 1 : 0.55 }}
+              style={{ width: size * 0.56, height: size * 0.56,
+                       tintColor: colour,
+                       opacity: reached || isNext ? 1 : 0.6 }}
               resizeMode="contain"
             />
+            {/* the specular dot, top left, that makes it read as a
+                sphere rather than a ring */}
+            <View style={{
+              position: 'absolute', top: size * 0.1, left: size * 0.22,
+              width: size * 0.15, height: size * 0.07, borderRadius: size * 0.08,
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              transform: [{ rotate: '-20deg' }],
+            }} />
           </View>
         </View>
 
         {/* one line of writing, never two */}
-        <View style={[styles.plate, reached && { borderColor: colour }]}>
-          <Text numberOfLines={1} style={[styles.plateTxt, reached && { color: '#fff' }]}>
-            {reached ? m.place : `${t('Day')} ${m.at}`}
-          </Text>
-        </View>
+        <Tag label={reached ? m.place : `${t('Day')} ${m.at}`}
+          colour={colour} dim={!reached && !isNext} />
       </Press>
     </View>
   );
 }
 
-/* You, somewhere along the trail. */
-function Marker({ width, days }) {
+/* ---------------------------------------------------------------
+   The two label shapes from the map: a notched tag for a day or a
+   place, and a chevron banner for a level. Both are built from a
+   body plus two rotated squares, because there is no polygon in
+   React Native and a plain rounded pill reads as a form field
+   rather than as something stamped onto a map.
+   --------------------------------------------------------------- */
+function Cap({ colour, dim, side }) {
+  return (
+    <View style={{
+      width: 13, height: 13, backgroundColor: 'rgba(9,10,16,0.92)',
+      borderColor: dim ? 'rgba(255,255,255,0.16)' : colour,
+      borderTopWidth: side === 'left' ? 0 : 1.5,
+      borderLeftWidth: side === 'left' ? 1.5 : 0,
+      borderBottomWidth: side === 'left' ? 1.5 : 0,
+      borderRightWidth: side === 'left' ? 0 : 1.5,
+      transform: [{ rotate: '45deg' }],
+      marginLeft: side === 'left' ? 5 : -5,
+      marginRight: side === 'left' ? -5 : 5,
+    }} />
+  );
+}
+
+function Tag({ label, colour, dim }) {
+  return (
+    <View style={styles.tagRow}>
+      <Cap colour={colour} dim={dim} side="left" />
+      <View style={[styles.tagBody, { borderColor: dim ? 'rgba(255,255,255,0.16)' : colour }]}>
+        <Text numberOfLines={1} style={[styles.tagTxt, { color: dim ? 'rgba(233,238,246,0.66)' : '#fff' }]}>
+          {label}
+        </Text>
+      </View>
+      <Cap colour={colour} dim={dim} side="right" />
+    </View>
+  );
+}
+
+function Chevron({ label, colour, dim }) {
+  return (
+    <View style={styles.tagRow}>
+      <Text style={[styles.chev, { color: dim ? 'rgba(255,255,255,0.3)' : colour }]}>{'\u2039'}</Text>
+      <View style={[styles.chevBody, {
+        borderColor: dim ? 'rgba(255,255,255,0.22)' : colour,
+        shadowColor: colour, shadowOpacity: dim ? 0 : 0.7, shadowRadius: 8,
+      }]}>
+        <Text style={[styles.chevTxt, { color: dim ? 'rgba(233,238,246,0.6)' : colour }]}>{label}</Text>
+      </View>
+      <Text style={[styles.chev, { color: dim ? 'rgba(255,255,255,0.3)' : colour }]}>{'\u203A'}</Text>
+    </View>
+  );
+}
+
+/* ---------------------------------------------------------------
+   Where you are standing.
+
+   A lit platform under the last place you reached, rather than a
+   dot floating on the trail. A dot on a line says "you are 17% of
+   the way to the next one", which nobody needs to the percent; a
+   platform says "this is where you are", which is the question
+   somebody opens the map to answer.
+   --------------------------------------------------------------- */
+function Standing({ width, days }) {
   const spots = layout();
   const behind = spots.filter((s) => days >= s.m.at);
-  const i = behind.length - 1;
+  const here = behind.length ? behind[behind.length - 1] : spots[0];
+  const grounded = behind.length > 0;
+  const colour = MEDAL_COLOUR[here.m.grade];
+  const size = here.m.level ? 78 : 66;
 
-  const bob = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(Animated.sequence([
-      Animated.timing(bob, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-      Animated.timing(bob, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      Animated.timing(spin, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      Animated.timing(spin, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
     ]));
     loop.start();
     return () => loop.stop();
-  }, [bob]);
+  }, [spin]);
 
-  let x; let y;
-  if (i < 0) {
-    x = spots[0].x * width; y = spots[0].y + 96;   // below the first place
-  } else if (i >= spots.length - 1) {
-    x = spots[spots.length - 1].x * width; y = spots[spots.length - 1].y;
-  } else {
-    const a = spots[i]; const b = spots[i + 1];
-    const part = (days - a.m.at) / (b.m.at - a.m.at);
-    const ease = part * part * (3 - 2 * part);
-    x = (a.x + (b.x - a.x) * ease) * width;
-    y = a.y + (b.y - a.y) * part;
-  }
+  /* before the first place is reached the platform sits just below
+     it, on the trail, rather than on a place nobody has been to */
+  const cx = here.x * width;
+  const cy = here.y + (grounded ? size / 2 + 2 : size / 2 + 70);
 
   return (
-    <Animated.View
-      style={[styles.you, {
-        left: x - 15, top: y - 15,
-        transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -6] }) }],
-      }]}
-      pointerEvents="none"
-    >
-      <View style={styles.youDot} />
-    </Animated.View>
+    <View pointerEvents="none" style={{ position: 'absolute', left: cx - 90, top: cy, width: 180,
+                                        alignItems: 'center' }}>
+      {[0, 1, 2].map((i) => (
+        <Animated.View key={i} style={{
+          position: 'absolute',
+          top: 2 + i * 10,
+          width: 132 - i * 30, height: 30 - i * 7,
+          borderRadius: 999, borderWidth: 2, borderColor: colour,
+          opacity: spin.interpolate({ inputRange: [0, 1], outputRange: [0.9 - i * 0.22, 0.35 - i * 0.08] }),
+          shadowColor: colour, shadowOpacity: 0.9, shadowRadius: 12,
+          shadowOffset: { width: 0, height: 0 },
+        }} />
+      ))}
+      <View style={{
+        position: 'absolute', top: 0, width: 144, height: 40, borderRadius: 999,
+        backgroundColor: colour, opacity: 0.16,
+      }} />
+    </View>
   );
 }
 
@@ -371,51 +458,38 @@ export function JourneyMap({ width, days, onPick }) {
         <Node key={s.m.n} spot={s} width={width} days={days}
           onPress={onPick} isNext={s.m.n === nextN} t={t} />
       ))}
-      <Marker width={width} days={days} />
+      <Standing width={width} days={days} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   mark: {
-    position: 'absolute', width: 10, height: 10, borderRadius: 5, borderWidth: 1.5,
+    position: 'absolute', width: 8, height: 8, borderRadius: 4,
     shadowOffset: { width: 0, height: 0 }, elevation: 3,
   },
 
   medal: {
-    alignItems: 'center', justifyContent: 'center', borderWidth: 3,
-    overflow: 'hidden',
-    shadowOffset: { width: 0, height: 2 }, elevation: 8,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 2.5,
+    overflow: 'hidden', backgroundColor: '#080910',
+    shadowOffset: { width: 0, height: 0 }, elevation: 10,
   },
 
   ping: { position: 'absolute', borderWidth: 3 },
 
-  plate: {
-    marginTop: 8, backgroundColor: 'rgba(6,6,10,0.8)', borderRadius: 999,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)',
-    paddingHorizontal: 11, paddingVertical: 4, maxWidth: 148,
+  tagRow: { flexDirection: 'row', alignItems: 'center', marginTop: 9 },
+  tagBody: {
+    backgroundColor: 'rgba(9,10,16,0.92)', borderTopWidth: 1.5, borderBottomWidth: 1.5,
+    paddingHorizontal: 9, paddingVertical: 5, maxWidth: 132,
   },
-  plateTxt: {
-    fontFamily: 'WorkSans_600SemiBold', fontSize: 11.5, letterSpacing: 0.2,
-    color: 'rgba(255,255,255,0.62)', textAlign: 'center',
-  },
+  tagTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 12, letterSpacing: 0.2 },
 
-  banner: {
-    borderWidth: 2, borderRadius: 999, marginBottom: 6,
-    paddingHorizontal: 11, paddingVertical: 3,
-    backgroundColor: 'rgba(6,6,10,0.82)',
+  chev: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, marginHorizontal: 3 },
+  chevBody: {
+    backgroundColor: 'rgba(9,10,16,0.92)', borderWidth: 1.5, borderRadius: 4,
+    paddingHorizontal: 11, paddingVertical: 3.5,
+    shadowOffset: { width: 0, height: 0 },
   },
-  bannerTxt: {
-    fontFamily: 'WorkSans_600SemiBold', fontSize: 10, letterSpacing: 1.2,
-    color: '#fff',
-  },
+  chevTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 10.5, letterSpacing: 1.4 },
 
-  you: {
-    position: 'absolute', width: 30, height: 30, borderRadius: 15,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.22)', borderWidth: 2.5, borderColor: '#fff',
-    shadowColor: '#fff', shadowOpacity: 0.7, shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 }, elevation: 10,
-  },
-  youDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#fff' },
 });

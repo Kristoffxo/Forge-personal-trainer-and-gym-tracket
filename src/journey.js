@@ -27,11 +27,15 @@ export const TERRAIN = {
   frost:  { name: 'The Frostpeak', sky: ['#101E33', '#0C1930'], ground: ['#152742', '#0B1526'], accent: '#6FD8E8' },
 };
 
+/* Vivid rather than metallic. These sit on top of a photograph in
+   the dark, where a muted bronze reads as brown mud and a muted
+   silver disappears into fog. The names stay — they are the ladder
+   people talk in — but the colours are the ones that glow. */
 export const MEDAL_COLOUR = {
-  bronze: '#C77B3C',
-  silver: '#B9BCC4',
-  gold: '#E3B23C',
-  diamond: '#6FD8E8',
+  bronze: '#FF8A2B',
+  silver: '#D5DDE8',
+  gold: '#B06CFF',
+  diamond: '#35DCF0',
 };
 
 /* ---------------------------------------------------------------

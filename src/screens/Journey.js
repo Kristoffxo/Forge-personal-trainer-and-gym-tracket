@@ -104,9 +104,21 @@ export default function Journey({ user, profile }) {
         <View style={{ width, height: MAP_HEIGHT }}>
           <JourneyMap width={width} days={me.days} onPick={setOpen} />
 
-          <View style={styles.mapTop}>
-            <View style={styles.pill}>
-              <Text style={styles.pillTxt}>{me.days} {t('days')}</Text>
+          {/* bottom right of the map, over the landscape */}
+          <View style={styles.mapCorner}>
+            <View style={styles.daysCard}>
+              <Text style={styles.daysBig}>
+                {me.days} {me.days === 1 ? t('DAY') : t('DAYS')}
+              </Text>
+              <Text style={styles.daysSub}>{t('TRAINED')}</Text>
+              <View style={styles.dashRow}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <View key={i} style={[styles.dash, {
+                    backgroundColor: i / 5 < me.progress ? MEDAL_COLOUR[(me.next || MILESTONES[12]).grade]
+                      : 'rgba(255,255,255,0.18)',
+                  }]} />
+                ))}
+              </View>
             </View>
           </View>
         </View>
@@ -132,6 +144,26 @@ export default function Journey({ user, profile }) {
           </View>
 
           <BmiCard profile={profile} entries={entries} C={C} T={T} t={t} styles={styles} />
+
+          {/* Plainly, once, near the top. Somebody opening a map of
+              thirteen glowing symbols deserves a sentence telling
+              them what any of it is for. */}
+          <FadeIn delay={45}>
+            <View style={styles.explain}>
+              <Text style={styles.explainTitle}>{t('How the levels work')}</Text>
+              {[
+                t('Every day you train moves you one day up the mountain.'),
+                t('The numbers on the map are training days, not dates. Rest days take nothing away.'),
+                t('Reach a place and it lights up, and you can record your weight there.'),
+                t('360 training days reaches the summit. Keep going.'),
+              ].map((line, i) => (
+                <View key={i} style={styles.explainRow}>
+                  <View style={[styles.explainDot, { backgroundColor: C.ember }]} />
+                  <Text style={[T.small, { flex: 1, color: C.text }]}>{line}</Text>
+                </View>
+              ))}
+            </View>
+          </FadeIn>
 
           {me.next ? (
             <FadeIn>
@@ -518,6 +550,26 @@ const makeStyles = (C, T) => StyleSheet.create({
     height: 260, borderRadius: 400,
   },
   mHead: { position: 'absolute', left: S.lg, top: S.md },
+  mapCorner: { position: 'absolute', right: S.lg, bottom: 18 },
+  daysCard: {
+    backgroundColor: 'rgba(9,10,16,0.86)', borderRadius: R.md,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)',
+    paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center',
+  },
+  daysBig: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, color: '#fff', letterSpacing: 0.4 },
+  daysSub: { fontFamily: 'WorkSans_400Regular', fontSize: 9.5, letterSpacing: 1.6,
+             color: 'rgba(233,238,246,0.6)', marginTop: 1 },
+  dashRow: { flexDirection: 'row', gap: 4, marginTop: 7 },
+  dash: { width: 13, height: 3, borderRadius: 2 },
+
+  explain: {
+    backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
+    borderWidth: 1, borderColor: C.line, marginTop: S.md,
+  },
+  explainTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 16, color: C.text, marginBottom: S.sm },
+  explainRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 8 },
+  explainDot: { width: 5, height: 5, borderRadius: 3, marginTop: 7, marginRight: 10 },
+
   bmiCard: {
     backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
     borderWidth: 1.5, borderColor: C.line, marginTop: S.md,
