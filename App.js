@@ -22,7 +22,7 @@ import * as push from './src/push';
 import { trainedDays } from './src/challenge';
 
 import Auth     from './src/screens/Auth';
-import Food     from './src/screens/Food';
+import FoodTab  from './src/screens/FoodTab';
 import AddFood  from './src/screens/AddFood';
 import Train    from './src/screens/Train';
 import Discover from './src/screens/Feed';
@@ -169,7 +169,12 @@ function Root() {
      screen in step with the app. Does nothing on iOS or Android. */
   useWebChrome({ bg: C.bg, mode, ready: fontsLoaded && session !== undefined });
 
-  if (!fontsLoaded || session === undefined) {
+  /* `session && !profile` matters as much as the other two. Signing
+     up sets the session immediately and then fetches the profile on a
+     second round trip; without this the tab bar rendered for the
+     length of that trip and was replaced by the onboarding questions,
+     which is the flash people saw after pressing Create. */
+  if (!fontsLoaded || session === undefined || (session && !profile)) {
     return <View style={styles.boot}><ActivityIndicator color={C.gold} /></View>;
   }
 
@@ -228,8 +233,9 @@ function Root() {
               {tab === 'train' ? (
                 <Train user={user} profile={profile} />
               ) : tab === 'food' ? (
-                <Food user={user} profile={profile} refreshKey={refreshKey}
+                <FoodTab user={user} profile={profile} refreshKey={refreshKey}
                       justAdded={justAdded}
+                      onChanged={() => setRefreshKey((k) => k + 1)}
                       onAdd={(meal) => setAdding(meal)} />
               ) : tab === 'feed' ? (
                 <Discover user={user} profile={profile} />

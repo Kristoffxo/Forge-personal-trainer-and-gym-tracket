@@ -23,6 +23,7 @@ import { Mark } from '../ui/logo';
 import { saveProfile } from '../auth';
 import { num, int } from '../num';
 import { dailyTarget, proteinTarget, EXPERIENCE, GOALS, SEXES } from '../tdee';
+import { DIETS } from '../diet';
 
 const THIS_YEAR = new Date().getFullYear();
 
@@ -38,6 +39,7 @@ export default function Onboarding({ profile, onDone }) {
   const [kg, setKg] = useState('');
   const [experience, setExperience] = useState(null);
   const [goal, setGoal] = useState(null);
+  const [diet, setDiet] = useState(null);
   const [busy, setBusy] = useState(false);
 
   const ageN = int(age, 0);
@@ -52,6 +54,7 @@ export default function Onboarding({ profile, onDone }) {
     { key: 'body', ok: ageN >= 12 && ageN <= 100 && cmN > 90 && cmN < 250 && kgN > 25 && kgN < 350 },
     { key: 'experience', ok: !!experience },
     { key: 'goal', ok: !!goal },
+    { key: 'diet', ok: !!diet },
     { key: 'done', ok: true },
   ];
   const here = STEPS[step];
@@ -65,6 +68,7 @@ export default function Onboarding({ profile, onDone }) {
       weight_kg: kgN,
       experience,
       goal,
+      diet,
       goal_kcal: target,
       onboarded: true,
     });
@@ -130,6 +134,20 @@ export default function Onboarding({ profile, onDone }) {
               {EXPERIENCE.map((o) => (
                 <Choice key={o.key} on={experience === o.key} name={t(o.name)} sub={t(o.sub)}
                   onPress={() => setExperience(o.key)} />
+              ))}
+            </FadeIn>
+          ) : null}
+
+          {/* ---------- 5. what they eat ---------- */}
+          {here.key === 'diet' ? (
+            <FadeIn>
+              <Text style={styles.q}>{t('What do you eat?')}</Text>
+              <Text style={[T.small, { marginBottom: S.lg }]}>
+                {t('This decides what the diet planner suggests. Change it any time in Settings.')}
+              </Text>
+              {DIETS.map((o) => (
+                <Choice key={o.key} on={diet === o.key} name={t(o.name)} sub={t(o.sub)}
+                  onPress={() => setDiet(o.key)} />
               ))}
             </FadeIn>
           ) : null}

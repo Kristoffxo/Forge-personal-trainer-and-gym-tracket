@@ -12,6 +12,19 @@
 -- ============================================================
 
 -- ------------------------------------------------------------
+--  0. What somebody eats
+--
+--  Asked at sign-up and changeable in Challenges -> Numbers. The
+--  diet planner reads it and never suggests anything outside it.
+--  'both' is the default because it is the least wrong guess for
+--  somebody who has not been asked yet — the planner leans
+--  vegetarian for it, so an unanswered account is not shown meat.
+-- ------------------------------------------------------------
+alter table public.profiles
+  add column if not exists diet text
+  check (diet is null or diet in ('veg', 'both', 'nonveg'));
+
+-- ------------------------------------------------------------
 --  1. Everyone, with enough to judge them by
 --
 --  One row per account: who they are, when they joined, how much
@@ -128,7 +141,10 @@ grant execute on function public.admin_user_detail(uuid) to authenticated;
 -- ------------------------------------------------------------
 create or replace function public.admin_user_posts(uid uuid, lim integer default 30)
 returns table (
-  id         uuid,
+  --  posts.id is a bigint identity, not a uuid. Declaring it wrong
+  --  fails at creation time, which is the good outcome: Postgres
+  --  checks the whole row type against the final select.
+  id         bigint,
   image_path text,
   caption    text,
   created_at timestamptz,

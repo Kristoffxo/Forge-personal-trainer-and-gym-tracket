@@ -48,17 +48,31 @@ export function onAuthChange(fn) {
 }
 
 /* profile row — name, coach flag, height/weight/goal */
+/* A profile row is created by a trigger on auth.users. Straight
+   after signing up that trigger may not have committed yet, so the
+   first read comes back empty — and returning a stub meant the
+   onboarding answers were written with an UPDATE that matched no
+   rows and silently did nothing. Ask a few times, briefly, then give
+   up and let the upsert in saveProfile create the row. */
 export async function getProfile() {
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return null;
-  const { data } = await supabase.from('profiles').select('*').eq('id', u.user.id).single();
-  return data || { id: u.user.id, role: 'client' };
+
+  for (let go = 0; go < 3; go++) {
+    const { data } = await supabase.from('profiles').select('*').eq('id', u.user.id).maybeSingle();
+    if (data) return data;
+    await new Promise((r) => setTimeout(r, 120 * (go + 1)));
+  }
+  return { id: u.user.id, role: 'client' };
 }
 
 export async function saveProfile(patch) {
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return null;
+  /* Upsert, not update: if the trigger has not run yet an update
+     matches nothing and the answers are lost without an error. */
   const { data } = await supabase.from('profiles')
-    .update(patch).eq('id', u.user.id).select().single();
+    .upsert({ id: u.user.id, ...patch }, { onConflict: 'id' })
+    .select().single();
   return data;
 }

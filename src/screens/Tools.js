@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, StyleSheet, ImageBackground } from 'react-native';
 import { S, R, useTheme } from '../theme';
-import { Card, FadeIn, Label, Btn, useCountUp } from '../ui/kit';
+import { Card, FadeIn, Label, Btn, Press, useCountUp } from '../ui/kit';
 import { IMG } from '../images';
 import { getProfile, saveProfile, signOut } from '../auth';
 import { num, int } from '../num';
 import { quoteOfDay } from '../quotes';
+import { DIETS } from '../diet';
 import { useLang } from '../lang';
 import { useSheet } from '../ui/sheet';
 import * as push from '../push';
@@ -31,6 +32,7 @@ export default function Tools({ user, profile, onProfile }) {
   const [cm, setCm] = useState(profile?.height_cm ? String(profile.height_cm) : '');
   const [kg, setKg] = useState(profile?.weight_kg ? String(profile.weight_kg) : '');
   const [goal, setGoal] = useState(String(profile?.goal_kcal || 2200));
+  const [diet, setDiet] = useState(profile?.diet || 'both');
   const [saved, setSaved] = useState(false);
   const q = quoteOfDay();
 
@@ -40,6 +42,7 @@ export default function Tools({ user, profile, onProfile }) {
       height_cm: num(cm) || null,
       weight_kg: num(kg) || null,
       goal_kcal: int(goal, 2200),
+      diet,
     });
     if (p) { onProfile(p); setSaved(true); setTimeout(() => setSaved(false), 2000); }
   }
@@ -85,6 +88,33 @@ export default function Tools({ user, profile, onProfile }) {
         </Card>
       </FadeIn>
 
+      {/* ---- what they eat ---- */}
+      <FadeIn delay={130} style={{ paddingHorizontal:S.lg, marginTop:S.lg }}>
+        <Card color={C.lime}>
+          <Label>{t('What you eat')}</Label>
+          <Text style={[T.small, { marginTop:4, marginBottom:S.md }]}>
+            {t('The diet planner only ever suggests food you eat.')}
+          </Text>
+          {DIETS.map((o) => {
+            const on = diet === o.key;
+            return (
+              <Press key={o.key} onPress={() => setDiet(o.key)} scaleTo={0.98}
+                style={[styles.pick, on && { borderColor:C.lime }]}>
+                <View style={{ flex:1 }}>
+                  <Text style={[T.bodyOn, { fontSize:15, color: on ? C.text : C.dim }]}>
+                    {t(o.name)}
+                  </Text>
+                  <Text style={T.tiny}>{t(o.sub)}</Text>
+                </View>
+                <View style={[styles.radio, on && { borderColor:C.lime, backgroundColor:C.lime }]} />
+              </Press>
+            );
+          })}
+          <Btn label={saved ? t('Saved') + ' \u2713' : t('Save')} color={saved ? C.lime : C.teal}
+            onPress={save} style={{ marginTop:S.md }} />
+        </Card>
+      </FadeIn>
+
       {/* ---- quote ---- */}
       <FadeIn delay={160} style={{ padding:S.lg }}>
         <ImageBackground source={IMG.quote} style={styles.quote} imageStyle={{ borderRadius:R.md }}>
@@ -123,6 +153,10 @@ function Num({ label, value, onChange, wide }) {
 
 const makeStyles = (C, T) => StyleSheet.create({
   wrap:{ flex:1, backgroundColor:C.bg },
+  pick:{ flexDirection:'row', alignItems:'center', borderWidth:1.5, borderColor:C.line,
+         borderRadius:R.md, padding:S.md, marginTop:8 },
+  radio:{ width:20, height:20, borderRadius:10, borderWidth:2, borderColor:C.line,
+          marginLeft:S.sm },
   head:{ width:'100%', height:150, overflow:'hidden',
          justifyContent:'flex-end', backgroundColor:C.surface },
   headVeil:{ ...StyleSheet.absoluteFillObject, backgroundColor:'rgba(14,13,12,0.66)' },
