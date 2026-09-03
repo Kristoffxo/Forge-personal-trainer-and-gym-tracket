@@ -34,7 +34,7 @@ function openLink(path) {
   Linking.openURL(url).catch(() => {});
 }
 
-export default function Settings({ user, profile, onProfile }) {
+export default function Settings({ user, profile, onProfile, onAdmin }) {
   const { C, T, mode, toggle } = useTheme();
   const { t, lang, toggle: toggleLang } = useLang();
   const styles = makeStyles(C, T);
@@ -295,6 +295,21 @@ export default function Settings({ user, profile, onProfile }) {
       {/* ---- the legal bits ----
           Reachable from inside the app, which both stores expect, and
           from a browser for anybody who has not installed it. */}
+      {/* Only whoever runs the app. Hiding it is a convenience —
+          every query behind it asks is_admin() in the database. */}
+      {profile && profile.is_admin ? (
+        <FadeIn delay={90}>
+          <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Running Reppo')}</Label>
+          <Press onPress={onAdmin} scaleTo={0.98} style={styles.opt}>
+            <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('Admin')}</Text>
+            <Text style={[styles.optValue, { color: C.dim }]}>{'\u203A'}</Text>
+          </Press>
+          <Text style={[T.tiny, { marginTop: 6 }]}>
+            {t('Every account, and everything posted.')}
+          </Text>
+        </FadeIn>
+      ) : null}
+
       <FadeIn delay={100}>
         <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('About')}</Label>
 
@@ -309,7 +324,7 @@ export default function Settings({ user, profile, onProfile }) {
 
         <View style={styles.row}>
           <Text style={[T.small, { flex: 1 }]}>{t('Version')}</Text>
-          <Text style={[T.bodyOn, { fontSize: 14 }]}>1.0.0</Text>
+          <Text style={[T.bodyOn, { fontSize: 14 }]}>1.3.0</Text>
         </View>
 
         {/* The journey icons are CC BY 3.0. The licence asks for a

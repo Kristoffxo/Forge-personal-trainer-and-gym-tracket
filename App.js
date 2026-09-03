@@ -29,6 +29,7 @@ import Train    from './src/screens/Train';
 import Discover from './src/screens/Feed';
 import ChallengesTab from './src/screens/ChallengesTab';
 import Settings from './src/screens/Settings';
+import AdminPortal from './src/screens/AdminPortal';
 import Journey  from './src/screens/Journey';
 
 import Onboarding from './src/screens/Onboarding';
@@ -98,6 +99,7 @@ function Root() {
   /* Settings is a place you go, not a tab you flip to. It opens over
      everything from the three dots beside the mark. */
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   const { width } = useWindowDimensions();
   const slide = useRef(new Animated.Value(0)).current;
@@ -207,9 +209,14 @@ function Root() {
 
   /* Full-screen flows sit above the tabs — logging food is a task you
      finish, not a place you are. */
-  const overlay = settingsOpen ? (
+  const overlay = adminOpen ? (
+    <SafeAreaView style={styles.wrap} edges={EDGES_TOP}>
+      <AdminPortal onBack={() => setAdminOpen(false)} />
+    </SafeAreaView>
+  ) : settingsOpen ? (
     <SettingsSheet onClose={() => setSettingsOpen(false)}>
-      <Settings user={user} profile={profile} onProfile={setProfile} />
+      <Settings user={user} profile={profile} onProfile={setProfile}
+        onAdmin={() => setAdminOpen(true)} />
     </SettingsSheet>
   ) : adding ? (
     <AddFood meal={adding} user={user}
