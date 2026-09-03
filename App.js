@@ -14,6 +14,7 @@ import { SideProvider, useSide, MEN, WOMEN } from './src/side';
 import { LangProvider, useLang } from './src/lang';
 import { Press } from './src/ui/kit';
 import { SheetProvider, useSheet } from './src/ui/sheet';
+import { FullscreenProvider, useFullscreen } from './src/fullscreen';
 import { Mark } from './src/ui/logo';
 import { TabIcon } from './src/ui/tabIcons';
 import { ActivityBanner } from './src/ui/activity';
@@ -68,7 +69,9 @@ export default function App() {
         <LangProvider>
           <SafeAreaProvider>
             <SheetProvider>
-              <Root />
+              <FullscreenProvider>
+                <Root />
+              </FullscreenProvider>
             </SheetProvider>
           </SafeAreaProvider>
         </LangProvider>
@@ -100,6 +103,7 @@ function Root() {
      everything from the three dots beside the mark. */
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const { full } = useFullscreen();
 
   const { width } = useWindowDimensions();
   const slide = useRef(new Animated.Value(0)).current;
@@ -234,13 +238,19 @@ function Root() {
       <SafeAreaView style={styles.wrap} edges={EDGES_TOP}>
         {overlay || (
           <>
-            <TitleBar tab={current} accent={accent}
-              onSettings={() => setSettingsOpen(true)} />
+            {/* A workout takes the whole screen. Nothing above it,
+                nothing below it — the reference is right that a tab
+                bar under a countdown is somewhere to lose your place
+                by accident. */}
+            {full ? null : (
+              <TitleBar tab={current} accent={accent}
+                onSettings={() => setSettingsOpen(true)} />
+            )}
 
             {/* Slides in under the title bar when somebody likes or
                 comments on a photograph of theirs, and takes them to
                 Discover if they tap it. */}
-            <ActivityBanner user={user} onOpen={() => setTab('feed')} />
+            {full ? null : <ActivityBanner user={user} onOpen={() => setTab('feed')} />}
 
             <View style={{ flex:1 }}>
               {tab === 'train' ? (
@@ -258,33 +268,35 @@ function Root() {
               )}
             </View>
 
-            <View style={[styles.tabs, { height: 58 + Math.max(insets.bottom, 8),
-                                         paddingBottom: Math.max(insets.bottom, 8) }]}>
-              <Animated.View style={[styles.indicator, {
-                width: tabW,
-                backgroundColor: accent,
-                transform:[{ translateX: slide.interpolate({
-                  inputRange: TABS.map((_, i) => i),
-                  outputRange: TABS.map((_, i) => i * tabW),
-                }) }],
-              }]} />
-              {TABS.map((t) => {
-                const on = tab === t.key;
-                const c = C[t.colorKey] || C.ember;
-                return (
-                  <Press key={t.key} onPress={() => setTab(t.key)} scaleTo={0.9} style={styles.tab}>
-                    <View style={[styles.iconWrap, on && { backgroundColor: c + '26' }]}>
-                      <TabIcon name={t.key} colour={on ? c : C.faint} />
-                    </View>
-                    <Text style={[styles.tabLabel,
-                      { color: on ? c : C.faint,
-                        fontFamily: on ? 'WorkSans_500Medium' : 'WorkSans_400Regular' }]}>
-                      {tr(t.label)}
-                    </Text>
-                  </Press>
-                );
-              })}
-            </View>
+            {full ? null : (
+              <View style={[styles.tabs, { height: 58 + Math.max(insets.bottom, 8),
+                                           paddingBottom: Math.max(insets.bottom, 8) }]}>
+                <Animated.View style={[styles.indicator, {
+                  width: tabW,
+                  backgroundColor: accent,
+                  transform:[{ translateX: slide.interpolate({
+                    inputRange: TABS.map((_, i) => i),
+                    outputRange: TABS.map((_, i) => i * tabW),
+                  }) }],
+                }]} />
+                {TABS.map((t) => {
+                  const on = tab === t.key;
+                  const c = C[t.colorKey] || C.ember;
+                  return (
+                    <Press key={t.key} onPress={() => setTab(t.key)} scaleTo={0.9} style={styles.tab}>
+                      <View style={[styles.iconWrap, on && { backgroundColor: c + '26' }]}>
+                        <TabIcon name={t.key} colour={on ? c : C.faint} />
+                      </View>
+                      <Text style={[styles.tabLabel,
+                        { color: on ? c : C.faint,
+                          fontFamily: on ? 'WorkSans_500Medium' : 'WorkSans_400Regular' }]}>
+                        {tr(t.label)}
+                      </Text>
+                    </Press>
+                  );
+                })}
+              </View>
+            )}
           </>
         )}
       </SafeAreaView>

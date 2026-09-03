@@ -28,6 +28,7 @@ import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
 import { parseDuration } from '../duration';
+import { useClaimFullscreen } from '../fullscreen';
 
 const READY = 10;          // seconds before the first move
 const REST = 45;           // between sets, and between exercises
@@ -55,32 +56,59 @@ function planOf(exercise) {
 
    Adding up setInterval ticks drifts, and drifts badly in a tab the
    browser has throttled — a timer that lies is worse than no timer.
+
+   `key` is what says "this is a different countdown now". It used to
+   reset on `seconds` changing, which was wrong in the one way that
+   mattered: every rest is the same forty-five seconds, so after the
+   first one the value never changed, the fired-once guard never
+   cleared, and the timer reached zero and did nothing. The workout
+   stopped dead on the second set and looked like it was repeating
+   one exercise forever.
    --------------------------------------------------------------- */
-function useCountdown(seconds, running, onEnd) {
-  const [left, setLeft] = useState(seconds);
+function useCountdown(total, running, onEnd, key) {
+  const [left, setLeft] = useState(total);
   const endsAt = useRef(0);
   const fired = useRef(false);
+  const leftRef = useRef(total);
 
-  useEffect(() => { setLeft(seconds); fired.current = false; }, [seconds]);
+  /* Always call the newest callback. Held in a ref because the
+     interval closes over whatever it was given when it started, and
+     `advance` is a different function every render. */
+  const cb = useRef(onEnd);
+  useEffect(() => { cb.current = onEnd; });
+  useEffect(() => { leftRef.current = left; }, [left]);
+
+  useEffect(() => {
+    setLeft(total);
+    leftRef.current = total;
+    fired.current = false;
+  }, [key, total]);
 
   useEffect(() => {
     if (!running) return undefined;
-    endsAt.current = Date.now() + left * 1000;
+    endsAt.current = Date.now() + leftRef.current * 1000;
 
     const id = setInterval(() => {
       const remaining = Math.max(0, (endsAt.current - Date.now()) / 1000);
       setLeft(remaining);
       if (remaining <= 0 && !fired.current) {
         fired.current = true;
+        clearInterval(id);
         if (Platform.OS !== 'web') Vibration.vibrate(400);
-        if (onEnd) onEnd();
+        if (cb.current) cb.current();
       }
     }, 100);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, seconds]);
+  }, [running, key]);
 
-  return [left, setLeft];
+  /* +20s pushes the finish line out rather than restarting. */
+  const add = useCallback((n) => {
+    endsAt.current += n * 1000;
+    setLeft((v) => v + n);
+  }, []);
+
+  return [left, add];
 }
 
 export default function Player({ title, exercises, onQuit, onFinish }) {
@@ -90,11 +118,16 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
   const sheet = useSheet();
   const { width, height } = useWindowDimensions();
 
+  /* The whole screen, for as long as this is mounted. Released in
+     the cleanup, so quitting, finishing and unmounting by any other
+     route all give it back without each needing to remember. */
+  useClaimFullscreen();
+
   /* The movement fills everything between the header and the black
      panel. Sizing it off the window rather than letting it sit
      centred in a flex box is what stops the letterboxing — the
      reference has the picture running edge to edge. */
-  const stageH = Math.max(200, height - 76 - 236);
+  const stageH = Math.max(200, height - 70 - 224);
 
   /* where we are: which exercise, which set, and what is happening */
   const [i, setI] = useState(0);
@@ -117,19 +150,18 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
     setPhase('work');
   }, [lastSet, lastEx, i, set, onFinish]);
 
-  /* ---- the three clocks ---- */
+  /* ---- the three clocks. The key is what makes each set, each
+     hold and each rest a fresh countdown rather than the last one
+     carried over. ---- */
   const [ready] = useCountdown(READY, phase === 'ready' && !paused,
-    () => setPhase('work'));
+    () => setPhase('work'), 'ready');
 
   const [hold] = useCountdown(plan.held ? plan.held.seconds : 0,
     phase === 'work' && !!plan.held && !paused,
-    () => setPhase('rest'));
+    () => setPhase('rest'), `hold-${i}-${set}`);
 
-  const [rest, setRest] = useState(REST);
-  const [restLeft] = useCountdown(rest, phase === 'rest' && !paused, advance);
-
-  /* a fresh rest length every time one starts */
-  useEffect(() => { if (phase === 'rest') setRest(REST); }, [phase, i, set]);
+  const [restLeft, addRest] = useCountdown(REST, phase === 'rest' && !paused,
+    advance, `rest-${i}-${set}`);
 
   async function quit() {
     const yes = await sheet.confirm({
@@ -163,7 +195,7 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           <Text style={styles.restClock}>{mmss(restLeft)}</Text>
 
           <View style={styles.restBtns}>
-            <Press onPress={() => setRest(rest + 20)} scaleTo={0.94} style={styles.restAdd}>
+            <Press onPress={() => addRest(20)} scaleTo={0.94} style={styles.restAdd}>
               <Text style={styles.restAddTxt}>+20s</Text>
             </Press>
             <Press onPress={advance} scaleTo={0.94} style={styles.restSkip}>
@@ -224,16 +256,21 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
         ) : null}
       </View>
 
-      {/* the black panel: name, clock, controls */}
+      {/* The black panel: name, clock, controls.
+
+          While getting ready the panel shows what is coming rather
+          than the same number that is already three inches high over
+          the picture. Two clocks counting the same seconds is one
+          clock too many. */}
       <View style={styles.panel}>
         <Text style={styles.panelName} numberOfLines={1}>{ex.n}</Text>
 
         <Text style={styles.clock}>
-          {gettingReady ? mmss(ready) : plan.held ? mmss(hold) : plan.target}
+          {gettingReady ? plan.target : plan.held ? mmss(hold) : plan.target}
         </Text>
-        {!gettingReady && !plan.held ? (
-          <Text style={styles.panelHint}>{ex.m}</Text>
-        ) : null}
+        <Text style={styles.panelHint}>
+          {gettingReady ? `${t('Starting in')} ${Math.ceil(ready)}s` : ex.m}
+        </Text>
 
         <View style={styles.controls}>
           <Press
