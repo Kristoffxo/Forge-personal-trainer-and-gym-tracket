@@ -137,7 +137,7 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
      their own shape they fill the width and the band goes. Capped
      by what is actually free so a short screen does not push the
      controls off the bottom. */
-  const stageH = Math.min(Math.round(width * 0.78), Math.max(200, height - 70 - 200));
+  const stageH = Math.min(Math.round(width * 0.8), Math.max(180, height - 70 - 250));
 
   /* where we are: which exercise, and what is happening */
   const [i, setI] = useState(0);
@@ -250,7 +250,11 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
         <View style={{ width: 26 }} />
       </View>
 
-      {/* the movement, filling the screen */}
+      {/* The movement and the panel are centred together as one
+          block. Pinning the picture to the top left the words
+          floating near the bottom of a tall phone with a hand's
+          width of black between them. */}
+      <View style={styles.middle}>
       <View style={[styles.stage, { height: stageH }]}>
         <Demo exercise={ex} height={stageH} playing={!paused} fit="cover"
           style={{ borderRadius: 0 }} />
@@ -280,21 +284,26 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           {gettingReady ? plan.target : plan.held ? mmss(hold) : plan.target}
         </Text>
         <Text style={styles.panelHint}>
-          {gettingReady ? `${t('Starting in')} ${Math.ceil(ready)}s` : ex.m}
+          {ex.m}
         </Text>
 
+        {/* Nothing to press while the countdown runs. Start now is
+            already on the picture, and a pause button for a thing
+            that has not started is a button that does nothing. */}
+        {gettingReady ? null : (
         <View style={styles.controls}>
           <Press
             onPress={() => { if (i > 0) { setI(i - 1); setPhase('work'); } }}
-            hitSlop={10} scaleTo={0.9} style={styles.side}
+            hitSlop={10} scaleTo={0.9}
+            style={[styles.side, i === 0 && { opacity: 0.35 }]}
           >
-            <Text style={styles.sideTxt}>{'⏮'}</Text>
+            <Text style={styles.sideTxt}>{t('Prev')}</Text>
           </Press>
 
           {/* The one big button. A hold pauses itself down; a
               lifting block is finished by hand, because nothing on a
               phone can tell when somebody racked the bar. */}
-          {plan.held || gettingReady ? (
+          {plan.held ? (
             <Press onPress={() => setPaused(!paused)} scaleTo={0.96}
               style={[styles.main, { backgroundColor: tint }]}>
               <Text style={styles.mainTxt}>{paused ? '▶' : '⏸'}</Text>
@@ -302,16 +311,16 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           ) : (
             <Press onPress={() => setPhase('rest')} scaleTo={0.96}
               style={[styles.main, { backgroundColor: tint }]}>
-              <Text style={styles.mainDone}>
-                {lastEx ? t('Finish') : t('Done \u2014 next')}
-              </Text>
+              <Text style={styles.mainDone}>{lastEx ? t('Finish') : t('Done')}</Text>
             </Press>
           )}
 
           <Press onPress={advance} hitSlop={10} scaleTo={0.9} style={styles.side}>
-            <Text style={styles.sideTxt}>{'⏭'}</Text>
+            <Text style={styles.sideTxt}>{t('Next')}</Text>
           </Press>
         </View>
+        )}
+      </View>
       </View>
     </View>
   );
@@ -340,6 +349,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   topName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14, color: C.text },
   topMeta: { fontFamily: 'WorkSans_400Regular', fontSize: 11.5, color: C.dim, marginTop: 1 },
 
+  middle: { flex: 1, justifyContent: 'center' },
   stage: { overflow: 'hidden', justifyContent: 'center' },
 
   readyVeil: {
@@ -359,9 +369,8 @@ const makeStyles = (C, T) => StyleSheet.create({
   readyBtnTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: '#0B0B0E' },
 
   panel: {
-    flex: 1, backgroundColor: '#08090D', paddingTop: S.lg, paddingBottom: S.lg,
-    paddingHorizontal: S.lg, alignItems: 'center', justifyContent: 'center',
-    borderTopLeftRadius: R.lg, borderTopRightRadius: R.lg,
+    backgroundColor: '#08090D', paddingTop: S.lg, paddingBottom: S.lg,
+    paddingHorizontal: S.lg, alignItems: 'center',
   },
   panelName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: '#fff' },
   clock: {
@@ -370,14 +379,15 @@ const makeStyles = (C, T) => StyleSheet.create({
   },
   panelHint: { fontFamily: 'WorkSans_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.5)' },
 
-  controls: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: S.md },
+  controls: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: S.lg },
   side: {
-    width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center',
+    minWidth: 74, height: 46, borderRadius: 23, paddingHorizontal: 16,
+    alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
-  sideTxt: { fontSize: 17, color: '#fff' },
+  sideTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14, color: '#fff' },
   main: {
-    minWidth: 150, height: 48, borderRadius: 24,
+    minWidth: 120, height: 48, borderRadius: 24,
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24,
   },
   mainTxt: { fontSize: 20, color: '#fff' },
