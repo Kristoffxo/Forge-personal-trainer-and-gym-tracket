@@ -4,11 +4,14 @@
    The first time somebody opens a tab they get one card: the tab's
    name, and a line saying what it does. Then never again.
 
-   Half a line each. "Discover" does not need "this is the Discover
-   tab" — it needs the one thing that is not visible from looking at
-   it, which is usually what the tab is worth in Reppo Score. A
-   paragraph in a box in front of somebody who has just arrived
-   reads as terms and conditions.
+   Two lines each: what the tab is, then the one thing that is not
+   visible from looking at it — usually what it is worth in Reppo
+   Score. Neither line says "this is the Discover tab".
+
+   Keep them under about forty-two characters. The card is narrow on
+   purpose, and a line that wraps to a third line stops looking like
+   two lines and starts looking like a paragraph, which is the thing
+   this was rewritten to stop being.
 
    Only three things earn Reppo Score, so only three of these
    mention it. Promising points on a tab that cannot give them is
@@ -16,14 +19,37 @@
    --------------------------------------------------------------- */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const KEY = 'reppo.tabNotes.seen.v1';
+/* Bumped when the wording changes materially. Anybody who saw the
+   old note gets the new one once, which is the point of writing a
+   better one. */
+const KEY = 'reppo.tabNotes.seen.v2';
 
 export const TAB_NOTES = {
-  train: { title: 'Train', message: 'Today’s workout. Finishing it is +5 Reppo Score.' },
-  food:  { title: 'Food',  message: 'Track what you eat.' },
-  feed:  { title: 'Discover', message: 'Post a photo. +2 Reppo Score.' },
-  you:   { title: 'Challenges', message: 'Race somebody live. A win is +2.' },
-  journey: { title: 'You', message: 'Your score, your leagues, your calendar.' },
+  train: {
+    title: 'Train',
+    message: 'Workouts built for your kit and your time.'
+      + '\nFinishing one is +5 Reppo Score.',
+  },
+  food: {
+    title: 'Food',
+    message: 'Everything you eat, in calories and macros.'
+      + '\nAgainst a daily goal set for your body.',
+  },
+  feed: {
+    title: 'Discover',
+    message: 'Photos from everyone else using Reppo.'
+      + '\nPost one a day, for +2 Reppo Score.',
+  },
+  you: {
+    title: 'Challenges',
+    message: 'A live sixty-second race against somebody.'
+      + '\nA win is +2 Reppo Score.',
+  },
+  journey: {
+    title: 'You',
+    message: 'Your Reppo Score, and the league it earns.'
+      + '\nEvery 50 points is a promotion.',
+  },
 };
 
 /* Read once at boot. A tab change should not wait on storage before

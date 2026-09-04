@@ -187,7 +187,7 @@ const makeStyles = (C, T) => StyleSheet.create({
      weight of one. Narrower, shorter, and the name set in the hand
      the map is written in — which is the app's own voice rather than
      the voice it uses to ask whether you are sure. */
-  noteSheet: { maxWidth: 300, paddingTop: S.md, paddingHorizontal: S.sm },
+  noteSheet: { maxWidth: 332, paddingTop: S.md, paddingHorizontal: S.md },
   noteTitle: { fontFamily: 'Caveat_700Bold', fontSize: 30, lineHeight: 34 },
   noteMsg: { marginTop: 2, fontSize: 14.5, lineHeight: 21 },
 
