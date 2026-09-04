@@ -70,14 +70,25 @@ export async function workoutsInMonth(userId, year, month) {
   const last = new Date(year, month + 1, 0).getDate();
   const to = `${year}-${pad(month + 1)}-${pad(last)}`;
 
-  const { data, error } = await supabase
+  const ask = (cols) => supabase
     .from('workout_days')
-    .select('day, kind, name')
+    .select(cols)
     .eq('user_id', userId)
     .gte('day', from)
     .lte('day', to)
     .order('day');
-  return error ? [] : (data || []);
+
+  const { data, error } = await ask('day, kind, name');
+  if (!error) return data || [];
+
+  /* `kind` and `name` arrived after the table did, and `create table
+     if not exists` will not add a column to a table that is already
+     there. On a database that missed that migration the rich select
+     fails and the calendar comes back empty for ever — which looks
+     exactly like never having trained. Ask for the one column that
+     has always existed instead: fewer details, but the right days. */
+  const bare = await ask('day');
+  return bare.error ? [] : (bare.data || []);
 }
 
 export async function allTrainedDays(userId) {

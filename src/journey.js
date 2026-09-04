@@ -14,25 +14,27 @@
    Seven training days is a promotion whether they take you a week
    or a month.
 
-   Seven leagues of three, and then Titan.
+   Eight leagues, one week apart.
 
-     Bronze 3 2 1     days 0   7   14
-     Silver 3 2 1          21  28  35
-     Gold 3 2 1            42  49  56
-     Platinum 3 2 1        63  70  77
-     Diamond 3 2 1         84  91  98
-     Champion 3 2 1        105 112 119
-     Master 3 2 1          126 133 140
-     Titan                 147
+     Bronze     day 0
+     Silver         7
+     Gold          14
+     Platinum      21
+     Diamond       28
+     Champion      35
+     Master        42
+     Titan         49
 
-   Bronze 3 is day zero. Nobody is unranked: you are in a league from
+   There used to be three numbered tiers inside every league —
+   Bronze 3, Bronze 2, Bronze 1 — which made twenty-two ranks and a
+   name you had to parse before it meant anything. Eight names, one
+   a week, is the same climb without the arithmetic.
+
+   Bronze is day zero. Nobody is unranked: you are in a league from
    the moment you open the app, and the first week promotes you out
    of it rather than into one. An empty state that says "you have no
-   rank yet" is a worse first screen than one that says "Bronze 3,
-   seven days to Bronze 2".
-
-   Tier 3 is the bottom of a league and tier 1 the top, the way every
-   ladder people already know is numbered.
+   rank yet" is a worse first screen than one that says "Bronze,
+   seven days to Silver".
    --------------------------------------------------------------- */
 
 /* Terrain, low to high. The map gets colder and cleaner as it goes
@@ -64,35 +66,24 @@ export const LEAGUES = [
 
 /* Every rank, built from the leagues rather than typed out, so the
    day counts cannot drift out of step with the names. */
-export const RANKS = (() => {
-  const out = [];
-  let n = 0;
-  LEAGUES.forEach((lg) => {
-    /* Titan is the summit. There is nothing above it to be promoted
-       into, so it does not need three tiers to climb through. */
-    const tiers = lg.key === 'titan' ? [null] : [3, 2, 1];
-    tiers.forEach((tier) => {
-      out.push({
-        n: n + 1,
-        at: n * WEEK,
-        league: lg.key,
-        leagueName: lg.name,
-        colour: lg.colour,
-        terrain: lg.terrain,
-        tier,
-        name: tier == null ? lg.name : `${lg.name} ${tier}`,
-        /* the rank that opens a new league is where the map says so */
-        opensLeague: tier === 3 || tier == null,
-      });
-      n += 1;
-    });
-  });
-  return out;
-})();
+export const RANKS = LEAGUES.map((lg, n) => ({
+  n: n + 1,
+  at: n * WEEK,
+  league: lg.key,
+  leagueName: lg.name,
+  colour: lg.colour,
+  terrain: lg.terrain,
+  /* Kept so the map and the list do not have to know the tiers are
+     gone. There is one rank per league now, so every one of them
+     opens its own. */
+  tier: null,
+  name: lg.name,
+  opensLeague: true,
+}));
 
 export const TOP = RANKS[RANKS.length - 1].at;
 
-/* "Silver 2", or "Titan". */
+/* "Silver", or "Titan". */
 export function label(rank) {
   return rank ? rank.name : '';
 }

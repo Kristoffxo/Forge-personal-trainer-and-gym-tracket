@@ -46,7 +46,7 @@ export const LIGHT = {
   heroVeil:'rgba(14,13,12,0.46)',
 };
 
-export function palette(mode = 'dark') {
+export function palette(mode = 'light') {
   return mode === 'light' ? LIGHT : DARK;
 }
 
@@ -106,7 +106,11 @@ export function ThemeProvider({ children }) {
   /* Only so screens can read it from one hook. The side changes what
      the app trains, never what colour it is. */
   const { side } = useSide();
-  const [mode, setMode] = useState('dark');
+  /* Light until told otherwise. Most people never open a settings
+     screen, and the app they never configure should be the one that
+     reads in daylight in a gym. Anyone who wants dark still has the
+     toggle, and the choice is remembered. */
+  const [mode, setMode] = useState('light');
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -139,8 +143,8 @@ export function useTheme() {
   const v = useContext(Ctx);
   // a sensible fallback so a component rendered outside the provider still works
   return v || {
-    C: DARK, T: makeT(DARK), MUSCLE_C: MUSCLE_DARK,
-    mode:'dark', side:'men', toggle: () => {},
+    C: LIGHT, T: makeT(LIGHT), MUSCLE_C: MUSCLE_LIGHT,
+    mode:'light', side:'men', toggle: () => {},
   };
 }
 

@@ -31,12 +31,17 @@ export function Mark({ size = 28, style }) {
    The supplied wordmark is white, so on dark the artwork goes in
    whole — that is the real thing, gradient and all. On light it
    would vanish, so there the mark goes in on its own and the word is
-   set in the app's own type underneath. */
-export function Lockup({ width = 220, style }) {
+   set in the app's own type underneath.
+
+   `onDark` is for the screens that are black whatever the theme is
+   — the sign-in screen, chiefly. Reading the mode alone put a
+   near-black wordmark on that near-black screen the day light became
+   the default. */
+export function Lockup({ width = 220, style, onDark = false }) {
   const { C } = useTheme();
   const styles = makeStyles(C);
 
-  if (C.mode !== 'light') {
+  if (onDark || C.mode !== 'light') {
     return (
       <Image
         source={LOCKUP}

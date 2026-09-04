@@ -41,9 +41,9 @@ export function Badge({ league, earned, size = 44 }) {
   );
 }
 
-/* Every badge, wrapped. Thirteen of them fit three rows deep on a
-   phone, which is the whole set visible at once — the point being
-   that you can see how much is still to come. */
+/* Every badge, wrapped. Eight of them fit two rows deep on a phone,
+   which is the whole ladder visible at once — the point being that
+   you can see how much is still to come. */
 export function BadgeRow({ days, size = 44 }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
@@ -66,9 +66,12 @@ export function StandingCard({ days, accent }) {
 
   return (
     <View style={[styles.rank, { borderColor: colour }]}>
+      {/* The chip used to hold the league and the line under it the
+          rank. With the tiers gone those are the same word, so it
+          says which week you are in instead. */}
       <View style={[styles.levelChip, { backgroundColor: colour + '22', borderColor: colour }]}>
         <Text style={[styles.levelTxt, { color: colour }]}>
-          {here ? here.leagueName.toUpperCase() : 'UNRANKED'}
+          {`WEEK ${j.reached.length}`}
         </Text>
       </View>
 
@@ -91,7 +94,7 @@ export function StandingCard({ days, accent }) {
         </View>
         <View style={styles.numBit}>
           <Text style={styles.num}>{j.reached.length}</Text>
-          <Text style={T.tiny}>of {RANKS.length} weeks</Text>
+          <Text style={T.tiny}>of {RANKS.length} leagues</Text>
         </View>
       </View>
     </View>

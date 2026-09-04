@@ -46,6 +46,10 @@ export default function Journey({ user, profile }) {
   const [entries, setEntries] = useState({});
   const [open, setOpen] = useState(null);      // a milestone being read
   const [list, setList] = useState(false);
+  /* Two things live in this tab and they want different screens: the
+     climb, and the record of what you actually did. A switcher says
+     so; the calendar buried under the map did not. */
+  const [page, setPage] = useState('map');
   const scroller = useRef(null);
   const viewH = useRef(0);
   const ready = useRef(false);
@@ -84,8 +88,45 @@ export default function Journey({ user, profile }) {
     );
   }
 
+  /* The map page is its own dark world whatever the theme is doing,
+     so the switcher has to be told which ground it is standing on. */
+  const switcher = (onDark) => (
+    <View style={[styles.switcher,
+      { backgroundColor: onDark ? 'rgba(255,255,255,0.10)' : C.surface }]}>
+      {[{ key: 'map', label: 'Map' }, { key: 'calendar', label: 'Calendar' }].map((pg) => {
+        const on = page === pg.key;
+        return (
+          <Press key={pg.key} onPress={() => setPage(pg.key)} scaleTo={0.97}
+            style={[styles.swTab, on && { backgroundColor: C.ember }]}>
+            <Text style={[styles.swTxt,
+              { color: onDark ? 'rgba(255,255,255,0.75)' : C.dim },
+              on && { color: '#FFFFFF' }]}>
+              {t(pg.label)}
+            </Text>
+          </Press>
+        );
+      })}
+    </View>
+  );
+
+  if (page === 'calendar') {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
+        {switcher(false)}
+        <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
+          <Text style={styles.calTitle}>{t('Your workouts')}</Text>
+          <Text style={[T.small, { marginTop: 2 }]}>
+            {t('Every day you have trained. Tap a filled day to see what you did.')}
+          </Text>
+          <WorkoutCalendar user={user} colour={me.rank ? me.rank.colour : C.ember} />
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#07070B' }}>
+      {switcher(true)}
       {/* Opens with the foot of the map on screen — where the journey
           starts and where you are — and you climb from there. Not
           scrollToEnd: that goes past the map to the cards underneath
@@ -127,13 +168,6 @@ export default function Journey({ user, profile }) {
               </Text>
             </Press>
           </View>
-
-          {/* Where you have been, a month at a time. The map says how
-              far; this says how lately. */}
-          <FadeIn delay={20}>
-            <Label style={{ marginTop: S.lg }}>{t('Your workouts')}</Label>
-            <WorkoutCalendar user={user} colour={me.rank ? me.rank.colour : C.ember} />
-          </FadeIn>
 
           <BmiCard profile={profile} entries={entries} C={C} T={T} t={t} styles={styles} />
 
@@ -431,45 +465,37 @@ function ListView({ days, entries, onPick, onBack }) {
           {t('Every seven days you train is a promotion.')}
         </Text>
 
-        {LEAGUES.map((lg) => {
-          const ranks = RANKS.filter((r) => r.league === lg.key);
+        {/* One row per league. There used to be a heading and three
+            numbered rows under it; with the tiers gone the heading
+            and its single row said the same thing twice. */}
+        {RANKS.map((r) => {
+          const reached = days >= r.at;
+          const e = entries[r.n];
           return (
-            <View key={lg.key} style={{ marginBottom: S.lg }}>
-              <View style={styles.lgHead}>
-                <Image source={LEAGUE_ICON[lg.key]}
-                  style={{ width: 20, height: 20, tintColor: lg.colour }} resizeMode="contain" />
-                <Text style={[styles.lgName, { color: lg.colour }]}>{t(lg.name)}</Text>
+            <Press key={r.n} onPress={() => onPick(r)} scaleTo={0.985} style={styles.listRow}>
+              <View style={[styles.listMedal, {
+                borderColor: r.colour,
+                backgroundColor: reached ? r.colour : 'transparent',
+              }]}>
+                <Image source={LEAGUE_ICON[r.league]}
+                  style={{ width: 20, height: 20,
+                           tintColor: reached ? '#0B0B0E' : r.colour }}
+                  resizeMode="contain" />
               </View>
-
-              {ranks.map((r) => {
-                const reached = days >= r.at;
-                const e = entries[r.n];
-                return (
-                  <Press key={r.n} onPress={() => onPick(r)} scaleTo={0.985} style={styles.listRow}>
-                    <View style={[styles.listMedal, {
-                      borderColor: lg.colour,
-                      backgroundColor: reached ? lg.colour : 'transparent',
-                    }]}>
-                      <Text style={[styles.listNum, { color: reached ? '#0B0B0E' : lg.colour }]}>
-                        {r.tier || '\u2605'}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={[styles.listName, { color: reached ? C.text : C.dim }]}>
-                        {t(r.name)}
-                      </Text>
-                      {e && e.weight_kg != null ? (
-                        <Text style={T.tiny}>{e.weight_kg} kg</Text>
-                      ) : null}
-                    </View>
-                    <Text style={T.tiny}>{t('Day')} {r.at}</Text>
-                    <Text style={{ color: C.faint, marginLeft: 8 }}>{'\u203A'}</Text>
-                  </Press>
-                );
-              })}
-            </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={[styles.listName, { color: reached ? C.text : C.dim }]}>
+                  {t(r.name)}
+                </Text>
+                {e && e.weight_kg != null ? (
+                  <Text style={T.tiny}>{e.weight_kg} kg</Text>
+                ) : null}
+              </View>
+              <Text style={T.tiny}>{t('Day')} {r.at}</Text>
+              <Text style={{ color: C.faint, marginLeft: 8 }}>{'\u203A'}</Text>
+            </Press>
           );
         })}
+
       </ScrollView>
     </View>
   );
@@ -477,6 +503,16 @@ function ListView({ days, entries, onPick, onBack }) {
 
 const makeStyles = (C, T) => StyleSheet.create({
   boot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
+
+  /* Sits over the map as often as over the calendar, so it carries
+     its own dark ground rather than borrowing the theme's. */
+  switcher: {
+    flexDirection: 'row', borderRadius: R.pill, padding: 4,
+    marginHorizontal: S.lg, marginTop: S.md,
+  },
+  swTab: { flex: 1, paddingVertical: 10, borderRadius: R.pill, alignItems: 'center' },
+  swTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 12.5 },
+  calTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 22, color: C.text },
 
   startCard: {
     backgroundColor: C.surface, borderRadius: R.md, padding: S.md,

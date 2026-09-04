@@ -95,7 +95,7 @@ export default function Auth({ onDone }) {
               phone, and the point of this screen at that moment is
               the two boxes, not the branding. */}
           <FadeIn style={{ alignItems: 'center' }}>
-            <Lockup width={kb > 0 ? 108 : 196} />
+            <Lockup width={kb > 0 ? 108 : 196} onDark />
             {kb > 0 ? null : (
               <Text style={styles.tagline}>{t('Performance, redefined.')}</Text>
             )}

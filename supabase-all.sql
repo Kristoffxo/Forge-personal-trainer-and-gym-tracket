@@ -398,6 +398,14 @@ create table if not exists public.workout_days (
   primary key (user_id, day)
 );
 
+--  `kind` and `name` were added after the table was. `create table
+--  if not exists` does nothing to a table that already exists, so a
+--  database created before that change never got the columns and the
+--  calendar reads back empty. These add them where they are missing
+--  and do nothing where they are not.
+alter table public.workout_days add column if not exists kind text;
+alter table public.workout_days add column if not exists name text;
+
 -- ------------------------------------------------------------
 --  3. Challenges
 --

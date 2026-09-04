@@ -30,7 +30,7 @@ import {
   View, Text, StyleSheet, Vibration, Platform, useWindowDimensions,
 } from 'react-native';
 
-import { S, R, useTheme } from '../theme';
+import { S, R, useTheme, MUSCLE_DARK } from '../theme';
 import { Press } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
@@ -43,7 +43,10 @@ const READY = 10;          // seconds before the first move
    exercise adds four or five minutes to a session and, more to the
    point, reads as being stuck. */
 const REST = 30;
-const BLUE = '#1B6EF3';    // the rest screen, from the reference
+/* The reference rests on blue. Ours rests on the same black the
+   rest of the player is on — one surface, one mood, and the
+   photograph beside it is not fighting a colour. */
+const REST_BG = '#08090D';
 
 /* mm:ss, always two digits, because a timer that changes width
    jitters under the eye. */
@@ -120,7 +123,7 @@ function useCountdown(total, running, onEnd, key) {
 }
 
 export default function Player({ title, exercises, onQuit, onFinish }) {
-  const { C, T, MUSCLE_C } = useTheme();
+  const { C, T } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
   const sheet = useSheet();
@@ -131,21 +134,14 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
      route all give it back without each needing to remember. */
   useClaimFullscreen();
 
-  /* Everything the panel does not need.
+  /* A square, with the photograph its own shape inside it.
 
-     The photographs are three to two, so at full width the picture
-     is 250pt tall and no arrangement of boxes can make it bigger
-     without cutting the barbell off the end of it. What was going
-     wrong was where the leftover height went: a snug picture at the
-     top and a panel stretched under it put a hand's width of black
-     between the photograph and the words.
-
-     So the stage takes the whole gap and holds the picture in the
-     middle of it, uncropped, with the panel snug at the bottom. The
-     screen is full, nothing floats, and nothing is lost off the
-     sides. 215 is what the panel needs: name, clock, muscle and the
-     row of controls. */
-  const stageH = Math.max(220, height - 70 - 215);
+     The frames are three to two, so a square leaves a band above and
+     below. That is the honest way round: cropping to fill the square
+     takes a third off the sides and that is where the barbell is.
+     Black behind it, so the band is the screen rather than a border.
+     Capped by what is free on a short phone. */
+  const stageH = Math.min(width, Math.max(200, height - 70 - 215));
 
   /* where we are: which exercise, and what is happening */
   const [i, setI] = useState(0);
@@ -155,7 +151,9 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
   const total = exercises.length;
   const ex = exercises[i];
   const plan = ex ? planOf(ex) : { target: '', held: null };
-  const tint = ex ? (MUSCLE_C[ex.m] || C.ember) : C.ember;
+  /* The dark set whatever the app is set to — see the note on the
+     top bar's colours. */
+  const tint = ex ? (MUSCLE_DARK[ex.m] || '#FE4E02') : '#FE4E02';
 
   const lastEx = i >= total - 1;
 
@@ -196,7 +194,7 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
     const upcoming = exercises[Math.min(i + 1, total - 1)];
 
     return (
-      <View style={[styles.screen, { backgroundColor: BLUE }]}>
+      <View style={[styles.screen, { backgroundColor: REST_BG }]}>
         <Segments total={total} at={i} />
 
         <View style={styles.restTop}>
@@ -267,16 +265,8 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           width of black between them. */}
       <View style={styles.middle}>
       <View style={[styles.stage, { height: stageH }]}>
-        {/* The same photograph twice: once blown up to fill the
-            frame and turned right down, once whole on top of it.
-            Three-to-two inside a tall phone leaves bands above and
-            below no matter what, and a band carrying the colour of
-            the room reads as the room. Flat black reads as a
-            letterbox. */}
-        <Demo exercise={ex} height={stageH} playing={false} fit="cover"
-          style={{ ...StyleSheet.absoluteFillObject, borderRadius: 0, opacity: 0.22 }} />
         <Demo exercise={ex} height={stageH} playing={!paused} fit="contain"
-          style={{ borderRadius: 0, backgroundColor: 'transparent' }} />
+          style={{ borderRadius: 0, backgroundColor: '#08090D' }} />
 
         {gettingReady ? (
           <View style={styles.readyVeil}>
@@ -296,9 +286,9 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           than the same number that is already three inches high over
           the picture. Two clocks counting the same seconds is one
           clock too many. */}
+      {/* The name is already across the top bar. Printing it again
+          three inches lower said nothing and cost a line. */}
       <View style={styles.panel}>
-        <Text style={styles.panelName} numberOfLines={1}>{ex.n}</Text>
-
         <Text style={styles.clock}>
           {gettingReady ? plan.target : plan.held ? mmss(hold) : plan.target}
         </Text>
@@ -364,9 +354,16 @@ const makeStyles = (C, T) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#08090D' },
 
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.lg, paddingTop: S.sm },
-  x: { fontFamily: 'WorkSans_400Regular', fontSize: 26, color: C.dim, width: 26 },
-  topName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14, color: C.text },
-  topMeta: { fontFamily: 'WorkSans_400Regular', fontSize: 11.5, color: C.dim, marginTop: 1 },
+  /* Fixed, not from the theme. The player is a dark room whichever
+     mode the rest of the app is in, and C.text in light mode is
+     near-black — which put the exercise name on the top bar in black
+     ink on a black bar. */
+  x: { fontFamily: 'WorkSans_400Regular', fontSize: 26, color: 'rgba(255,255,255,0.6)', width: 26 },
+  topName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14, color: '#FFFFFF' },
+  topMeta: {
+    fontFamily: 'WorkSans_400Regular', fontSize: 11.5,
+    color: 'rgba(255,255,255,0.6)', marginTop: 1,
+  },
 
   /* The panel takes whatever the picture leaves and runs to the
      bottom edge, so the session is one unbroken surface rather than
@@ -391,10 +388,9 @@ const makeStyles = (C, T) => StyleSheet.create({
   readyBtnTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: '#0B0B0E' },
 
   panel: {
-    backgroundColor: '#08090D', paddingTop: S.sm, paddingBottom: S.lg,
-    paddingHorizontal: S.lg, alignItems: 'center',
+    flex: 1, backgroundColor: '#08090D', paddingBottom: S.lg,
+    paddingHorizontal: S.lg, alignItems: 'center', justifyContent: 'center',
   },
-  panelName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: '#fff' },
   clock: {
     fontFamily: 'WorkSans_600SemiBold', fontSize: 52, lineHeight: 60, color: '#fff',
     marginTop: 2,
@@ -432,7 +428,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   },
   restAddTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: '#fff' },
   restSkip: { backgroundColor: '#fff', borderRadius: R.pill, paddingHorizontal: 30, paddingVertical: 11 },
-  restSkipTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: '#1B6EF3', letterSpacing: 1 },
+  restSkipTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: '#0B0B0E', letterSpacing: 1 },
 
   restNext: { padding: S.lg },
   restNextLabel: {

@@ -14,57 +14,48 @@ const is = (what, got, want) => {
 console.log('the ladder');
 is('eight leagues', LEAGUES.map((l) => l.name),
   ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Champion', 'Master', 'Titan']);
-is('seven leagues of three, then Titan alone', RANKS.length, 22);
+is('one rank per league, no tiers', RANKS.length, 8);
 is('a week is seven training days', WEEK, 7);
 is('every rank is one week above the last',
   RANKS.every((r, i) => r.at === i * WEEK), true);
-is('you are Bronze 3 from the moment you start', RANKS[0].at, 0);
-is('tiers count down inside a league',
-  RANKS.filter((r) => r.league === 'silver').map((r) => r.tier), [3, 2, 1]);
-is('Titan has no tier', RANKS[21].tier, null);
+is('you are Bronze from the moment you start', RANKS[0].at, 0);
+is('nothing carries a tier any more', RANKS.every((r) => r.tier === null), true);
+is('one rank per league', RANKS.map((r) => r.league).length,
+  new Set(RANKS.map((r) => r.league)).size);
 is('every rank has terrain', RANKS.every((r) => !!terrainOf(r)), true);
-is('the top is day 147', TOP, 147);
+is('the top is day 49', TOP, 49);
 
 console.log('\nthe names and days, as specified');
 const at = (day) => label(RANKS.find((r) => r.at === day));
-is('day 0', at(0), 'Bronze 3');
-is('day 7', at(7), 'Bronze 2');
-is('day 14', at(14), 'Bronze 1');
-is('day 21', at(21), 'Silver 3');
-is('day 28', at(28), 'Silver 2');
-is('day 35', at(35), 'Silver 1');
-is('day 42', at(42), 'Gold 3');
-is('day 56', at(56), 'Gold 1');
-is('day 63', at(63), 'Platinum 3');
-is('day 77', at(77), 'Platinum 1');
-is('day 84', at(84), 'Diamond 3');
-is('day 98', at(98), 'Diamond 1');
-is('day 105', at(105), 'Champion 3');
-is('day 119', at(119), 'Champion 1');
-is('day 126', at(126), 'Master 3');
-is('day 140', at(140), 'Master 1');
-is('day 147', at(147), 'Titan');
+is('day 0', at(0), 'Bronze');
+is('day 7', at(7), 'Silver');
+is('day 14', at(14), 'Gold');
+is('day 21', at(21), 'Platinum');
+is('day 28', at(28), 'Diamond');
+is('day 35', at(35), 'Champion');
+is('day 42', at(42), 'Master');
+is('day 49', at(49), 'Titan');
 
 console.log('\nwhere somebody is');
-is('nobody is ever unranked', journeyFrom(0).rank.name, 'Bronze 3');
-is('and the first week promotes you out of it', journeyFrom(0).next.name, 'Bronze 2');
+is('nobody is ever unranked', journeyFrom(0).rank.name, 'Bronze');
+is('and the first week promotes you out of it', journeyFrom(0).next.name, 'Silver');
 is('a whole week to go on day nought', journeyFrom(0).toGo, 7);
-is('day 6 is still Bronze 3', journeyFrom(6).rank.name, 'Bronze 3');
-is('day 7 is a promotion', journeyFrom(7).rank.name, 'Bronze 2');
-is('day 20 is still Bronze 1', journeyFrom(20).rank.name, 'Bronze 1');
-is('day 21 changes league', journeyFrom(21).leagueName, 'Silver');
-is('day 90 is Diamond 3', journeyFrom(90).rank.name, 'Diamond 3');
-is('the top is Titan', journeyFrom(147).rank.name, 'Titan');
-is('the top has nothing ahead', journeyFrom(147).next, null);
-is('and says so', journeyFrom(147).atTop, true);
+is('day 6 is still Bronze', journeyFrom(6).rank.name, 'Bronze');
+is('day 7 is a promotion', journeyFrom(7).rank.name, 'Silver');
+is('day 13 is still Silver', journeyFrom(13).rank.name, 'Silver');
+is('day 14 changes league', journeyFrom(14).leagueName, 'Gold');
+is('day 30 is Diamond', journeyFrom(30).rank.name, 'Diamond');
+is('the top is Titan', journeyFrom(49).rank.name, 'Titan');
+is('the top has nothing ahead', journeyFrom(49).next, null);
+is('and says so', journeyFrom(49).atTop, true);
 is('past the top stays Titan', journeyFrom(9000).rank.name, 'Titan');
-is('every rank is behind you at the top', journeyFrom(147).reached.length, 22);
+is('every rank is behind you at the top', journeyFrom(49).reached.length, 8);
 
 console.log('\nthe week you are in the middle of');
 is('just promoted is zero', journeyFrom(21).progress, 0);
 is('partway through a week', journeyFrom(24).progress, 3 / 7);
 is('six days in, one to go', journeyFrom(27).toGo, 1);
-is('progress never exceeds one', journeyFrom(147).progress, 1);
+is('progress never exceeds one', journeyFrom(49).progress, 1);
 is('progress is never negative', journeyFrom(0).progress >= 0, true);
 
 console.log('\nrest days cost nothing');
@@ -76,15 +67,15 @@ console.log('\nrest days cost nothing');
   is('the same total is the same rank', straight.rank.name, scattered.rank.name);
   is('nothing can be taken away', RANKS.every((r) => isReached(r, 200)), true);
   is('and a day never un-happens',
-    journeyFrom(100).reached.length >= journeyFrom(99).reached.length, true);
+    journeyFrom(40).reached.length >= journeyFrom(39).reached.length, true);
 }
 
 console.log('\nnonsense in');
-is('no days is still a league', journeyFrom(0).rank.name, 'Bronze 3');
+is('no days is still a league', journeyFrom(0).rank.name, 'Bronze');
 is('negative', journeyFrom(-5).days, 0);
 is('rubbish', journeyFrom('abc').days, 0);
 is('nothing at all', journeyFrom(undefined).days, 0);
-is('a fraction rounds down', journeyFrom(6.9).rank.name, 'Bronze 3');
+is('a fraction rounds down', journeyFrom(6.9).rank.name, 'Bronze');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
