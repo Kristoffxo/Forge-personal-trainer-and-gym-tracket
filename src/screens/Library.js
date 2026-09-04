@@ -37,12 +37,31 @@ export default function Library({ place, user, profile, onBack }) {
   const [picked, setPicked] = useState(null);   // the routine being previewed
   const [running, setRunning] = useState(false);
   const [peek, setPeek] = useState(null);      // one exercise, just to look at
+  /* Which shuffle of this target we are looking at. Kept per target
+     so backing out and opening it again does not silently reroll
+     the session somebody was about to start. */
+  const [seeds, setSeeds] = useState({});
 
   const level = (profile && profile.experience) || 'intermediate';
   const accent = place === 'relief' ? C.gold
     : place === 'senior' ? C.lime
       : place === 'yoga' ? C.violet
         : place === 'home' ? C.teal : C.ember;
+
+  const open = (target) => {
+    const key = typeof target === 'string' ? target : target.key;
+    setPicked(buildRoutine({ target, place, level, side, seed: seeds[key] || 0 }));
+  };
+
+  /* A different set of moves for the same muscles: same count, same
+     kit, same order of heavy work first. */
+  const shuffle = () => {
+    if (!picked) return;
+    const key = picked.key;
+    const next = (seeds[key] || 0) + 1;
+    setSeeds({ ...seeds, [key]: next });
+    setPicked(buildRoutine({ target: picked, place, level, side, seed: next }));
+  };
 
   const SPLITS = splitTargetsFor(side);
   const SINGLES = targetsFor(side);
@@ -133,8 +152,18 @@ export default function Library({ place, user, profile, onBack }) {
           ))}
 
           {picked.exercises.length ? (
-            <Btn label={t('Start this workout')} color={accent}
-              onPress={() => setRunning(true)} style={{ marginTop: S.lg }} />
+            <>
+              <Btn label={t('Start this workout')} color={accent}
+                onPress={() => setRunning(true)} style={{ marginTop: S.lg }} />
+              <Press onPress={shuffle} scaleTo={0.97} style={styles.shuffle}>
+                <Text style={[styles.shuffleTxt, { color: accent }]}>
+                  {'\u21BB'}  {t('Shuffle the exercises')}
+                </Text>
+              </Press>
+              <Text style={[T.tiny, { textAlign: 'center' }]}>
+                {t('Same muscles, same length, different moves.')}
+              </Text>
+            </>
           ) : (
             /* Belt and braces. Every target has exercises at every
                level — there are tests for it — but a Start button on
@@ -149,8 +178,6 @@ export default function Library({ place, user, profile, onBack }) {
   }
 
   /* ---------- the menu ---------- */
-  const open = (target) => setPicked(buildRoutine({ target, place, level, side }));
-
   /* ---------- yoga ----------
      Fixed flows rather than anything generated, and the same row as
      the other timed lists so nothing new has to be learnt. */
@@ -395,6 +422,8 @@ export default function Library({ place, user, profile, onBack }) {
 }
 
 const makeStyles = (C, T) => StyleSheet.create({
+  shuffle: { paddingVertical: 14, alignItems: 'center' },
+  shuffleTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14.5 },
   wrap: { flex: 1, backgroundColor: C.bg },
   head: { paddingHorizontal: S.lg, paddingTop: S.md, paddingBottom: S.md, backgroundColor: C.surface },
   title: { fontFamily: 'WorkSans_600SemiBold', fontSize: 30, lineHeight: 34, color: C.text, marginTop: 8 },

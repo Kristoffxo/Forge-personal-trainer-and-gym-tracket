@@ -26,6 +26,7 @@ import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
 import { RANKS, LEAGUES, TERRAIN, terrainOf, TOP, journeyFrom } from '../journey';
 import { bmiFrom, bandOf, healthyRange, scalePos } from '../bmi';
 import { JourneyMap, MAP_HEIGHT, LEAGUE_ICON, TERRAIN_PHOTO } from '../ui/journeyMap';
+import { WorkoutCalendar } from '../ui/calendar';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /* react-native-web hands every focused input the browser's own blue
@@ -126,6 +127,13 @@ export default function Journey({ user, profile }) {
               </Text>
             </Press>
           </View>
+
+          {/* Where you have been, a month at a time. The map says how
+              far; this says how lately. */}
+          <FadeIn delay={20}>
+            <Label style={{ marginTop: S.lg }}>{t('Your workouts')}</Label>
+            <WorkoutCalendar user={user} colour={me.rank ? me.rank.colour : C.ember} />
+          </FadeIn>
 
           <BmiCard profile={profile} entries={entries} C={C} T={T} t={t} styles={styles} />
 

@@ -61,6 +61,25 @@ export async function trainedDays(userId) {
   return new Set(days).size;
 }
 
+/* Every workout in one month, for the calendar. Returns the rows
+   themselves rather than a count, because the calendar wants to say
+   what was done on the 14th and not only that something was. */
+export async function workoutsInMonth(userId, year, month) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const from = `${year}-${pad(month + 1)}-01`;
+  const last = new Date(year, month + 1, 0).getDate();
+  const to = `${year}-${pad(month + 1)}-${pad(last)}`;
+
+  const { data, error } = await supabase
+    .from('workout_days')
+    .select('day, kind, name')
+    .eq('user_id', userId)
+    .gte('day', from)
+    .lte('day', to)
+    .order('day');
+  return error ? [] : (data || []);
+}
+
 export async function allTrainedDays(userId) {
   const { data, error } = await supabase
     .from('workout_days').select('day').eq('user_id', userId).order('day');

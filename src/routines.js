@@ -205,9 +205,23 @@ const WEIGHT_WOMEN = {
   Back: 1, Shoulders: 1, Biceps: 1, Triceps: 1, Chest: 1,
 };
 
+/* And the same table for everybody else.
+
+   Every muscle counted the same before, which meant an advanced
+   pull day handed the biceps three of its seven slots — three
+   curls, after five sets of rowing that had already worked them.
+   Big movers take the session, arms and calves finish it.
+   --------------------------------------------------------------- */
+const WEIGHT_MEN = {
+  Chest: 3, Back: 3, Quads: 3, Glutes: 3,
+  Shoulders: 2, Hamstrings: 2, Core: 2,
+  Biceps: 1, Triceps: 1, Calves: 1, Thighs: 2,
+};
+
 function weightsFor(muscles, side) {
+  const table = isWomen(side) ? WEIGHT_WOMEN : WEIGHT_MEN;
   const w = {};
-  muscles.forEach((m) => { w[m] = isWomen(side) ? (WEIGHT_WOMEN[m] || 1) : 1; });
+  muscles.forEach((m) => { w[m] = table[m] || 1; });
   return w;
 }
 
@@ -250,7 +264,201 @@ function share(muscles, want, side) {
    divides, and each muscle leads with its compounds. A muscle with
    nothing available at home is skipped rather than padded.
    --------------------------------------------------------------- */
-export function buildRoutine({ target, place = 'gym', level = 'intermediate', side = 'men' }) {
+
+/* ---------------------------------------------------------------
+   Movement patterns.
+
+   Two chest presses in one session is a worse hour than a press and
+   a fly, even though both are "chest, compound". What makes a
+   session good is covering the ways a muscle can be loaded rather
+   than repeating the strongest one — so every exercise is sorted
+   into a pattern, and a session takes at most one of each.
+
+   Read in order, first match wins, and scoped per muscle: "Incline
+   Dumbbell Curl" must be a curl, not an incline press. Anything
+   unmatched falls to the muscle's last rule, which is always its
+   most common pattern.
+   --------------------------------------------------------------- */
+const PATTERNS = {
+  Chest: [
+    [/fly|pec deck/i, 'fly'],
+    [/incline/i, 'incline'],
+    [/decline|dip/i, 'decline'],
+    [/./, 'press'],
+  ],
+  Back: [
+    [/face pull|pull apart|rear fly/i, 'rear'],
+    [/deadlift|superman|back extension/i, 'hinge'],
+    /* a straight-arm pulldown is a lat isolation with the elbows
+       locked, not a vertical pull — it belongs beside a pull-up in
+       a session rather than instead of one */
+    [/straight-?arm|pullover/i, 'pullover'],
+    [/pull-?up|chin-?up|pulldown/i, 'vertical'],
+    [/./, 'row'],
+  ],
+  Shoulders: [
+    [/lateral/i, 'lateral'],
+    [/rear delt/i, 'rear'],
+    [/front raise/i, 'front'],
+    [/./, 'press'],
+  ],
+  Triceps: [
+    [/overhead|skull/i, 'overhead'],
+    [/pushdown|kickback/i, 'pushdown'],
+    [/./, 'press'],
+  ],
+  Biceps: [
+    [/hammer/i, 'hammer'],
+    [/chin-?up/i, 'vertical'],
+    [/./, 'curl'],
+  ],
+  Quads: [
+    [/lunge|split squat|step/i, 'lunge'],
+    [/extension/i, 'extension'],
+    [/wall sit/i, 'isometric'],
+    [/leg press/i, 'press'],
+    [/./, 'squat'],
+  ],
+  Hamstrings: [
+    [/curl/i, 'curl'],
+    [/good ?morning/i, 'goodmorning'],
+    [/./, 'hinge'],
+  ],
+  Glutes: [
+    [/kickback|hip extension|rear leg/i, 'kickback'],
+    [/step/i, 'step'],
+    [/deadlift|kneeling squat/i, 'hinge'],
+    [/flutter|leg lift|leg raise/i, 'raise'],
+    [/./, 'bridge'],
+  ],
+  Thighs: [
+    [/lunge|split squat|step/i, 'lunge'],
+    [/adduct|inner|outer|abduct/i, 'adduction'],
+    [/./, 'squat'],
+  ],
+  Calves: [[/./, 'raise']],
+  Core: [
+    [/plank|butt-?ups/i, 'plank'],
+    [/twist|russian|cross-?body|bicycle|air bike/i, 'rotation'],
+    [/dead bug|ab wheel|rollout/i, 'antiextension'],
+    [/raise|pull-?in|scissor|flutter|knee/i, 'raise'],
+    [/climber/i, 'dynamic'],
+    [/./, 'crunch'],
+  ],
+};
+
+export function patternOf(x) {
+  const rules = PATTERNS[x && x.m] || [[/./, 'other']];
+  for (const [re, name] of rules) if (re.test(x.n)) return name;
+  return 'other';
+}
+
+/* A deterministic shuffle. The same seed gives the same session, so
+   a workout does not rearrange itself under you between one render
+   and the next; a different seed gives a genuinely different one. */
+function shuffled(list, seed) {
+  const out = list.slice();
+  let n = out.length;
+  let s = (seed * 2654435761) % 2147483647 || 1;
+  const next = () => { s = (s * 48271) % 2147483647; return s / 2147483647; };
+  while (n > 1) {
+    const k = Math.floor(next() * n);
+    n -= 1;
+    const tmp = out[n]; out[n] = out[k]; out[k] = tmp;
+  }
+  return out;
+}
+
+/* In a gym, use the gym.
+
+   Shuffling the whole pool evenly is how a bench-press day comes
+   back holding a push-up and a resistance band. Loaded kit goes
+   first where it is available, bodyweight last — and the shuffle
+   happens inside each tier, so a session still varies without
+   trading a barbell for a band. At home the filter has already
+   removed everything that is not there, so the order stands.
+   --------------------------------------------------------------- */
+const GYM_TIER = { Barbell: 0, Dumbbell: 0, Machine: 0, Cable: 0, Bar: 1, Chair: 2, Wheel: 2, Band: 3, None: 3 };
+
+function ranked(list, place, seed) {
+  if (place === 'home' || place === 'instant') return shuffled(list, seed);
+  const tiers = [[], [], [], []];
+  list.forEach((x) => { tiers[GYM_TIER[x.e] === undefined ? 2 : GYM_TIER[x.e]].push(x); });
+  return tiers.reduce((all, t, i) => all.concat(shuffled(t, seed + i * 13)), []);
+}
+
+/* A few patterns are worth avoiding twice in a session even across
+   different muscles. A lat pulldown and then a chin-up is two
+   vertical pulls whatever the library files them under, and a
+   deadlift followed by a sumo deadlift is one hinge too many.
+
+   Deliberately short. Chest press and shoulder press are both
+   "press" and belong together — most repeats are fine, and only
+   these read as doing the same thing twice.
+   --------------------------------------------------------------- */
+const ONCE_PER_SESSION = ['vertical', 'hinge'];
+
+/* Kit somebody else might be standing on. */
+const CONTESTED = ['Barbell', 'Machine', 'Cable', 'Bar', 'Wheel'];
+
+/* Pick `n` exercises for one muscle.
+
+   Compounds first — the heavy work belongs where you are freshest —
+   then the finishing work. Within each half, no two of the same
+   pattern unless the pool has nothing else left, and equipment is
+   spread where there is a choice so a session is not five moves
+   queueing for the same machine. */
+function pickFor(pool, n, seed, place, sessionPatterns) {
+  if (n <= 0 || !pool.length) return [];
+
+  const wantHeavy = Math.ceil(n / 2);
+  const compounds = ranked(pool.filter((x) => x.t === 'c'), place, seed);
+  const isolations = ranked(pool.filter((x) => x.t === 'i'), place, seed + 7);
+
+  const chosen = [];
+  const patterns = new Set();
+  const kit = {};
+
+  /* `strict` is the pass that cares: a new pattern, nothing this
+     session already did, and no third exercise on the same piece of
+     kit. The relaxed pass runs only once every source has had a
+     strict look, so a muscle whose only compound is a repeat falls
+     through to isolation instead of forcing the repeat. */
+  const take = (from, howMany, strict) => {
+    for (const x of from) {
+      if (chosen.length >= howMany) break;
+      if (chosen.indexOf(x) !== -1) continue;
+      const p = patternOf(x);
+      if (strict) {
+        if (patterns.has(p)) continue;
+        if (ONCE_PER_SESSION.indexOf(p) !== -1 && sessionPatterns && sessionPatterns.has(p)) continue;
+        /* Spreading the kit is about not queueing for one machine
+           for half an hour. Nobody queues for the floor — capping
+           bodyweight the same way was blocking a plank out of a core
+           session that had a pattern going spare. */
+        if (CONTESTED.indexOf(x.e) !== -1 && (kit[x.e] || 0) >= 2) continue;
+      }
+      chosen.push(x);
+      patterns.add(p);
+      if (sessionPatterns) sessionPatterns.add(p);
+      kit[x.e] = (kit[x.e] || 0) + 1;
+    }
+  };
+
+  take(compounds, Math.min(wantHeavy, n), true);
+  take(isolations, n, true);
+  take(compounds, n, true);
+  take(isolations, n, false);
+  take(compounds, n, false);
+
+  /* The later passes can append a compound after an isolation — a
+     lat pulldown landing behind a face pull. Sort it back so the
+     heavy work is always first, which is the only reason this list
+     has an order at all. */
+  return chosen.slice().sort((a, b) => (a.t === 'c' ? 0 : 1) - (b.t === 'c' ? 0 : 1));
+}
+
+export function buildRoutine({ target, place = 'gym', level = 'intermediate', side = 'men', seed = 0 }) {
   const t = typeof target === 'string' ? targetByKey(target) : target;
   const want = sizeFor(level);
 
@@ -260,19 +468,11 @@ export function buildRoutine({ target, place = 'gym', level = 'intermediate', si
   const per = share(live, want, side);
 
   const out = [];
-  live.forEach((m) => {
-    const pool = poolFor(m, place, side);
-    const compounds = pool.filter((x) => x.t === 'c');
-    const isolations = pool.filter((x) => x.t === 'i');
-    const n = per[m];
-
-    for (let i = 0; i < n; i++) {
-      // heavy first, then the finishing work
-      const from = i < Math.ceil(n / 2) && compounds.length ? compounds : isolations;
-      const src = from.length ? from : (compounds.length ? compounds : isolations);
-      if (!src.length) break;
-      out.push(src.shift());
-    }
+  const sessionPatterns = new Set();
+  live.forEach((m, mi) => {
+    /* the muscle index goes into the seed so shuffling a session
+       moves every muscle, not the first one only */
+    out.push(...pickFor(poolFor(m, place, side), per[m], seed * 31 + mi, place, sessionPatterns));
   });
 
   return { ...t, exercises: out };
