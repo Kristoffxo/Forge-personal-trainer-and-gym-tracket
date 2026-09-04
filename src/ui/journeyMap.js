@@ -371,7 +371,7 @@ function Notes({ width, days, t }) {
         <Text style={[styles.handSmall, { color: 'rgba(255,255,255,0.92)' }]}>
           {me.toGo === 1
             ? t('train 1 more day')
-            : `${t('train')} ${me.toGo} ${t('more days')}`}
+            : `${me.toGo} ${me.toGo === 1 ? t('more point') : t('more points')}`}
         </Text>
         <Text style={[styles.handTiny, { color: me.next.colour }]}>
           {t('to reach')} {me.next.name}

@@ -14,6 +14,7 @@ import { supabase } from './supabase';
 
 import { dayKey } from './challengeRules';
 import { analyse } from './rank';
+import { scoreFrom } from './score';
 import { journeyFrom } from './journey';
 
 export { dayKey, progress, message } from './challengeRules';
@@ -103,15 +104,53 @@ export async function myStanding(userId) {
 }
 
 /* ---------------------------------------------------------------
-   Where you are on the journey.
+   The Reppo Score, and where it puts you on the journey.
 
-   Counted in days trained, not days in a row. A gap takes nothing
-   away, which is why this reads the length of the list rather than
-   walking it looking for runs.
+   Three counts and a date. Everything else is arithmetic in
+   src/score.js, which has no idea Supabase exists and can therefore
+   be tested without it.
+
+   The counts are asked for with `head: true`, so the database sends
+   back a number rather than the rows — a person with four hundred
+   workouts should not have to download four hundred rows to be told
+   they have four hundred.
    --------------------------------------------------------------- */
+async function countRows(table, build) {
+  const q = build(supabase.from(table).select('id', { count: 'exact', head: true }));
+  const { count, error } = await q;
+  return error ? 0 : (count || 0);
+}
+
+/* Rounds you finished and won. A draw is not a win, and a round the
+   other person walked away from never finished, so neither counts. */
+export async function competeWins(userId) {
+  const { data, error } = await supabase
+    .from('rounds')
+    .select('a_id, b_id, a_score, b_score, a_done, b_done')
+    .or(`a_id.eq.${userId},b_id.eq.${userId}`);
+  if (error) return 0;
+  return (data || []).filter((r) => {
+    if (!r.a_done || !r.b_done || !r.b_id) return false;
+    return r.a_id === userId ? r.a_score > r.b_score : r.b_score > r.a_score;
+  }).length;
+}
+
+export async function myScore(userId) {
+  const [trained, posts, wins] = await Promise.all([
+    allTrainedDays(userId),
+    countRows('posts', (q) => q.eq('user_id', userId)),
+    competeWins(userId),
+  ]);
+  return { ...scoreFrom({ trained, posts, wins, today: dayKey() }), trained };
+}
+
 export async function myJourney(userId) {
-  const days = await allTrainedDays(userId);
-  return { ...journeyFrom(days.length), trainedToday: days.includes(dayKey()) };
+  const s = await myScore(userId);
+  return {
+    ...journeyFrom(s.score),
+    ...s,
+    trainedToday: s.trained.includes(dayKey()),
+  };
 }
 
 /* The measurements written at each place, keyed by milestone number.

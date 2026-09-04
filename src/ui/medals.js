@@ -56,7 +56,8 @@ export function BadgeRow({ days, size = 44 }) {
 }
 
 /* The headline. Level, the place you are standing in, and the two
-   numbers that matter: days trained and badges held. */
+   numbers that matter: the score and how much of the ladder is
+   behind you. */
 export function StandingCard({ days, accent }) {
   const { C, T } = useTheme();
   const styles = makeStyles(C, T);
@@ -68,10 +69,11 @@ export function StandingCard({ days, accent }) {
     <View style={[styles.rank, { borderColor: colour }]}>
       {/* The chip used to hold the league and the line under it the
           rank. With the tiers gone those are the same word, so it
-          says which week you are in instead. */}
+          carries the score instead — which is the number the ladder
+          is actually climbed with. */}
       <View style={[styles.levelChip, { backgroundColor: colour + '22', borderColor: colour }]}>
         <Text style={[styles.levelTxt, { color: colour }]}>
-          {`WEEK ${j.reached.length}`}
+          {`${j.score} RS`}
         </Text>
       </View>
 
@@ -81,7 +83,7 @@ export function StandingCard({ days, accent }) {
 
       {j.next ? (
         <Text style={[T.small, { marginTop: 4 }]}>
-          {j.toGo} {j.toGo === 1 ? 'day' : 'days'} to {j.next.name}
+          {j.toGo} {j.toGo === 1 ? 'point' : 'points'} to {j.next.name}
         </Text>
       ) : (
         <Text style={[T.small, { marginTop: 4, color: colour }]}>The top of the ladder</Text>
@@ -89,8 +91,8 @@ export function StandingCard({ days, accent }) {
 
       <View style={styles.numRow}>
         <View style={styles.numBit}>
-          <Text style={[styles.num, { color: colour }]}>{j.days}</Text>
-          <Text style={T.tiny}>days trained</Text>
+          <Text style={[styles.num, { color: colour }]}>{j.score}</Text>
+          <Text style={T.tiny}>Reppo Score</Text>
         </View>
         <View style={styles.numBit}>
           <Text style={styles.num}>{j.reached.length}</Text>

@@ -19,11 +19,12 @@ import {
 } from 'react-native';
 
 import { S, R, useTheme } from '../theme';
-import { Btn, Press, FadeIn, Label, useTabPad } from '../ui/kit';
+import { Btn, Bar, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
 import { RANKS, LEAGUES, TERRAIN, terrainOf, TOP, journeyFrom } from '../journey';
+import { PER_WORKOUT, PER_POST, PER_WIN } from '../score';
 import { bmiFrom, bandOf, healthyRange, scalePos } from '../bmi';
 import { JourneyMap, MAP_HEIGHT, LEAGUE_ICON, TERRAIN_PHOTO } from '../ui/journeyMap';
 import { WorkoutCalendar } from '../ui/calendar';
@@ -47,10 +48,11 @@ export default function Journey({ user, profile }) {
   const [entries, setEntries] = useState({});
   const [open, setOpen] = useState(null);      // a milestone being read
   const [list, setList] = useState(false);
-  /* Two things live in this tab and they want different screens: the
-     climb, and the record of what you actually did. A switcher says
-     so; the calendar buried under the map did not. */
-  const [page, setPage] = useState('map');
+  /* Three things live in this tab and they want different screens:
+     the number, the climb it drives, and the record of what you
+     actually did. Score opens first — it is the one that changes
+     every day and the one everything else is measured in. */
+  const [page, setPage] = useState('score');
   const scroller = useRef(null);
   const viewH = useRef(0);
   const ready = useRef(false);
@@ -94,7 +96,7 @@ export default function Journey({ user, profile }) {
   const switcher = (onDark) => (
     <View style={[styles.switcher,
       { backgroundColor: onDark ? 'rgba(255,255,255,0.10)' : C.surface }]}>
-      {[{ key: 'map', label: 'Map' }, { key: 'calendar', label: 'Calendar' }].map((pg) => {
+      {PAGES.map((pg) => {
         const on = page === pg.key;
         return (
           <Press key={pg.key} onPress={() => setPage(pg.key)} scaleTo={0.97}
@@ -109,6 +111,17 @@ export default function Journey({ user, profile }) {
       })}
     </View>
   );
+
+  if (page === 'score') {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
+        {switcher(false)}
+        <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
+          <ScoreCard me={me} C={C} T={T} t={t} styles={styles} />
+        </ScrollView>
+      </View>
+    );
+  }
 
   if (page === 'calendar') {
     return (
@@ -156,7 +169,7 @@ export default function Journey({ user, profile }) {
           <View style={styles.startCard}>
             <View style={styles.startHead}>
               <Text style={styles.startTitle}>{t('Start')}</Text>
-              <Text style={T.tiny}>{t('Day')} 0</Text>
+              <Text style={T.tiny}>0 {t('RS')}</Text>
             </View>
             <Stat label={t('Weight')} value={start && start.weight_kg} unit="kg" C={C} T={T} />
             <Stat label={t('BMI')} value={start && start.bmi} unit="" C={C} T={T} />
@@ -274,9 +287,9 @@ function RankSheet({ milestone, days, entry, onBack, onSaved, user, profile }) {
               {milestone.n ? (
                 <View style={styles.mPlate}>
                   <Text style={[styles.mPlateTxt, { color: colour }]}>
-                    {t('WEEK')} {milestone.n}
+                    {t('LEAGUE')} {milestone.n}
                   </Text>
-                  <Text style={styles.mPlateDay}>{t('Day')} {milestone.at}</Text>
+                  <Text style={styles.mPlateDay}>{milestone.at} {t('RS')}</Text>
                 </View>
               ) : null}
             </View>
@@ -295,7 +308,7 @@ function RankSheet({ milestone, days, entry, onBack, onSaved, user, profile }) {
                 ? t('Where you began.')
                 : reached
                   ? t('Reached.')
-                  : `${milestone.at - days} ${t('days to go')}`}
+                  : `${milestone.at - days} ${t('points to go')}`}
             </Text>
 
             {reached ? (
@@ -326,7 +339,7 @@ function RankSheet({ milestone, days, entry, onBack, onSaved, user, profile }) {
                 <Text style={styles.lockedIcon}>{'\u25CB'}</Text>
                 <Text style={[T.bodyOn, { fontSize: 15, marginTop: 6 }]}>{t('Locked')}</Text>
                 <Text style={[T.small, { textAlign: 'center', marginTop: 4 }]}>
-                  {`${t('Train')} ${milestone.at - days} ${milestone.at - days === 1 ? t('more day') : t('more days')} ${t('to open this')}`}
+                  {`${milestone.at - days} ${milestone.at - days === 1 ? t('more point') : t('more points')} ${t('to open this')}`}
                 </Text>
               </View>
             )}
@@ -466,7 +479,7 @@ function ListView({ days, entries, onPick, onBack }) {
           </Press>
           <Text style={styles.listTitle}>{t('Leagues')}</Text>
           <Text style={[T.small, { marginBottom: S.lg }]}>
-            {t('Every seven days you train is a promotion.')}
+            {t('Every 50 Reppo Score is a promotion.')}
           </Text>
 
           {/* One row per league. There used to be a heading and three
@@ -494,7 +507,7 @@ function ListView({ days, entries, onPick, onBack }) {
                     <Text style={T.tiny}>{e.weight_kg} kg</Text>
                   ) : null}
                 </View>
-                <Text style={T.tiny}>{t('Day')} {r.at}</Text>
+                <Text style={T.tiny}>{r.at} {t('RS')}</Text>
                 <Text style={{ color: C.faint, marginLeft: 8 }}>{'\u203A'}</Text>
               </Press>
             );
@@ -503,6 +516,107 @@ function ListView({ days, entries, onPick, onBack }) {
         </ScrollView>
       </View>
     </SwipeBack>
+  );
+}
+
+const PAGES = [
+  { key: 'score', label: 'Score' },
+  { key: 'map', label: 'Journey' },
+  { key: 'calendar', label: 'Calendar' },
+];
+
+/* ---------------------------------------------------------------
+   The Reppo Score.
+
+   The number, then where every point of it came from, then the rules
+   — in that order, because the first question is "what is it" and
+   the second is "how do I make it go up".
+
+   The working is shown on purpose. A score you cannot account for is
+   a score you cannot argue with, and the whole thing is arithmetic
+   over three tables anybody can see in their own app.
+   --------------------------------------------------------------- */
+function ScoreCard({ me, C, T, t, styles }) {
+  const colour = me.rank ? me.rank.colour : C.ember;
+  const rows = [
+    { label: t('Workouts'), n: me.workouts, each: PER_WORKOUT, got: me.fromWorkouts },
+    { label: t('Photos on Discover'), n: me.posts, each: PER_POST, got: me.fromPosts },
+    { label: t('Compete rounds won'), n: me.wins, each: PER_WIN, got: me.fromWins },
+  ];
+
+  return (
+    <>
+      <View style={[styles.scoreHero, { borderColor: colour }]}>
+        <Text style={styles.scoreLabel}>{t('REPPO SCORE')}</Text>
+        <Text style={[styles.scoreBig, { color: colour }]}>{me.score}</Text>
+        <Text style={[styles.scoreRank, { color: colour }]}>
+          {me.rank ? t(me.rank.name) : ''}
+        </Text>
+        {me.next ? (
+          <Text style={[T.small, { marginTop: 4, textAlign: 'center' }]}>
+            {me.toGo} {me.toGo === 1 ? t('point to') : t('points to')} {t(me.next.name)}
+          </Text>
+        ) : (
+          <Text style={[T.small, { marginTop: 4, color: colour }]}>
+            {t('The top of the ladder')}
+          </Text>
+        )}
+        <Bar value={me.progress} max={1} color={colour} height={7}
+          style={{ marginTop: S.md, alignSelf: 'stretch' }} />
+      </View>
+
+      <Label style={{ marginTop: S.xl }}>{t('Where it came from')}</Label>
+      <View style={styles.scoreCard}>
+        {rows.map((r, i) => (
+          <View key={r.label} style={[styles.scoreRow, i > 0 && styles.scoreRowLine]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[T.bodyOn, { fontSize: 15 }]}>{r.label}</Text>
+              <Text style={T.tiny}>{r.n} × {r.each}</Text>
+            </View>
+            <Text style={[styles.scoreDelta, { color: r.got ? C.lime : C.faint }]}>
+              +{r.got}
+            </Text>
+          </View>
+        ))}
+        <View style={[styles.scoreRow, styles.scoreRowLine]}>
+          <View style={{ flex: 1 }}>
+            <Text style={[T.bodyOn, { fontSize: 15 }]}>{t('Idle days')}</Text>
+            <Text style={T.tiny}>
+              {t('One rest day between workouts is free')}
+            </Text>
+          </View>
+          <Text style={[styles.scoreDelta, { color: me.idle ? C.ember : C.faint }]}>
+            {me.idle ? `−${me.idle}` : '0'}
+          </Text>
+        </View>
+      </View>
+
+      {me.floored ? (
+        <Text style={[T.tiny, { marginTop: S.sm }]}>
+          {t('A Reppo Score never goes below nought.')}
+        </Text>
+      ) : null}
+
+      <Label style={{ marginTop: S.xl }}>{t('How it moves')}</Label>
+      <View style={styles.scoreCard}>
+        {[
+          [`+${PER_WORKOUT}`, t('Finish a workout')],
+          [`+${PER_POST}`, t('Post a photo to Discover')],
+          [`+${PER_WIN}`, t('Win a round of Compete')],
+          ['−1', t('Every idle day after the first')],
+        ].map(([n, what], i) => (
+          <View key={what} style={[styles.scoreRow, i > 0 && styles.scoreRowLine]}>
+            <Text style={[styles.scoreRule, { color: n.startsWith('+') ? C.lime : C.ember }]}>
+              {n}
+            </Text>
+            <Text style={[T.bodyOn, { fontSize: 15, flex: 1, marginLeft: 12 }]}>{what}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={[T.tiny, { marginTop: S.sm, marginBottom: S.lg }]}>
+        {t('Every 50 points is a new league. Train every other day and you hold steady.')}
+      </Text>
+    </>
   );
 }
 
@@ -518,6 +632,27 @@ const makeStyles = (C, T) => StyleSheet.create({
   swTab: { flex: 1, paddingVertical: 10, borderRadius: R.pill, alignItems: 'center' },
   swTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 12.5 },
   calTitle: { fontFamily: 'WorkSans_600SemiBold', fontSize: 22, color: C.text },
+
+  scoreHero: {
+    backgroundColor: C.surface, borderRadius: R.lg, padding: S.lg,
+    borderWidth: 1.5, alignItems: 'center', marginTop: S.sm,
+  },
+  scoreLabel: {
+    fontFamily: 'WorkSans_500Medium', fontSize: 10.5, letterSpacing: 2,
+    color: C.faint,
+  },
+  scoreBig: { fontFamily: 'WorkSans_600SemiBold', fontSize: 68, lineHeight: 78 },
+  scoreRank: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19, marginTop: -4 },
+  scoreCard: {
+    backgroundColor: C.surface, borderRadius: R.lg,
+    borderWidth: 1, borderColor: C.line, paddingHorizontal: S.md,
+  },
+  scoreRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13 },
+  scoreRowLine: { borderTopWidth: 1, borderTopColor: C.line },
+  scoreDelta: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17 },
+  scoreRule: {
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 16, width: 34,
+  },
 
   startCard: {
     backgroundColor: C.surface, borderRadius: R.md, padding: S.md,

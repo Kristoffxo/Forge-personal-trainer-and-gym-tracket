@@ -1,41 +1,36 @@
 /* ---------------------------------------------------------------
    The journey, as leagues.
 
-   You are in a league. Every week you train, you go up one. That is
-   the whole rule, and it is the reason this replaced the old system:
-   sixteen medals with names like "15 day silver" told you nothing
-   about whether you were doing well, whereas "Silver 2, one week
-   from Silver 1" tells you exactly where you stand and exactly what
-   the next thing is.
+   You are in a league. Every fifty Reppo Score is a promotion. That
+   is the whole rule, and it is the reason this replaced the old
+   system: sixteen medals with names like "15 day silver" told you
+   nothing about whether you were doing well, whereas "Bronze, twenty
+   points from Silver" tells you exactly where you stand and exactly
+   what the next thing is.
 
-   A week here is seven days of training, not seven days on the
-   calendar. The streak is gone and stays gone: rest days take
-   nothing away, and a fortnight off costs you nothing but time.
-   Seven training days is a promotion whether they take you a week
-   or a month.
+   It used to be counted in days trained. It is counted in Reppo
+   Score now, which is the same climb with the rest of the app in it
+   — a photo and a round of Compete move you up it too, and going
+   quiet moves you back down. See src/score.js for what earns what.
 
-   Eight leagues, one week apart.
+   Eight leagues, fifty apart.
 
-     Bronze     day 0
-     Silver         7
-     Gold          14
-     Platinum      21
-     Diamond       28
-     Champion      35
-     Master        42
-     Titan         49
+     Bronze     0
+     Silver     50
+     Gold       100
+     Platinum   150
+     Diamond    200
+     Champion   250
+     Master     300
+     Titan      350
 
-   There used to be three numbered tiers inside every league —
-   Bronze 3, Bronze 2, Bronze 1 — which made twenty-two ranks and a
-   name you had to parse before it meant anything. Eight names, one
-   a week, is the same climb without the arithmetic.
-
-   Bronze is day zero. Nobody is unranked: you are in a league from
-   the moment you open the app, and the first week promotes you out
-   of it rather than into one. An empty state that says "you have no
-   rank yet" is a worse first screen than one that says "Bronze,
-   seven days to Silver".
+   Bronze is nought. Nobody is unranked: you are in a league from the
+   moment you open the app, and the first fifty promote you out of it
+   rather than into one. An empty state that says "you have no rank
+   yet" is a worse first screen than one that says "Bronze, fifty
+   points to Silver".
    --------------------------------------------------------------- */
+import { LEAGUE_STEP } from './score.js';
 
 /* One country, not four.
 
@@ -54,8 +49,9 @@ export const TERRAIN = {
   },
 };
 
-/* One week of training. Everything else counts in these. */
-export const WEEK = 7;
+/* What a promotion costs, re-exported so nothing has to know that
+   the leagues and the score live in different files. */
+export const STEP = LEAGUE_STEP;
 
 /* The eight leagues, in order. Vivid rather than metallic — these
    sit on a dark photograph, where a muted bronze reads as brown mud
@@ -75,7 +71,7 @@ export const LEAGUES = [
    day counts cannot drift out of step with the names. */
 export const RANKS = LEAGUES.map((lg, n) => ({
   n: n + 1,
-  at: n * WEEK,
+  at: n * STEP,
   league: lg.key,
   leagueName: lg.name,
   colour: lg.colour,
@@ -99,20 +95,25 @@ export function colourOf(rank) {
   return rank ? rank.colour : LEAGUES[0].colour;
 }
 
-/* Where somebody is, from the number of days they have trained.
+/* Where somebody is, from their Reppo Score.
 
    Returns:
-     days      what went in
+     score     what went in
      reached   the ranks behind them, in order
-     rank      the one they are in now, or null before the first week
+     rank      the one they are in now — always at least Bronze
      next      the one they are climbing towards, or null at the top
-     toGo      training days until it
+     toGo      points until it
      league    the league they are in now
-     progress  0-1 through the current week, for the trail
+     progress  0-1 through the current league, for the trail
      atTop     Titan
+
+   `days` is still on the object under its old name. Half a dozen
+   screens read it and the number means the same thing to them — how
+   far up you are — so renaming it everywhere would be churn for a
+   word.
 */
-export function journeyFrom(days) {
-  const d = Math.max(0, Math.floor(Number(days) || 0));
+export function journeyFrom(score) {
+  const d = Math.max(0, Math.floor(Number(score) || 0));
 
   const reached = RANKS.filter((r) => d >= r.at);
   const ahead = RANKS.filter((r) => d < r.at);
@@ -121,6 +122,7 @@ export function journeyFrom(days) {
   const from = rank ? rank.at : 0;
 
   return {
+    score: d,
     days: d,
     reached,
     ahead,
@@ -134,8 +136,8 @@ export function journeyFrom(days) {
   };
 }
 
-export function isReached(rank, days) {
-  return Number(days) >= rank.at;
+export function isReached(rank, score) {
+  return Number(score) >= rank.at;
 }
 
 export function terrainOf(rank) {

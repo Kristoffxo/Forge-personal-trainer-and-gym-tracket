@@ -34,11 +34,12 @@ import AdminPortal from './src/screens/AdminPortal';
 import Journey  from './src/screens/Journey';
 
 import Onboarding from './src/screens/Onboarding';
+import { TAB_NOTES, seenTabs, markSeen } from './src/tabNotes';
 
 /* Five tabs, in the order they are used. Train is first because it
-   is what most days open the app for. Journey is last and on its
-   own: it is the thing you scroll to look at rather than the thing
-   you came in to do, and burying it as a sub-tab of Challenges meant
+   is what most days open the app for. You is last and on its own:
+   it is the thing you scroll to look at rather than the thing you
+   came in to do, and burying it as a sub-tab of Challenges meant
    nobody found it. The Trainer tab it replaces is gone for now —
    there is no trainer to ask yet, and a tab that only says "coming
    soon" is a tab that teaches people not to press it. */
@@ -51,8 +52,8 @@ const TABS = [
     title:'Discover',        sub:'How everyone is doing' },
   { key:'you',   label:'Challenges', icon:'✦', colorKey:'violet',
     title:'Challenges',      sub:'Race and numbers' },
-  { key:'journey', label:'Journey', icon:'⛰', colorKey:'teal',
-    title:'Journey',         sub:'Your leagues' },
+  { key:'journey', label:'You', icon:'✧', colorKey:'teal',
+    title:'You',             sub:'Your Reppo Score' },
 ];
 
 /* Spell every edge out. react-native-safe-area-context's web SafeAreaView falls
@@ -171,6 +172,30 @@ function Root() {
     Animated.timing(slide, { toValue:i, duration:140,
       easing:Easing.bezier(0.22,1,0.36,1), useNativeDriver:true }).start();
   }, [tab, slide]);
+
+  /* Say what a tab is, the first time it is opened.
+
+     Held in state rather than read from storage per tab change: by
+     the time somebody has pressed a tab the answer has to be in
+     hand, and a card that appears half a second late reads as a
+     glitch rather than as a greeting. Null until the read finishes,
+     which also stops the very first tab firing before we know
+     whether it has been seen. */
+  const [seenTabs_, setSeenTabs] = useState(null);
+  useEffect(() => { seenTabs().then(setSeenTabs); }, []);
+
+  useEffect(() => {
+    if (!seenTabs_ || !session || !profile || !profile.onboarded) return;
+    if (seenTabs_.includes(tab)) return;
+    const note = TAB_NOTES[tab];
+    if (!note) return;
+    /* Marked before it is shown, not after. Dismissing is not the
+       thing that means "seen" — arriving is — and a card that comes
+       back because somebody switched away from it is a card that
+       feels broken. */
+    markSeen(tab, seenTabs_).then(setSeenTabs);
+    sheet.tell({ title: tr(note.title), message: tr(note.message) });
+  }, [tab, seenTabs_, session, profile, sheet, tr]);
 
   /* Web only: keeps the page background, the theme colour and the boot
      screen in step with the app. Does nothing on iOS or Android. */

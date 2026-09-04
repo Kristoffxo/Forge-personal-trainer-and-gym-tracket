@@ -26,6 +26,15 @@ const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const key = (y, m, d) =>
   `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
+function Sum({ n, what, tint, styles, T }) {
+  return (
+    <View style={styles.sumBit}>
+      <Text style={[styles.sumN, { color: tint }]}>{n}</Text>
+      <Text style={T.tiny}>{what}</Text>
+    </View>
+  );
+}
+
 export function WorkoutCalendar({ user, colour }) {
   const { C, T } = useTheme();
   const { t } = useLang();
@@ -72,6 +81,22 @@ export function WorkoutCalendar({ user, colour }) {
   const trained = Object.keys(byDay).length;
   const tint = colour || C.ember;
 
+  /* What the grid already shows, said as a number — how much of the
+     month you turned up for, and the longest run in it. People read
+     the squares for the shape and want the figure anyway. */
+  /* Never fewer than the days actually filled in. A month you are
+     part way through counts up to today, but the pair still has to
+     read as a fraction of itself. */
+  const elapsed = Math.max(trained, atNow ? today.getDate() : days);
+  const best = (() => {
+    let run = 0; let top = 0;
+    for (let d = 1; d <= days; d++) {
+      run = byDay[key(year, month, d)] ? run + 1 : 0;
+      if (run > top) top = run;
+    }
+    return top;
+  })();
+
   return (
     <View style={styles.card}>
       <View style={styles.head}>
@@ -90,6 +115,17 @@ export function WorkoutCalendar({ user, colour }) {
           <Text style={styles.arrowTxt}>{'›'}</Text>
         </Press>
       </View>
+
+      {rows !== null && trained > 0 ? (
+        <View style={styles.summary}>
+          <Sum n={`${trained}/${elapsed}`} what={t('days')} tint={tint} styles={styles} T={T} />
+          <View style={styles.sumLine} />
+          <Sum n={best} what={best === 1 ? t('day in a row') : t('days in a row')}
+            tint={tint} styles={styles} T={T} />
+          <View style={styles.sumLine} />
+          <Sum n={`+${trained * 5}`} what={t('Reppo Score')} tint={tint} styles={styles} T={T} />
+        </View>
+      ) : null}
 
       <View style={styles.dow}>
         {DOW.map((d, i) => (
@@ -112,11 +148,14 @@ export function WorkoutCalendar({ user, colour }) {
             return (
               <Press key={i} onPress={() => setOpen(did ? (picked ? null : k) : null)}
                 scaleTo={did ? 0.88 : 1} style={styles.cell}>
+                {/* The ring is the selection, not a second border on
+                    the disc — a 2pt white outline inside a filled
+                    circle made the number look like it had shrunk. */}
+                {picked ? <View style={[styles.halo, { borderColor: tint }]} /> : null}
                 <View style={[
                   styles.day,
                   did && { backgroundColor: tint },
                   !did && isToday && { borderWidth: 1.5, borderColor: tint },
-                  picked && { borderWidth: 2, borderColor: '#fff' },
                 ]}>
                   <Text style={[
                     styles.dayTxt,
@@ -126,6 +165,7 @@ export function WorkoutCalendar({ user, colour }) {
                     {d}
                   </Text>
                 </View>
+
               </Press>
             );
           })}
@@ -173,11 +213,23 @@ const makeStyles = (C, T) => StyleSheet.create({
     fontSize: 11, color: C.faint, letterSpacing: 0.5,
   },
 
+  summary: {
+    flexDirection: 'row', alignItems: 'center', marginTop: S.md,
+    backgroundColor: C.bg, borderRadius: R.md, paddingVertical: S.sm,
+  },
+  sumBit: { flex: 1, alignItems: 'center' },
+  sumN: { fontFamily: 'WorkSans_600SemiBold', fontSize: 19 },
+  sumLine: { width: 1, height: 26, backgroundColor: C.line },
+
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 },
   /* A fixed height, not an aspect ratio. react-native-web collapses
      aspectRatio on a percentage-width child inside a wrapping flex
      row, which stacked every week after the first on top of itself. */
-  cell: { width: '14.2857%', height: 44, alignItems: 'center', justifyContent: 'center' },
+  cell: { width: '14.2857%', height: 46, alignItems: 'center', justifyContent: 'center' },
+  halo: {
+    position: 'absolute', width: 42, height: 42, borderRadius: 21,
+    borderWidth: 1.5, opacity: 0.7,
+  },
   day: {
     width: 34, height: 34, borderRadius: 17,
     alignItems: 'center', justifyContent: 'center',
