@@ -48,6 +48,9 @@ export function SheetProvider({ children }) {
     confirm: (o) => ask({ kind: 'confirm', ...o }).then((v) => v === true),
     /* a message with a single way out */
     tell: (o) => ask({ kind: 'tell', ...o }).then(() => undefined),
+    /* the same, but small and quiet — for saying what a thing is
+       rather than for asking anything */
+    note: (o) => ask({ kind: 'tell', note: true, ...o }).then(() => undefined),
   }).current;
 
   return (
@@ -67,6 +70,7 @@ export function useSheet() {
     choose: () => Promise.resolve(null),
     confirm: () => Promise.resolve(false),
     tell: () => Promise.resolve(),
+    note: () => Promise.resolve(),
   };
 }
 
@@ -108,6 +112,7 @@ function SheetHost({ req, settle }) {
         <Animated.View
           style={[
             styles.sheet,
+            req.note && styles.noteSheet,
             {
               marginBottom: Math.max(insets.bottom, 0),
               transform: [{
@@ -118,8 +123,12 @@ function SheetHost({ req, settle }) {
           ]}
         >
 
-          {req.title ? <Text style={styles.title}>{req.title}</Text> : null}
-          {req.message ? <Text style={[T.small, styles.msg]}>{req.message}</Text> : null}
+          {req.title ? (
+            <Text style={[styles.title, req.note && styles.noteTitle]}>{req.title}</Text>
+          ) : null}
+          {req.message ? (
+            <Text style={[T.small, styles.msg, req.note && styles.noteMsg]}>{req.message}</Text>
+          ) : null}
 
           {/* A list long enough to need it scrolls rather than running
               off the screen — the reminder times are nineteen rows. */}
@@ -174,6 +183,14 @@ const makeStyles = (C, T) => StyleSheet.create({
     textAlign: 'center', paddingHorizontal: S.sm,
   },
   msg: { textAlign: 'center', marginTop: 6, paddingHorizontal: S.sm },
+  /* A note is not a question, so it does not need the width or the
+     weight of one. Narrower, shorter, and the name set in the hand
+     the map is written in — which is the app's own voice rather than
+     the voice it uses to ask whether you are sure. */
+  noteSheet: { maxWidth: 300, paddingTop: S.md, paddingHorizontal: S.sm },
+  noteTitle: { fontFamily: 'Caveat_700Bold', fontSize: 30, lineHeight: 34 },
+  noteMsg: { marginTop: 2, fontSize: 14.5, lineHeight: 21 },
+
   row: { paddingVertical: 15, borderRadius: R.sm, alignItems: 'center' },
   rowTxt: { fontFamily: 'WorkSans_500Medium', fontSize: 15.5, color: C.text },
   cancel: {

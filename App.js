@@ -194,7 +194,7 @@ function Root() {
        back because somebody switched away from it is a card that
        feels broken. */
     markSeen(tab, seenTabs_).then(setSeenTabs);
-    sheet.tell({ title: tr(note.title), message: tr(note.message) });
+    sheet.note({ title: tr(note.title), message: tr(note.message), confirmLabel: tr('Got it') });
   }, [tab, seenTabs_, session, profile, sheet, tr]);
 
   /* Web only: keeps the page background, the theme colour and the boot

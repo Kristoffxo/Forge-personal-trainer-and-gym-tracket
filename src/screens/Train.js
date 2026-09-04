@@ -135,26 +135,33 @@ export default function Train({ user, profile }) {
 
   return (
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
-      {/* Days trained, not a streak. The streak went with the idea
-          that a rest day costs you something — it does not, and a
-          banner counting consecutive days was the loudest place that
-          idea lived. */}
+      {/* The Reppo Score, not a streak. The streak went with the idea
+          that a rest day costs you something — a single one does
+          not, and a banner counting consecutive days was the loudest
+          place that idea lived.
+
+          This used to read `me.days` under the words "days trained".
+          When the leagues moved onto the score that field became the
+          score, and the banner started calling twenty-two points
+          twenty-two days. The count of days trained is still here,
+          under its own name, on the line below. */}
       {me ? (
         <FadeIn>
           <View style={[styles.banner, { borderColor: C.violet }]}>
             <View style={styles.streakBadge}>
-              <Text style={[styles.streakNum, { color: C.violet }]}>{me.days}</Text>
+              <Text style={[styles.streakNum, { color: C.violet }]}>{me.score}</Text>
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.bannerTop}>
-                {me.days === 1 ? t('1 day trained') : `${me.days} ${t('days trained')}`}
+                {t('Reppo Score')}
+                {me.rank ? ` · ${t(me.rank.name)}` : ''}
               </Text>
               <Text style={T.tiny}>
                 {me.trainedToday
                   ? t('Today is logged ✓')
                   : me.next
-                    ? `${me.toGo} ${t('more to')} ${t(me.next.place)}`
-                    : t('Every place reached.')}
+                    ? `${me.toGo} ${t('more to')} ${t(me.next.name)}`
+                    : t('The top of the ladder.')}
               </Text>
             </View>
           </View>
