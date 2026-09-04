@@ -1,10 +1,12 @@
 /* ---------------------------------------------------------------
    The map.
 
-   Twenty-two ranks climbed from the bottom of the screen upwards,
-   through four stretches of real country: a valley of green fields,
-   a fogged wood, red badlands, and the northern lights over a snow
-   peak. The photographs are the map.
+   Eight leagues climbed from the bottom of the screen upwards,
+   through one valley — green fields at your feet, peaks at the top.
+   The photograph is the map.
+
+   It used to be four photographs stacked into bands, and what people
+   saw was the seams between them. One picture has no seams.
 
    Nothing is written in a box. The only words on the map are
    handwritten onto the ground itself — where you are, and what the
@@ -27,16 +29,10 @@ import { useLang } from '../lang';
 import { RANKS, TERRAIN, journeyFrom } from '../journey';
 
 export const TERRAIN_PHOTO = {
-  meadow: require('../../assets/photos/t_meadow.jpg'),
-  forest: require('../../assets/photos/t_forest.jpg'),
-  ember: require('../../assets/photos/t_ember.jpg'),
-  frost: require('../../assets/photos/t_frost.jpg'),
+  valley: require('../../assets/photos/t_meadow.jpg'),
 };
 
-/* One emblem per league, not per rank. Three ranks share a league
-   and therefore share its emblem — which is the point: the tier
-   number tells you where you are inside it, and the emblem tells
-   you at a glance which league you are looking at.
+/* One emblem per league.
 
    Icons by Lorc, game-icons.net, CC BY 3.0. Credited in Settings. */
 export const LEAGUE_ICON = {
@@ -50,87 +46,73 @@ export const LEAGUE_ICON = {
   titan: require('../../assets/places/titan.png'),
 };
 
-const ZOOM = {
-  meadow: { scale: 1.25, anchor: 'bottom' },
-  forest: { scale: 1.15, anchor: 'bottom' },
-  ember: { scale: 1.1, anchor: 'bottom' },
-  /* The frost band is the aurora over the summit. Its subject is the
-     sky, so this one is not pushed down into its own ground. */
-  frost: { scale: 1.0, anchor: 'centre' },
-};
-
-/* Twenty-two stops rather than thirteen, so each leg is shorter. */
-const STEP = 118;
+/* Eight stops now rather than twenty-two, so each leg is longer
+   and the whole climb still fills a screen and a half. */
+const STEP = 150;
 const TOP_PAD = 150;
 const BOTTOM_PAD = 150;
 
 export const MAP_HEIGHT = TOP_PAD + BOTTOM_PAD + STEP * (RANKS.length - 1);
 
 /* Where each rank sits, bottom to top. `x` is a fraction of the
-   width so it works at any screen size. The swing repeats every six
-   ranks, which is often enough to read as a trail and regular
-   enough that no emblem lands under another. */
-const SWING = [0.5, 0.26, 0.7, 0.32, 0.68, 0.3];
+   width so it works at any screen size.
+
+   One value per league rather than a repeating cycle: eight stops is
+   few enough to draw the path deliberately, and a path drawn on
+   purpose reads better than one that happens to come out of a
+   modulo. It starts and ends in the middle and leans a little wider
+   as it climbs. */
+const SWING = [0.5, 0.28, 0.68, 0.3, 0.72, 0.32, 0.64, 0.5];
 
 export function layout() {
   return RANKS.map((r, i) => ({
     r,
-    x: i === RANKS.length - 1 ? 0.5 : SWING[i % SWING.length],
+    x: SWING[i] != null ? SWING[i] : 0.5,
     y: MAP_HEIGHT - BOTTOM_PAD - i * STEP,
   }));
 }
 
-function bands() {
-  const spots = layout();
-  const order = ['frost', 'ember', 'forest', 'meadow'];
-  return order.map((key, i) => {
-    const ys = spots.filter((s) => s.r.terrain === key).map((s) => s.y);
-    const highest = ys.length ? Math.min(...ys) : 0;
-    const top = i === 0 ? 0 : highest - STEP * 0.7;
-    return { key, top, t: TERRAIN[key] };
-  });
-}
-
 /* ---------------------------------------------------------------
    The ground.
+
+   One photograph over the whole map, and one scrim over that.
+
+   The scrim is the only thing making the emblems and the handwriting
+   legible, so it is darkest at the two ends — where the standing
+   platform and the summit sit — and lightest across the middle,
+   where the picture is doing the work.
    --------------------------------------------------------------- */
 function Ground({ width }) {
-  const bs = bands();
+  const t = TERRAIN.valley;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      {bs.map((b, i) => {
-        const next = bs[i + 1];
-        const bottom = next ? next.top : MAP_HEIGHT;
-        const h = bottom - b.top;
-        const z = ZOOM[b.key];
-        return (
-          <View key={b.key} style={{ position: 'absolute', left: 0, right: 0, top: b.top, height: h,
-                                     overflow: 'hidden' }}>
-            <Image
-              source={TERRAIN_PHOTO[b.key]}
-              style={z.anchor === 'bottom'
-                ? { position: 'absolute', left: 0, bottom: 0, width, height: h * z.scale }
-                : { width, height: h }}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              colors={[b.t.sky[0], 'rgba(0,0,0,0.40)', 'rgba(0,0,0,0.26)', 'rgba(0,0,0,0.44)', b.t.ground[1]]}
-              locations={[0, 0.14, 0.5, 0.86, 1]}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: b.t.accent, opacity: 0.06 }]} />
-          </View>
-        );
-      })}
-
-      {bs.map((b, i) => (i === 0 ? null : (
-        <LinearGradient
-          key={b.key + 'h'}
-          colors={['rgba(0,0,0,0)', b.t.sky[0], 'rgba(0,0,0,0)']}
-          style={{ position: 'absolute', left: 0, right: 0, top: b.top - 46, height: 92 }}
-        />
-      )))}
+      <Image
+        source={TERRAIN_PHOTO.valley}
+        style={{ position: 'absolute', left: 0, top: 0, width, height: MAP_HEIGHT }}
+        resizeMode="cover"
+      />
+      <LinearGradient
+        colors={[
+          t.sky[0],
+          'rgba(6,10,9,0.62)',
+          'rgba(6,10,9,0.50)',
+          'rgba(6,10,9,0.30)',
+          'rgba(6,10,9,0.34)',
+          'rgba(6,10,9,0.58)',
+          t.ground[1],
+        ]}
+        /* Heavier over the top third than the middle. That end of
+           the photograph is cloud and bright rock, and Master and
+           Titan are the two palest labels on the map — they were
+           washing out against it. The valley floor needs no such
+           help, so the scrim thins out on the way down. */
+        locations={[0, 0.10, 0.30, 0.52, 0.72, 0.92, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* A breath of the valley's own green over the lot, so the
+          scrim reads as evening rather than as grey paint. */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: t.accent, opacity: 0.05 }]} />
     </View>
   );
 }
@@ -249,8 +231,17 @@ function Node({ spot, width, days, onPress, isNext }) {
             at; "Bronze 2" does not. */}
         <Text numberOfLines={1} style={[styles.tier, {
           color: colour,
-          opacity: reached || isNext ? 0.98 : 0.55,
-          textShadowColor: colour,
+          /* A name has to be readable before you have earned it —
+             that is most of what the map is for. 0.55 disappeared
+             into dark rock now that there is one photograph rather
+             than four flat bands. */
+          opacity: reached || isNext ? 0.98 : 0.74,
+          /* Black, not the label's own colour. A coloured glow lifts
+             coloured text off dark rock and does nothing at all
+             against bright cloud, which is where the top of a single
+             photograph puts Master and Titan. A dark halo works on
+             both. */
+          textShadowColor: 'rgba(0,0,0,0.92)',
         }]}>
           {r.name}
         </Text>
@@ -262,11 +253,10 @@ function Node({ spot, width, days, onPress, isNext }) {
 /* ---------------------------------------------------------------
    Things written along the way.
 
-   Twenty-two stops is a long scroll, and a long scroll of nothing
-   but emblems is a long scroll. These are notes left on the ground
-   between them — a line every few ranks, alternating sides so the
-   eye keeps moving, and never on the leg being walked, which
-   already has the countdown on it.
+   A climb of nothing but emblems is a long scroll. These are notes
+   left on the ground between them — a line every few leagues,
+   alternating sides so the eye keeps moving, and never on the leg
+   being walked, which already has the countdown on it.
 
    They are indexed rather than random: the same note sits in the
    same place every time the map is opened, which is what makes it
@@ -312,12 +302,12 @@ function Along({ width, days }) {
     const x = Math.max(6, Math.min(width - 206, xf * width - 100));
 
     notes.push(
-      /* Not the midpoint of the leg. A rank's name is printed about
-         forty-six points below its disc, and the midpoint lands
-         thirteen points under that — which is how "rest days are
-         part of it" ended up written through "Platinum 3". Three
-         quarters of the way down the leg clears it. */
-      <View key={i} style={{ position: 'absolute', left: x, top: b.y + STEP * 0.74,
+      /* Halfway down the leg. This used to sit three quarters of the
+         way down, which cleared the upper rank's printed name back
+         when a leg was 118 points; at 150 it walked straight into
+         the disc of the rank below. Halfway is the one place that is
+         clear of both however long the leg is. */
+      <View key={i} style={{ position: 'absolute', left: x, top: b.y + STEP * 0.5,
                              width: 200, alignItems: 'center' }}>
         <Text style={[styles.handAlong, {
           /* lit once you are past it, ghosted while it is still ahead */
@@ -445,7 +435,7 @@ const styles = StyleSheet.create({
   tier: {
     fontFamily: 'WorkSans_600SemiBold', fontSize: 11.5, marginTop: 4,
     letterSpacing: 0.3,
-    textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 8,
+    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6,
   },
 
   /* Handwritten, and shadowed hard, because it sits directly on a

@@ -39,14 +39,15 @@ export const PHOTOS = {
      screen about cramp with. */
   calm: ['1590104872666-01ac8796ab87', 1.9, 'stretching at home'],
 
-  /* The four stretches of the Journey map. Portrait, because each
-     band is about 650pt tall on a phone and a landscape crop has to
-     be blown up three times over to fill one — which turns a
-     photograph into a smear of sky. */
+  /* The Journey map, which is one photograph from the valley floor
+     to the summit. Portrait, because it is over a thousand points
+     tall on a phone and a landscape crop would have to be blown up
+     three times over to fill that — which turns a photograph into a
+     smear of sky.
+
+     There used to be four of these, one per band. The seams between
+     them were the part people saw. */
   't_meadow': ['1765200135341-d0e69d62d841', 0.56, 'a valley of green fields under peaks', 'bottom'],
-  't_forest': ['1418065460487-3e41a6c84dc5', 0.56, 'a misty pine hillside'],
-  't_ember':  ['1779391730407-46c0abf78274', 0.56, 'red mountains under an orange sky'],
-  't_frost':  ['1531366936337-7c912a4589a7', 0.56, 'northern lights over a snow peak'],
 };
 
 /* ---------------------------------------------------------------

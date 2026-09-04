@@ -37,14 +37,21 @@
    seven days to Silver".
    --------------------------------------------------------------- */
 
-/* Terrain, low to high. The map gets colder and cleaner as it goes
-   up, and each band knows its own colours so the map screen does not
-   have to hold a table of them. */
+/* One country, not four.
+
+   The map used to climb through a meadow, a wood, red badlands and a
+   snowfield, with the photograph changing under you twice on the way
+   up. Four photographs is four moods and three seams, and the seams
+   were the part people saw. One valley, top to bottom, is a place
+   rather than a slideshow — and the leagues already say where you
+   are without the ground having to say it too. */
 export const TERRAIN = {
-  meadow: { name: 'The Meadow', sky: ['#1B2A16', '#243318'], ground: ['#2E4420', '#1A2712'], accent: '#7FB56B' },
-  forest: { name: 'Deepwood', sky: ['#132A24', '#0E2620'], ground: ['#17382C', '#0D2119'], accent: '#4FB894' },
-  ember:  { name: 'The Ashlands', sky: ['#2E1710', '#3A1A0E'], ground: ['#43200F', '#26120A'], accent: '#FF7A3C' },
-  frost:  { name: 'The Frostpeak', sky: ['#101E33', '#0C1930'], ground: ['#152742', '#0B1526'], accent: '#6FD8E8' },
+  valley: {
+    name: 'The Valley',
+    sky: ['#101A22', '#0B131A'],
+    ground: ['#16241C', '#0A1210'],
+    accent: '#7FB56B',
+  },
 };
 
 /* One week of training. Everything else counts in these. */
@@ -54,14 +61,14 @@ export const WEEK = 7;
    sit on a dark photograph, where a muted bronze reads as brown mud
    and a muted silver disappears into fog. */
 export const LEAGUES = [
-  { key: 'bronze',   name: 'Bronze',   colour: '#FF8A2B', terrain: 'meadow' },
-  { key: 'silver',   name: 'Silver',   colour: '#D5DDE8', terrain: 'meadow' },
-  { key: 'gold',     name: 'Gold',     colour: '#FFC53D', terrain: 'forest' },
-  { key: 'platinum', name: 'Platinum', colour: '#7DE2D1', terrain: 'forest' },
-  { key: 'diamond',  name: 'Diamond',  colour: '#35DCF0', terrain: 'ember' },
-  { key: 'champion', name: 'Champion', colour: '#B06CFF', terrain: 'ember' },
-  { key: 'master',   name: 'Master',   colour: '#FF4D6D', terrain: 'frost' },
-  { key: 'titan',    name: 'Titan',    colour: '#FFE066', terrain: 'frost' },
+  { key: 'bronze',   name: 'Bronze',   colour: '#FF8A2B', terrain: 'valley' },
+  { key: 'silver',   name: 'Silver',   colour: '#D5DDE8', terrain: 'valley' },
+  { key: 'gold',     name: 'Gold',     colour: '#FFC53D', terrain: 'valley' },
+  { key: 'platinum', name: 'Platinum', colour: '#7DE2D1', terrain: 'valley' },
+  { key: 'diamond',  name: 'Diamond',  colour: '#35DCF0', terrain: 'valley' },
+  { key: 'champion', name: 'Champion', colour: '#B06CFF', terrain: 'valley' },
+  { key: 'master',   name: 'Master',   colour: '#FF4D6D', terrain: 'valley' },
+  { key: 'titan',    name: 'Titan',    colour: '#FFE066', terrain: 'valley' },
 ];
 
 /* Every rank, built from the leagues rather than typed out, so the
