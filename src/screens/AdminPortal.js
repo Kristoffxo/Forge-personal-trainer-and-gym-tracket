@@ -17,6 +17,7 @@ import { S, R, useTheme } from '../theme';
 import { Press } from '../ui/kit';
 import AdminUsers from './AdminUsers';
 import Admin from './Admin';
+import { SwipeBack } from '../ui/swipeBack';
 
 const PAGES = [
   { key: 'people', label: 'Accounts' },
@@ -29,6 +30,7 @@ export default function AdminPortal({ onBack }) {
   const [page, setPage] = useState('people');
 
   return (
+    <SwipeBack onBack={onBack}>
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={styles.head}>
         <Press onPress={onBack} hitSlop={14} scaleTo={0.94}>
@@ -54,6 +56,7 @@ export default function AdminPortal({ onBack }) {
         {page === 'people' ? <AdminUsers /> : <Admin />}
       </View>
     </View>
+    </SwipeBack>
   );
 }
 

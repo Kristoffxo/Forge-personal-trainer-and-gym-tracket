@@ -26,6 +26,8 @@ import { yogaFor } from '../yoga';
 import { kitLabel } from '../exercises';
 import Session from './Session';
 import Exercise from './Exercise';
+import { setsReps } from '../duration';
+import { SwipeBack } from '../ui/swipeBack';
 
 export default function Library({ place, user, profile, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
@@ -140,12 +142,12 @@ export default function Library({ place, user, profile, onBack }) {
                       half a row. */}
                   <Text style={T.tiny}>
                     {x.senior || x.r
-                      ? `${t(x.m)} · ${x.s}`
+                      ? `${t(x.m)} · ${setsReps(x.s).line}`
                       : `${t(x.m)} · ${t(kitLabel(x.e))}`}
                   </Text>
                 </View>
                 {x.r || x.senior ? null
-                  : <Text style={[styles.setsTxt, { color: accent }]}>{x.s}</Text>}
+                  : <Text style={[styles.setsTxt, { color: accent }]}>{setsReps(x.s).line}</Text>}
                 <Text style={styles.rowChev}>{'›'}</Text>
               </Press>
             </FadeIn>
@@ -184,38 +186,40 @@ export default function Library({ place, user, profile, onBack }) {
   if (place === 'yoga') {
     const flows = yogaFor(side);
     return (
-      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
-        <ImageBackground source={PHOTO.calm} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
-          <View style={styles.heroVeil} />
-          <View style={styles.heroBody}>
-            <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
-            </Press>
-            <Text style={styles.heroTitle}>{t('Yoga')}</Text>
-            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>{t('Slow, on the floor.')}</Text>
-          </View>
-        </ImageBackground>
-
-        <View style={{ padding: S.lg }}>
-          {flows.map((r, i) => (
-            <FadeIn key={r.key} delay={i * 24} from={8}>
-              <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
-                <View style={[styles.timeBadge, { borderColor: accent }]}>
-                  <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
-                  <Text style={T.tiny}>{t('min')}</Text>
-                </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text style={styles.planName}>{t(r.name)}</Text>
-                  <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
-                </View>
-                <View style={[styles.go, { backgroundColor: accent }]}>
-                  <Text style={styles.goTxt}>{'→'}</Text>
-                </View>
+      <SwipeBack onBack={onBack}>
+        <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
+          <ImageBackground source={PHOTO.calm} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
+            <View style={styles.heroVeil} />
+            <View style={styles.heroBody}>
+              <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+                <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
               </Press>
-            </FadeIn>
-          ))}
-        </View>
-      </ScrollView>
+              <Text style={styles.heroTitle}>{t('Yoga')}</Text>
+              <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>{t('Slow, on the floor.')}</Text>
+            </View>
+          </ImageBackground>
+
+          <View style={{ padding: S.lg }}>
+            {flows.map((r, i) => (
+              <FadeIn key={r.key} delay={i * 24} from={8}>
+                <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
+                  <View style={[styles.timeBadge, { borderColor: accent }]}>
+                    <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
+                    <Text style={T.tiny}>{t('min')}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.planName}>{t(r.name)}</Text>
+                    <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
+                  </View>
+                  <View style={[styles.go, { backgroundColor: accent }]}>
+                    <Text style={styles.goTxt}>{'→'}</Text>
+                  </View>
+                </Press>
+              </FadeIn>
+            ))}
+          </View>
+        </ScrollView>
+      </SwipeBack>
     );
   }
 
@@ -225,44 +229,46 @@ export default function Library({ place, user, profile, onBack }) {
      not something to shuffle. */
   if (place === 'senior') {
     return (
-      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
-        <ImageBackground source={PHOTO.rest} style={styles.hero} imageStyle={{ opacity: 0.45 }}>
-          <View style={styles.heroVeil} />
-          <View style={styles.heroBody}>
-            <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
-            </Press>
-            <Text style={styles.heroTitle}>{t('Gentle Workouts')}</Text>
-            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
-              {t('A chair, a wall, the floor.')}
-            </Text>
-          </View>
-        </ImageBackground>
-
-        <View style={{ padding: S.lg }}>
-          {SENIOR_SESSIONS.map((r, i) => (
-            <FadeIn key={r.key} delay={i * 24} from={8}>
-              <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
-                <View style={[styles.timeBadge, { borderColor: accent }]}>
-                  <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
-                  <Text style={T.tiny}>{t('min')}</Text>
-                </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text style={styles.planName}>{t(r.name)}</Text>
-                  <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
-                </View>
-                <View style={[styles.go, { backgroundColor: accent }]}>
-                  <Text style={styles.goTxt}>{'→'}</Text>
-                </View>
+      <SwipeBack onBack={onBack}>
+        <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
+          <ImageBackground source={PHOTO.rest} style={styles.hero} imageStyle={{ opacity: 0.45 }}>
+            <View style={styles.heroVeil} />
+            <View style={styles.heroBody}>
+              <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+                <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
               </Press>
-            </FadeIn>
-          ))}
+              <Text style={styles.heroTitle}>{t('Gentle Workouts')}</Text>
+              <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
+                {t('A chair, a wall, the floor.')}
+              </Text>
+            </View>
+          </ImageBackground>
 
-          <View style={[styles.note, { borderLeftColor: C.danger }]}>
-            <Text style={[T.small, { color: C.text }]}>{t(SENIOR_NOTE)}</Text>
+          <View style={{ padding: S.lg }}>
+            {SENIOR_SESSIONS.map((r, i) => (
+              <FadeIn key={r.key} delay={i * 24} from={8}>
+                <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
+                  <View style={[styles.timeBadge, { borderColor: accent }]}>
+                    <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
+                    <Text style={T.tiny}>{t('min')}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.planName}>{t(r.name)}</Text>
+                    <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
+                  </View>
+                  <View style={[styles.go, { backgroundColor: accent }]}>
+                    <Text style={styles.goTxt}>{'→'}</Text>
+                  </View>
+                </Press>
+              </FadeIn>
+            ))}
+
+            <View style={[styles.note, { borderLeftColor: C.danger }]}>
+              <Text style={[T.small, { color: C.text }]}>{t(SENIOR_NOTE)}</Text>
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </SwipeBack>
     );
   }
 
@@ -271,153 +277,159 @@ export default function Library({ place, user, profile, onBack }) {
      cramp is a known short list, not something to shuffle. */
   if (place === 'relief') {
     return (
-      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
-        <ImageBackground source={PHOTO.calm} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
-          <View style={styles.heroVeil} />
-          <View style={styles.heroBody}>
-            <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
-            </Press>
-            <Text style={styles.heroTitle}>{t('Menstrual Exercises')}</Text>
-            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
-              {t('For period pain.')}
-            </Text>
-          </View>
-        </ImageBackground>
-
-        <View style={{ padding: S.lg }}>
-          {RELIEF.map((r, i) => (
-            <FadeIn key={r.key} delay={i * 24} from={8}>
-              <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
-                <View style={[styles.timeBadge, { borderColor: accent }]}>
-                  <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
-                  <Text style={T.tiny}>{t('min')}</Text>
-                </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text style={styles.planName}>{t(r.name)}</Text>
-                  <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
-                </View>
-                <View style={[styles.go, { backgroundColor: accent }]}>
-                  <Text style={styles.goTxt}>{'→'}</Text>
-                </View>
+      <SwipeBack onBack={onBack}>
+        <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
+          <ImageBackground source={PHOTO.calm} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
+            <View style={styles.heroVeil} />
+            <View style={styles.heroBody}>
+              <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+                <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
               </Press>
-            </FadeIn>
-          ))}
+              <Text style={styles.heroTitle}>{t('Menstrual Exercises')}</Text>
+              <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
+                {t('For period pain.')}
+              </Text>
+            </View>
+          </ImageBackground>
 
-          {/* Said plainly, and not buried. Stretching is not a
-              treatment and the app should not imply that it is. */}
-          <View style={[styles.note, { borderLeftColor: C.danger }]}>
-            <Text style={[T.small, { color: C.text }]}>{t(RELIEF_NOTE)}</Text>
+          <View style={{ padding: S.lg }}>
+            {RELIEF.map((r, i) => (
+              <FadeIn key={r.key} delay={i * 24} from={8}>
+                <Press onPress={() => setPicked(r)} scaleTo={0.985} style={styles.timeRow}>
+                  <View style={[styles.timeBadge, { borderColor: accent }]}>
+                    <Text style={[styles.timeNum, { color: accent }]}>{r.mins}</Text>
+                    <Text style={T.tiny}>{t('min')}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.planName}>{t(r.name)}</Text>
+                    <Text style={[T.small, { marginTop: 2 }]}>{t(r.sub)}</Text>
+                  </View>
+                  <View style={[styles.go, { backgroundColor: accent }]}>
+                    <Text style={styles.goTxt}>{'→'}</Text>
+                  </View>
+                </Press>
+              </FadeIn>
+            ))}
+
+            {/* Said plainly, and not buried. Stretching is not a
+                treatment and the app should not imply that it is. */}
+            <View style={[styles.note, { borderLeftColor: C.danger }]}>
+              <Text style={[T.small, { color: C.text }]}>{t(RELIEF_NOTE)}</Text>
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </SwipeBack>
     );
   }
 
   if (place === 'instant') {
     return (
-      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
-        <ImageBackground source={PHOTO.home} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
-          <View style={styles.heroVeil} />
-          <View style={styles.heroBody}>
-            <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
-            </Press>
-            <Text style={styles.heroTitle}>{t('Instant Workouts')}</Text>
-            <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
-              {t('How long have you got?')}
-            </Text>
-          </View>
-        </ImageBackground>
-
-        <View style={{ padding: S.lg }}>
-          {INSTANT.map((o, i) => (
-            <FadeIn key={o.mins} delay={i * 24} from={8}>
-              <Press onPress={() => setPicked(buildInstant(o.mins))} scaleTo={0.985}
-                style={styles.timeRow}>
-                <View style={[styles.timeBadge, { borderColor: accent }]}>
-                  <Text style={[styles.timeNum, { color: accent }]}>{o.mins}</Text>
-                  <Text style={T.tiny}>{t('min')}</Text>
-                </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text style={styles.planName}>{t(o.name)}</Text>
-                  <Text style={[T.small, { marginTop: 2 }]}>{t(o.blurb)}</Text>
-                </View>
-                <View style={[styles.go, { backgroundColor: accent }]}>
-                  <Text style={styles.goTxt}>{'→'}</Text>
-                </View>
+      <SwipeBack onBack={onBack}>
+        <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
+          <ImageBackground source={PHOTO.home} style={styles.hero} imageStyle={{ opacity: 0.5 }}>
+            <View style={styles.heroVeil} />
+            <View style={styles.heroBody}>
+              <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+                <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Train')}</Text>
               </Press>
-            </FadeIn>
-          ))}
-        </View>
-      </ScrollView>
+              <Text style={styles.heroTitle}>{t('Instant Workouts')}</Text>
+              <Text style={[T.small, { color: 'rgba(255,255,255,0.85)' }]}>
+                {t('How long have you got?')}
+              </Text>
+            </View>
+          </ImageBackground>
+
+          <View style={{ padding: S.lg }}>
+            {INSTANT.map((o, i) => (
+              <FadeIn key={o.mins} delay={i * 24} from={8}>
+                <Press onPress={() => setPicked(buildInstant(o.mins))} scaleTo={0.985}
+                  style={styles.timeRow}>
+                  <View style={[styles.timeBadge, { borderColor: accent }]}>
+                    <Text style={[styles.timeNum, { color: accent }]}>{o.mins}</Text>
+                    <Text style={T.tiny}>{t('min')}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.planName}>{t(o.name)}</Text>
+                    <Text style={[T.small, { marginTop: 2 }]}>{t(o.blurb)}</Text>
+                  </View>
+                  <View style={[styles.go, { backgroundColor: accent }]}>
+                    <Text style={styles.goTxt}>{'→'}</Text>
+                  </View>
+                </Press>
+              </FadeIn>
+            ))}
+          </View>
+        </ScrollView>
+      </SwipeBack>
     );
   }
 
   return (
-    <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
-      <View style={styles.head}>
-        <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-          <Text style={[T.small, { color: accent }]}>{'←'} {t('Train')}</Text>
-        </Press>
-        <Text style={styles.title}>
-          {place === 'home' ? t('Home Workouts') : t('Gym Workouts')}
-        </Text>
-        <Text style={[T.small, { marginTop: 2 }]}>
-          {place === 'home'
-            ? t('No gym needed. A chair, a band, one dumbbell.')
-            : t('Everything the gym has.')}
-        </Text>
-      </View>
+    <SwipeBack onBack={onBack}>
+      <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
+        <View style={styles.head}>
+          <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+            <Text style={[T.small, { color: accent }]}>{'←'} {t('Train')}</Text>
+          </Press>
+          <Text style={styles.title}>
+            {place === 'home' ? t('Home Workouts') : t('Gym Workouts')}
+          </Text>
+          <Text style={[T.small, { marginTop: 2 }]}>
+            {place === 'home'
+              ? t('No gym needed. A chair, a band, one dumbbell.')
+              : t('Everything the gym has.')}
+          </Text>
+        </View>
 
-      <FadeIn delay={30} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
-        <Text style={styles.section}>{t('WORKOUT PLANS')}</Text>
-        {SPLITS.map((tg) => {
-          const c = MUSCLE_C[tg.muscles[0]] || accent;
-          return (
-            <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.985} style={styles.planRow}>
-              <Image source={groupPhoto(tg.key)} style={styles.chip} resizeMode="cover" />
-              <View style={{ flex: 1, marginLeft: 14 }}>
-                <Text style={styles.planName}>{tg.name}</Text>
-                <Text style={T.tiny}>{t(tg.sub)}</Text>
-              </View>
-              <View style={[styles.go, { backgroundColor: c }]}>
-                <Text style={styles.goTxt}>{'→'}</Text>
-              </View>
-            </Press>
-          );
-        })}
-      </FadeIn>
-
-      <View style={styles.divider} />
-
-      <FadeIn delay={70} style={{ paddingHorizontal: S.lg }}>
-        <Text style={styles.section}>{t('MUSCLE GROUPS')}</Text>
-        <View style={styles.grid}>
-          {SINGLES.map((tg) => {
+        <FadeIn delay={30} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+          <Text style={styles.section}>{t('WORKOUT PLANS')}</Text>
+          {SPLITS.map((tg) => {
             const c = MUSCLE_C[tg.muscles[0]] || accent;
             return (
-              <View key={tg.key} style={styles.tileWrap}>
-                <Press onPress={() => open(tg)} scaleTo={0.96}>
-                  <ImageBackground source={groupPhoto(tg.key)} resizeMode="cover"
-                    style={[styles.tile, { borderColor: c }]}
-                    imageStyle={styles.tileImg}>
-                    <View style={styles.tileVeil} />
-                    <Text style={styles.tileName}>{tg.name}</Text>
-                  </ImageBackground>
-                </Press>
-              </View>
+              <Press key={tg.key} onPress={() => open(tg)} scaleTo={0.985} style={styles.planRow}>
+                <Image source={groupPhoto(tg.key)} style={styles.chip} resizeMode="cover" />
+                <View style={{ flex: 1, marginLeft: 14 }}>
+                  <Text style={styles.planName}>{tg.name}</Text>
+                  <Text style={T.tiny}>{t(tg.sub)}</Text>
+                </View>
+                <View style={[styles.go, { backgroundColor: c }]}>
+                  <Text style={styles.goTxt}>{'→'}</Text>
+                </View>
+              </Press>
             );
           })}
-        </View>
-      </FadeIn>
+        </FadeIn>
 
-      <Text style={[T.tiny, { textAlign: 'center', marginTop: S.lg, paddingHorizontal: S.lg }]}>
-        {place === 'instant'
-          ? t('Rest 30 seconds between moves.')
-          : t('Sized to your level.')}
-      </Text>
-    </ScrollView>
+        <View style={styles.divider} />
+
+        <FadeIn delay={70} style={{ paddingHorizontal: S.lg }}>
+          <Text style={styles.section}>{t('MUSCLE GROUPS')}</Text>
+          <View style={styles.grid}>
+            {SINGLES.map((tg) => {
+              const c = MUSCLE_C[tg.muscles[0]] || accent;
+              return (
+                <View key={tg.key} style={styles.tileWrap}>
+                  <Press onPress={() => open(tg)} scaleTo={0.96}>
+                    <ImageBackground source={groupPhoto(tg.key)} resizeMode="cover"
+                      style={[styles.tile, { borderColor: c }]}
+                      imageStyle={styles.tileImg}>
+                      <View style={styles.tileVeil} />
+                      <Text style={styles.tileName}>{tg.name}</Text>
+                    </ImageBackground>
+                  </Press>
+                </View>
+              );
+            })}
+          </View>
+        </FadeIn>
+
+        <Text style={[T.tiny, { textAlign: 'center', marginTop: S.lg, paddingHorizontal: S.lg }]}>
+          {place === 'instant'
+            ? t('Rest 30 seconds between moves.')
+            : t('Sized to your level.')}
+        </Text>
+      </ScrollView>
+    </SwipeBack>
   );
 }
 

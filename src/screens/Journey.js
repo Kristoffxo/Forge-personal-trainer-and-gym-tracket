@@ -28,6 +28,7 @@ import { bmiFrom, bandOf, healthyRange, scalePos } from '../bmi';
 import { JourneyMap, MAP_HEIGHT, LEAGUE_ICON, TERRAIN_PHOTO } from '../ui/journeyMap';
 import { WorkoutCalendar } from '../ui/calendar';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SwipeBack } from '../ui/swipeBack';
 
 /* react-native-web hands every focused input the browser's own blue
    focus ring, which lands on top of the app's border and reads as a
@@ -232,105 +233,107 @@ function RankSheet({ milestone, days, entry, onBack, onSaved, user, profile }) {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.bg }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ paddingBottom: tabPad }} keyboardShouldPersistTaps="handled">
+    <SwipeBack onBack={onBack}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.bg }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={{ paddingBottom: tabPad }} keyboardShouldPersistTaps="handled">
 
-        {/* The photograph this rank sits on, rather than a flat
-            green hill. The map behind a rank and the header above it
-            should be the same country. */}
-        <View style={{ height: 232, overflow: 'hidden' }}>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: terrain.sky[0] }]} />
-          {TERRAIN_PHOTO[milestone.terrain] ? (
-            <Image source={TERRAIN_PHOTO[milestone.terrain]}
-              style={StyleSheet.absoluteFill} resizeMode="cover" />
-          ) : null}
-          <LinearGradient
-            colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.28)', 'rgba(0,0,0,0.72)']}
-            locations={[0, 0.45, 1]}
-            style={StyleSheet.absoluteFill}
-          />
+          {/* The photograph this rank sits on, rather than a flat
+              green hill. The map behind a rank and the header above it
+              should be the same country. */}
+          <View style={{ height: 232, overflow: 'hidden' }}>
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: terrain.sky[0] }]} />
+            {TERRAIN_PHOTO[milestone.terrain] ? (
+              <Image source={TERRAIN_PHOTO[milestone.terrain]}
+                style={StyleSheet.absoluteFill} resizeMode="cover" />
+            ) : null}
+            <LinearGradient
+              colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.28)', 'rgba(0,0,0,0.72)']}
+              locations={[0, 0.45, 1]}
+              style={StyleSheet.absoluteFill}
+            />
 
-          {/* mCentre is flex:1 and fills this whole box, and a later
-              sibling paints over an earlier one — so with the header
-              first, the back button sat underneath it and every tap
-              landed on the medallion instead. Header last, and the
-              middle passes touches through. */}
-          <View style={styles.mCentre} pointerEvents="box-none">
-            <View style={[styles.mMedal, {
-              borderColor: colour,
-              backgroundColor: reached ? colour : 'rgba(8,8,12,0.7)',
-            }]}>
-              {LEAGUE_ICON[milestone.league] ? (
-                <Image source={LEAGUE_ICON[milestone.league]}
-                  style={{ width: 46, height: 46,
-                           tintColor: reached ? '#0B0B0E' : colour,
-                           opacity: reached ? 1 : 0.6 }}
-                  resizeMode="contain" />
+            {/* mCentre is flex:1 and fills this whole box, and a later
+                sibling paints over an earlier one — so with the header
+                first, the back button sat underneath it and every tap
+                landed on the medallion instead. Header last, and the
+                middle passes touches through. */}
+            <View style={styles.mCentre} pointerEvents="box-none">
+              <View style={[styles.mMedal, {
+                borderColor: colour,
+                backgroundColor: reached ? colour : 'rgba(8,8,12,0.7)',
+              }]}>
+                {LEAGUE_ICON[milestone.league] ? (
+                  <Image source={LEAGUE_ICON[milestone.league]}
+                    style={{ width: 46, height: 46,
+                             tintColor: reached ? '#0B0B0E' : colour,
+                             opacity: reached ? 1 : 0.6 }}
+                    resizeMode="contain" />
+                ) : null}
+              </View>
+              {milestone.n ? (
+                <View style={styles.mPlate}>
+                  <Text style={[styles.mPlateTxt, { color: colour }]}>
+                    {t('WEEK')} {milestone.n}
+                  </Text>
+                  <Text style={styles.mPlateDay}>{t('Day')} {milestone.at}</Text>
+                </View>
               ) : null}
             </View>
-            {milestone.n ? (
-              <View style={styles.mPlate}>
-                <Text style={[styles.mPlateTxt, { color: colour }]}>
-                  {t('WEEK')} {milestone.n}
-                </Text>
-                <Text style={styles.mPlateDay}>{t('Day')} {milestone.at}</Text>
-              </View>
-            ) : null}
-          </View>
 
-          <View style={styles.mHead}>
-            <Press onPress={onBack} hitSlop={16} scaleTo={0.94}>
-              <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Map')}</Text>
-            </Press>
-          </View>
-        </View>
-
-        <View style={{ padding: S.lg }}>
-          <Text style={styles.mPlace}>{t(milestone.name)}</Text>
-          <Text style={[T.small, { marginTop: 2 }]}>
-            {milestone.n === 0
-              ? t('Where you began.')
-              : reached
-                ? t('Reached.')
-                : `${milestone.at - days} ${t('days to go')}`}
-          </Text>
-
-          {reached ? (
-            <>
-              <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record')}</Label>
-              <Field label={t('Weight')} unit="kg" value={weight} onChange={setWeight} C={C} T={T} />
-              {/* the word, not only the number — 24.1 on its own is
-                  not something anybody can act on */}
-              <ReadOut label={t('BMI')} value={bmi} band={band}
-                hint={cm > 0 ? '' : t('Add your height in Challenges \u2192 Numbers')} C={C} T={T} />
-
-              <Label style={{ marginTop: S.md, marginBottom: 6 }}>{t('Notes')}</Label>
-              <TextInput
-                value={note} onChangeText={setNote}
-                placeholder={t('How are you feeling?')} placeholderTextColor={C.faint}
-                    multiline maxLength={400} underlineColorAndroid="transparent"
-                style={[styles.noteBox, NO_RING]}
-              />
-
-              <Btn label={t('Save')} color={colour} busy={busy}
-                onPress={save} style={{ marginTop: S.lg }} />
-            </>
-          ) : (
-            /* Nothing to fill in for a place you have not been to.
-               Writing down what you weighed at the summit before you
-               have climbed it is not a record of anything. */
-            <View style={styles.locked}>
-              <Text style={styles.lockedIcon}>{'\u25CB'}</Text>
-              <Text style={[T.bodyOn, { fontSize: 15, marginTop: 6 }]}>{t('Locked')}</Text>
-              <Text style={[T.small, { textAlign: 'center', marginTop: 4 }]}>
-                {`${t('Train')} ${milestone.at - days} ${milestone.at - days === 1 ? t('more day') : t('more days')} ${t('to open this')}`}
-              </Text>
+            <View style={styles.mHead}>
+              <Press onPress={onBack} hitSlop={16} scaleTo={0.94}>
+                <Text style={[T.small, { color: '#fff' }]}>{'←'} {t('Map')}</Text>
+              </Press>
             </View>
-          )}
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </View>
+
+          <View style={{ padding: S.lg }}>
+            <Text style={styles.mPlace}>{t(milestone.name)}</Text>
+            <Text style={[T.small, { marginTop: 2 }]}>
+              {milestone.n === 0
+                ? t('Where you began.')
+                : reached
+                  ? t('Reached.')
+                  : `${milestone.at - days} ${t('days to go')}`}
+            </Text>
+
+            {reached ? (
+              <>
+                <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>{t('Record')}</Label>
+                <Field label={t('Weight')} unit="kg" value={weight} onChange={setWeight} C={C} T={T} />
+                {/* the word, not only the number — 24.1 on its own is
+                    not something anybody can act on */}
+                <ReadOut label={t('BMI')} value={bmi} band={band}
+                  hint={cm > 0 ? '' : t('Add your height in Challenges \u2192 Numbers')} C={C} T={T} />
+
+                <Label style={{ marginTop: S.md, marginBottom: 6 }}>{t('Notes')}</Label>
+                <TextInput
+                  value={note} onChangeText={setNote}
+                  placeholder={t('How are you feeling?')} placeholderTextColor={C.faint}
+                      multiline maxLength={400} underlineColorAndroid="transparent"
+                  style={[styles.noteBox, NO_RING]}
+                />
+
+                <Btn label={t('Save')} color={colour} busy={busy}
+                  onPress={save} style={{ marginTop: S.lg }} />
+              </>
+            ) : (
+              /* Nothing to fill in for a place you have not been to.
+                 Writing down what you weighed at the summit before you
+                 have climbed it is not a record of anything. */
+              <View style={styles.locked}>
+                <Text style={styles.lockedIcon}>{'\u25CB'}</Text>
+                <Text style={[T.bodyOn, { fontSize: 15, marginTop: 6 }]}>{t('Locked')}</Text>
+                <Text style={[T.small, { textAlign: 'center', marginTop: 4 }]}>
+                  {`${t('Train')} ${milestone.at - days} ${milestone.at - days === 1 ? t('more day') : t('more days')} ${t('to open this')}`}
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SwipeBack>
   );
 }
 
@@ -455,49 +458,51 @@ function ListView({ days, entries, onPick, onBack }) {
   const tabPad = useTabPad();
 
   return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: C.bg }]}>
-      <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
-        <Press onPress={onBack} hitSlop={16} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-          <Text style={[T.small, { color: C.ember }]}>{'\u2190'} {t('Map')}</Text>
-        </Press>
-        <Text style={styles.listTitle}>{t('Leagues')}</Text>
-        <Text style={[T.small, { marginBottom: S.lg }]}>
-          {t('Every seven days you train is a promotion.')}
-        </Text>
+    <SwipeBack onBack={onBack}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: C.bg }]}>
+        <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
+          <Press onPress={onBack} hitSlop={16} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+            <Text style={[T.small, { color: C.ember }]}>{'\u2190'} {t('Map')}</Text>
+          </Press>
+          <Text style={styles.listTitle}>{t('Leagues')}</Text>
+          <Text style={[T.small, { marginBottom: S.lg }]}>
+            {t('Every seven days you train is a promotion.')}
+          </Text>
 
-        {/* One row per league. There used to be a heading and three
-            numbered rows under it; with the tiers gone the heading
-            and its single row said the same thing twice. */}
-        {RANKS.map((r) => {
-          const reached = days >= r.at;
-          const e = entries[r.n];
-          return (
-            <Press key={r.n} onPress={() => onPick(r)} scaleTo={0.985} style={styles.listRow}>
-              <View style={[styles.listMedal, {
-                borderColor: r.colour,
-                backgroundColor: reached ? r.colour : 'transparent',
-              }]}>
-                <Image source={LEAGUE_ICON[r.league]}
-                  style={{ width: 20, height: 20,
-                           tintColor: reached ? '#0B0B0E' : r.colour }}
-                  resizeMode="contain" />
-              </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={[styles.listName, { color: reached ? C.text : C.dim }]}>
-                  {t(r.name)}
-                </Text>
-                {e && e.weight_kg != null ? (
-                  <Text style={T.tiny}>{e.weight_kg} kg</Text>
-                ) : null}
-              </View>
-              <Text style={T.tiny}>{t('Day')} {r.at}</Text>
-              <Text style={{ color: C.faint, marginLeft: 8 }}>{'\u203A'}</Text>
-            </Press>
-          );
-        })}
+          {/* One row per league. There used to be a heading and three
+              numbered rows under it; with the tiers gone the heading
+              and its single row said the same thing twice. */}
+          {RANKS.map((r) => {
+            const reached = days >= r.at;
+            const e = entries[r.n];
+            return (
+              <Press key={r.n} onPress={() => onPick(r)} scaleTo={0.985} style={styles.listRow}>
+                <View style={[styles.listMedal, {
+                  borderColor: r.colour,
+                  backgroundColor: reached ? r.colour : 'transparent',
+                }]}>
+                  <Image source={LEAGUE_ICON[r.league]}
+                    style={{ width: 20, height: 20,
+                             tintColor: reached ? '#0B0B0E' : r.colour }}
+                    resizeMode="contain" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.listName, { color: reached ? C.text : C.dim }]}>
+                    {t(r.name)}
+                  </Text>
+                  {e && e.weight_kg != null ? (
+                    <Text style={T.tiny}>{e.weight_kg} kg</Text>
+                  ) : null}
+                </View>
+                <Text style={T.tiny}>{t('Day')} {r.at}</Text>
+                <Text style={{ color: C.faint, marginLeft: 8 }}>{'\u203A'}</Text>
+              </Press>
+            );
+          })}
 
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </SwipeBack>
   );
 }
 

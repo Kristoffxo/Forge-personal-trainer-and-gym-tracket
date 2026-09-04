@@ -7,11 +7,14 @@ import { useLang } from '../lang';
 import { Ring } from '../ui/ring';
 import { todayKey, loadDay, removeEntry, totals } from '../diary';
 
+/* Names, no symbols. A sun over "Breakfast" and a moon over "Dinner"
+   tell you what the word already told you, and the half-moon for
+   lunch and the star for snacks were not saying anything at all. */
 const MEALS = [
-  { name:'Breakfast', icon:'☀' },
-  { name:'Lunch',     icon:'◐' },
-  { name:'Dinner',    icon:'☾' },
-  { name:'Snacks',    icon:'✦' },
+  { name:'Breakfast' },
+  { name:'Lunch' },
+  { name:'Dinner' },
+  { name:'Snacks' },
 ];
 
 export default function Food({ user, profile, refreshKey, justAdded, onAdd }) {
@@ -91,7 +94,6 @@ export default function Food({ user, profile, refreshKey, justAdded, onAdd }) {
           return (
             <FadeIn key={meal.name} delay={140 + mi * 26} style={{ paddingHorizontal:S.lg, marginTop:S.lg }}>
               <View style={styles.mealHead}>
-                <Text style={styles.mealIcon}>{meal.icon}</Text>
                 <Text style={styles.mealName}>{tr(meal.name)}</Text>
                 <Text style={[T.small, { color:C.amber }]}>{mt.kcal} kcal</Text>
               </View>
@@ -153,7 +155,6 @@ const makeStyles = (C, T) => StyleSheet.create({
   macros:{ flexDirection:'row', marginTop:S.lg },
   macroNum:{ fontFamily:'WorkSans_600SemiBold', fontSize:24 },
   mealHead:{ flexDirection:'row', alignItems:'center', marginBottom:S.sm },
-  mealIcon:{ fontSize:15, color:C.amber, marginRight:8 },
   mealName:{ flex:1, fontFamily:'WorkSans_600SemiBold', fontSize:22, color:C.text },
   row:{ flexDirection:'row', alignItems:'center', backgroundColor:C.surface,
         borderRadius:R.sm, padding:13, marginBottom:8 },

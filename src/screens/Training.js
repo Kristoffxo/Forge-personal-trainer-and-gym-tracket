@@ -23,6 +23,8 @@ import { MUSCLES, WOMEN_MUSCLES } from '../exercises';
 import { useSide } from '../side';
 import { supabase } from '../supabase';
 import Session from './Session';
+import { setsReps } from '../duration';
+import { SwipeBack } from '../ui/swipeBack';
 
 const PER = [3, 4, 5, 6, 7, 8];
 const KITS = ['Full gym', 'None'];
@@ -104,6 +106,7 @@ export default function Training({ user, profile, onBack }) {
   const todayPlan = week[todayIndex()];
 
   return (
+    <SwipeBack onBack={onBack}>
     <ScrollView style={styles.wrap} contentContainerStyle={{ paddingBottom: tabPad }}>
       {onBack ? (
         <Press onPress={onBack} hitSlop={12} scaleTo={0.94}
@@ -211,7 +214,7 @@ export default function Training({ user, profile, onBack }) {
                   <Text style={T.tiny}>{x.m} · {x.e}</Text>
                 </View>
                 <View style={styles.setsBox}>
-                  <Text style={styles.setsTxt}>{x.s}</Text>
+                  <Text style={styles.setsTxt}>{setsReps(x.s).line}</Text>
                 </View>
               </View>
             ))}
@@ -244,6 +247,7 @@ export default function Training({ user, profile, onBack }) {
         </Press>
       </FadeIn>
     </ScrollView>
+    </SwipeBack>
   );
 }
 

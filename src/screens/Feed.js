@@ -23,6 +23,7 @@ import { journeyFrom } from '../journey';
 import { useLang } from '../lang';
 import PersonSheet from './PersonSheet';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
+import { SwipeBack } from '../ui/swipeBack';
 import {
   loadFeed, createPost, deletePost, loadComments, addComment, deleteComment,
   report, blockUser, imageUrl, firstNameOf, ago, postedToday,
@@ -513,119 +514,121 @@ function PostView({ post, user, profile, onBack }) {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: C.bg }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View style={styles.composeHead}>
-        <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
-          <Text style={[T.small, { color: C.gold }]}>{'←'} {t('Feed')}</Text>
-        </Press>
-        <Label style={{ color: C.text }}>{firstNameOf(post.name)}</Label>
-        <View style={{ flex: 1 }} />
-        {mine ? (
-          <Press onPress={showLikers} hitSlop={12} scaleTo={0.94}>
-            <Text style={[T.small, { color: C.ember }]}>{t('Who liked it')}</Text>
-          </Press>
-        ) : null}
-      </View>
-
-      {/* the list of people, over the thread */}
-      {likers ? (
-        <View style={styles.likersWrap}>
-          <View style={styles.likersCard}>
-            <View style={styles.likersHead}>
-              <Label style={{ flex: 1 }}>
-                {likers.length} {likers.length === 1 ? t('like') : t('likes')}
-              </Label>
-              <Press onPress={() => setLikers(null)} hitSlop={14} scaleTo={0.9}>
-                <Text style={[T.small, { color: C.dim }]}>{t('Close')}</Text>
-              </Press>
-            </View>
-            <ScrollView style={{ maxHeight: 380 }}>
-              {likers.map((who, i) => {
-                const rank = journeyFrom(who.days_trained || 0).rank;
-                return (
-                  <View key={i} style={styles.likerRow}>
-                    <Avatar name={who.name} path={who.avatar_path} at={who.avatar_at}
-                      size={36} colour={rank ? rank.colour : C.line} />
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.commentWho}>{who.name}</Text>
-                      <Text style={[T.tiny, rank ? { color: rank.colour } : null]}>
-                        {rank ? rank.name : t('Bronze 3')}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
-      ) : null}
-
-      <ScrollView
-        ref={scroller}
-        contentContainerStyle={{ padding: S.lg, paddingBottom: 30 }}
-        keyboardShouldPersistTaps="handled"
+    <SwipeBack onBack={onBack}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: C.bg }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Image
-          source={{ uri: postUri }}
-          style={{
-            width: side, height: Math.round(side / ratio),
-            borderRadius: R.md, backgroundColor: C.raised,
-          }}
-          resizeMode="cover"
-        />
+        <View style={styles.composeHead}>
+          <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
+            <Text style={[T.small, { color: C.gold }]}>{'←'} {t('Feed')}</Text>
+          </Press>
+          <Label style={{ color: C.text }}>{firstNameOf(post.name)}</Label>
+          <View style={{ flex: 1 }} />
+          {mine ? (
+            <Press onPress={showLikers} hitSlop={12} scaleTo={0.94}>
+              <Text style={[T.small, { color: C.ember }]}>{t('Who liked it')}</Text>
+            </Press>
+          ) : null}
+        </View>
 
-        {post.caption ? (
-          <Text style={[styles.caption, { paddingHorizontal: 0, marginTop: S.md }]}>
-            <Text style={styles.captionWho}>{firstNameOf(post.name)} </Text>
-            {post.caption}
-          </Text>
+        {/* the list of people, over the thread */}
+        {likers ? (
+          <View style={styles.likersWrap}>
+            <View style={styles.likersCard}>
+              <View style={styles.likersHead}>
+                <Label style={{ flex: 1 }}>
+                  {likers.length} {likers.length === 1 ? t('like') : t('likes')}
+                </Label>
+                <Press onPress={() => setLikers(null)} hitSlop={14} scaleTo={0.9}>
+                  <Text style={[T.small, { color: C.dim }]}>{t('Close')}</Text>
+                </Press>
+              </View>
+              <ScrollView style={{ maxHeight: 380 }}>
+                {likers.map((who, i) => {
+                  const rank = journeyFrom(who.days_trained || 0).rank;
+                  return (
+                    <View key={i} style={styles.likerRow}>
+                      <Avatar name={who.name} path={who.avatar_path} at={who.avatar_at}
+                        size={36} colour={rank ? rank.colour : C.line} />
+                      <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Text style={styles.commentWho}>{who.name}</Text>
+                        <Text style={[T.tiny, rank ? { color: rank.colour } : null]}>
+                          {rank ? rank.name : t('Bronze 3')}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
         ) : null}
 
-        <View style={styles.rule} />
-
-        {list === null ? (
-          <ActivityIndicator color={C.gold} />
-        ) : list.length === 0 ? (
-          <Text style={T.small}>{t('No comments yet.')}</Text>
-        ) : (
-          list.map((c) => (
-            <Press key={c.id} onPress={() => tapComment(c)} scaleTo={0.995} style={styles.comment}>
-              <Avatar name={c.name} size={30} colour={C.line}
-                path={(faces[c.user_id] || {}).avatar_path}
-                at={(faces[c.user_id] || {}).avatar_at} />
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={styles.commentWho}>{firstNameOf(c.name)}</Text>
-                  <Text style={[T.tiny, { marginLeft: 8 }]}>{ago(c.created_at)}</Text>
-                </View>
-                <Text style={[T.bodyOn, { marginTop: 1 }]}>{c.body}</Text>
-              </View>
-            </Press>
-          ))
-        )}
-      </ScrollView>
-
-      <View style={styles.composer}>
-        <TextInput
-          value={body} onChangeText={setBody}
-          placeholder={t('Comment as') + ' ' + myName}
-          placeholderTextColor={C.faint}
-          style={styles.commentInput}
-          maxLength={400}
-          onSubmitEditing={() => { if (body.trim() && !busy) send(); }}
-          returnKeyType="send"
-        />
-        <Press
-          onPress={send} scaleTo={0.92} disabled={!body.trim() || busy}
-          style={[styles.send, (!body.trim() || busy) && { opacity: 0.35 }]}
+        <ScrollView
+          ref={scroller}
+          contentContainerStyle={{ padding: S.lg, paddingBottom: 30 }}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.sendTxt}>{t('Post')}</Text>
-        </Press>
-      </View>
-    </KeyboardAvoidingView>
+          <Image
+            source={{ uri: postUri }}
+            style={{
+              width: side, height: Math.round(side / ratio),
+              borderRadius: R.md, backgroundColor: C.raised,
+            }}
+            resizeMode="cover"
+          />
+
+          {post.caption ? (
+            <Text style={[styles.caption, { paddingHorizontal: 0, marginTop: S.md }]}>
+              <Text style={styles.captionWho}>{firstNameOf(post.name)} </Text>
+              {post.caption}
+            </Text>
+          ) : null}
+
+          <View style={styles.rule} />
+
+          {list === null ? (
+            <ActivityIndicator color={C.gold} />
+          ) : list.length === 0 ? (
+            <Text style={T.small}>{t('No comments yet.')}</Text>
+          ) : (
+            list.map((c) => (
+              <Press key={c.id} onPress={() => tapComment(c)} scaleTo={0.995} style={styles.comment}>
+                <Avatar name={c.name} size={30} colour={C.line}
+                  path={(faces[c.user_id] || {}).avatar_path}
+                  at={(faces[c.user_id] || {}).avatar_at} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.commentWho}>{firstNameOf(c.name)}</Text>
+                    <Text style={[T.tiny, { marginLeft: 8 }]}>{ago(c.created_at)}</Text>
+                  </View>
+                  <Text style={[T.bodyOn, { marginTop: 1 }]}>{c.body}</Text>
+                </View>
+              </Press>
+            ))
+          )}
+        </ScrollView>
+
+        <View style={styles.composer}>
+          <TextInput
+            value={body} onChangeText={setBody}
+            placeholder={t('Comment as') + ' ' + myName}
+            placeholderTextColor={C.faint}
+            style={styles.commentInput}
+            maxLength={400}
+            onSubmitEditing={() => { if (body.trim() && !busy) send(); }}
+            returnKeyType="send"
+          />
+          <Press
+            onPress={send} scaleTo={0.92} disabled={!body.trim() || busy}
+            style={[styles.send, (!body.trim() || busy) && { opacity: 0.35 }]}
+          >
+            <Text style={styles.sendTxt}>{t('Post')}</Text>
+          </Press>
+        </View>
+      </KeyboardAvoidingView>
+    </SwipeBack>
   );
 }
 

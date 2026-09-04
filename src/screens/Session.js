@@ -24,6 +24,7 @@ import { photoForMuscle } from '../photos';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
 import { createPost, postedToday, firstNameOf } from '../social';
 import Exercise from './Exercise';
+import { setsReps } from '../duration';
 
 export default function Session({ title, exercises, user, profile, kind, name,
                                   autoStart, onExit }) {
@@ -130,7 +131,20 @@ export default function Session({ title, exercises, user, profile, kind, name,
           height={7} style={{ marginTop: S.md }} />
       </View>
 
+      {/* The button goes above the list, not under it. Everything
+          below is for reading before you begin, and a start button
+          at the bottom of seven exercises means scrolling past the
+          whole workout to begin it. */}
       <View style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+        <Btn
+          label={t('Start workout')}
+          color={C.ember}
+          onPress={() => setPlaying(true)}
+        />
+        <Text style={[T.tiny, { textAlign: 'center', marginTop: 10, marginBottom: S.sm }]}>
+          {t('Tap a move to see how it is done')}
+        </Text>
+
         {exercises.map((x, i) => {
           const on = !!done[i];
           const isNext = i === nextIdx;
@@ -157,7 +171,7 @@ export default function Session({ title, exercises, user, profile, kind, name,
                   <Text style={[styles.exName, on && { textDecorationLine: 'line-through' }]}>
                     {x.n}
                   </Text>
-                  <Text style={T.tiny}>{x.m} · {x.e} · {x.s}</Text>
+                  <Text style={T.tiny}>{x.m} · {x.e} · {setsReps(x.s).line}</Text>
                 </View>
 
                 <Text style={[styles.chev, isNext && { color: MUSCLE_C[x.m] }]}>
@@ -168,23 +182,11 @@ export default function Session({ title, exercises, user, profile, kind, name,
           );
         })}
 
-        {/* One button, and it starts the thing. The list above is
-            for reading before you begin, not for ticking your way
-            through — that is the player's job now. */}
-        <Btn
-          label={t('Start workout')}
-          color={C.ember}
-          onPress={() => setPlaying(true)}
-          style={{ marginTop: S.xl }}
-        />
-        <Press onPress={finish} scaleTo={0.98} style={{ paddingVertical: 14 }}>
+        <Press onPress={finish} scaleTo={0.98} style={{ paddingVertical: 14, marginTop: S.md }}>
           <Text style={[T.small, { textAlign: 'center', color: C.dim }]}>
             {allDone ? t('Finish — well done') : t('Finish without training')}
           </Text>
         </Press>
-        <Text style={[T.tiny, { textAlign: 'center' }]}>
-          {t('Tap a move to see how it is done')}
-        </Text>
       </View>
     </ScrollView>
   );

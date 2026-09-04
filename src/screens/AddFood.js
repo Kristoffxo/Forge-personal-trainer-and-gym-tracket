@@ -8,6 +8,7 @@ import { addEntry, todayKey } from '../diary';
 import { num } from '../num';
 import { useLang } from '../lang';
 import { useSheet } from '../ui/sheet';
+import { SwipeBack } from '../ui/swipeBack';
 
 export default function AddFood({ meal, onDone, onCancel, user }) {
   const { C, T } = useTheme();
@@ -109,56 +110,58 @@ function Portion({ food, meal, user, onBack, onDone }) {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.wrap} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.head}>
-        <View style={styles.headRow}>
-          <Pressable onPress={onBack} hitSlop={12}>
-            <Text style={[T.small, { color:C.amber }]}>{t('Back')}</Text>
-          </Pressable>
-          <Label style={{ color:C.text }}>{t(meal)}</Label>
-        </View>
-        <Text style={[T.h2, { marginTop:S.sm }]} numberOfLines={3}>{food.name}</Text>
-        <Text style={T.tiny}>{food.cat}</Text>
-      </View>
-
-      <View style={{ paddingHorizontal:S.lg }}>
-        <View style={styles.totalRow}>
-          <View>
-            <Text style={styles.total}>{shownKcal}</Text>
-            <Label>kcal</Label>
+    <SwipeBack onBack={onBack}>
+      <KeyboardAvoidingView style={styles.wrap} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.head}>
+          <View style={styles.headRow}>
+            <Pressable onPress={onBack} hitSlop={12}>
+              <Text style={[T.small, { color:C.amber }]}>{t('Back')}</Text>
+            </Pressable>
+            <Label style={{ color:C.text }}>{t(meal)}</Label>
           </View>
-          <View style={{ flexDirection:'row' }}>
-            <Mini label="P" v={m.protein} />
-            <Mini label="C" v={m.carbs} />
-            <Mini label="F" v={m.fat} />
-          </View>
+          <Text style={[T.h2, { marginTop:S.sm }]} numberOfLines={3}>{food.name}</Text>
+          <Text style={T.tiny}>{food.cat}</Text>
         </View>
-        <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>{t('Quantity')}</Label>
-        <TextInput value={qty} onChangeText={setQty} keyboardType="decimal-pad" style={styles.qty} />
-        <View style={{height:1,backgroundColor:C.line}} />
-        <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>{t('Serving')}</Label>
-      </View>
 
-      <FlatList
-        data={options} keyExtractor={(o, i) => o.label + i}
-        keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom:110 }}
-        renderItem={({ item, index }) => (
-          <Press onPress={() => setIdx(index)} style={[styles.optRow,
-                 index === idx && { backgroundColor:'rgba(245,166,35,0.10)' }]} scaleTo={0.99}>
-            <View style={{ width:14 }}>
-              {index === idx ? <View style={styles.tick} /> : null}
+        <View style={{ paddingHorizontal:S.lg }}>
+          <View style={styles.totalRow}>
+            <View>
+              <Text style={styles.total}>{shownKcal}</Text>
+              <Label>kcal</Label>
             </View>
-            <Text style={[T.body, { color: index === idx ? C.amber : C.dim, flex:1 }]}>{item.label}</Text>
-            <Text style={T.tiny}>{Math.round(item.grams)} g</Text>
-          </Press>
-        )}
-      />
+            <View style={{ flexDirection:'row' }}>
+              <Mini label="P" v={m.protein} />
+              <Mini label="C" v={m.carbs} />
+              <Mini label="F" v={m.fat} />
+            </View>
+          </View>
+          <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>{t('Quantity')}</Label>
+          <TextInput value={qty} onChangeText={setQty} keyboardType="decimal-pad" style={styles.qty} />
+          <View style={{height:1,backgroundColor:C.line}} />
+          <Label style={{ marginTop:S.xl, marginBottom:S.sm }}>{t('Serving')}</Label>
+        </View>
 
-      <View style={styles.foot}>
-        <Btn label={t('Add to diary')} color={C.amber} onPress={save}
-          busy={saving} disabled={count <= 0} />
-      </View>
-    </KeyboardAvoidingView>
+        <FlatList
+          data={options} keyExtractor={(o, i) => o.label + i}
+          keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom:110 }}
+          renderItem={({ item, index }) => (
+            <Press onPress={() => setIdx(index)} style={[styles.optRow,
+                   index === idx && { backgroundColor:'rgba(245,166,35,0.10)' }]} scaleTo={0.99}>
+              <View style={{ width:14 }}>
+                {index === idx ? <View style={styles.tick} /> : null}
+              </View>
+              <Text style={[T.body, { color: index === idx ? C.amber : C.dim, flex:1 }]}>{item.label}</Text>
+              <Text style={T.tiny}>{Math.round(item.grams)} g</Text>
+            </Press>
+          )}
+        />
+
+        <View style={styles.foot}>
+          <Btn label={t('Add to diary')} color={C.amber} onPress={save}
+            busy={saving} disabled={count <= 0} />
+        </View>
+      </KeyboardAvoidingView>
+    </SwipeBack>
   );
 }
 function Mini({ label, v }) {

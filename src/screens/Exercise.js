@@ -28,10 +28,11 @@ import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
 import { Timer } from '../ui/timer';
 import { useClaimFullscreen } from '../fullscreen';
-import { parseDuration } from '../duration';
+import { parseDuration, setsReps } from '../duration';
 import { STEP_NOTE } from '../seniorPlan';
 import { framesFor } from '../exercisePhotos';
 import { photoForMuscle } from '../photos';
+import { SwipeBack } from '../ui/swipeBack';
 
 /* The move before and the move after, small, tappable. `list` is the
    whole session; without it this simply does not render, which is
@@ -84,6 +85,7 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
   useClaimFullscreen(!previewOnly);
 
   return (
+    <SwipeBack onBack={onBack}>
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }}>
         <View style={styles.head}>
@@ -145,7 +147,7 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
 
           <View style={[styles.card, { borderLeftColor: tint, marginTop: S.md }]}>
             <Label>{exercise.r || held ? t('Hold for') : t('Aim for')}</Label>
-            <Text style={styles.scheme}>{exercise.s}</Text>
+            <Text style={styles.scheme}>{setsReps(exercise.s).line}</Text>
             <Text style={[T.small, { marginTop: S.sm }]}>
               {exercise.senior
                 ? t('Slow is right.')
@@ -180,6 +182,7 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
         />
       </View>
     </View>
+    </SwipeBack>
   );
 }
 

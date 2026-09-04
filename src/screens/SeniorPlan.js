@@ -22,6 +22,8 @@ import { SENIOR_NOTE } from '../seniors';
 import { framesFor } from '../exercisePhotos';
 import { photoForMuscle } from '../photos';
 import Exercise from './Exercise';
+import { setsReps } from '../duration';
+import { SwipeBack } from '../ui/swipeBack';
 
 const KEY = 'nemea:senior-plan';      // see the note in src/lang.js
 
@@ -119,6 +121,7 @@ export default function SeniorPlan({ onBack }) {
   const aim = AIM.find((a) => a.key === answers.aim);
 
   return (
+    <SwipeBack onBack={onBack}>
     <ScrollView style={styles.wrap} contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
       <Press onPress={onBack} hitSlop={12} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
         <Text style={[T.small, { color: C.lime }]}>{'←'} {t('Train')}</Text>
@@ -145,7 +148,7 @@ export default function SeniorPlan({ onBack }) {
               <Image source={thumb} style={styles.thumb} resizeMode="cover" />
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.rowName}>{t(s.group)}</Text>
-                <Text style={T.tiny}>{move.n} · {move.s}</Text>
+                <Text style={T.tiny}>{move.n} · {setsReps(move.s).line}</Text>
               </View>
               <View style={styles.rung}>
                 {[0, 1, 2].map((r) => (
@@ -164,6 +167,7 @@ export default function SeniorPlan({ onBack }) {
         <Text style={[T.small, { color: C.text }]}>{t(SENIOR_NOTE)}</Text>
       </View>
     </ScrollView>
+    </SwipeBack>
   );
 }
 

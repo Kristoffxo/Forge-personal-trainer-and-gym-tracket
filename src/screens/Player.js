@@ -35,7 +35,7 @@ import { Press } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
-import { parseDuration } from '../duration';
+import { parseDuration, setsReps } from '../duration';
 import { useClaimFullscreen } from '../fullscreen';
 
 const READY = 10;          // seconds before the first move
@@ -55,11 +55,18 @@ function mmss(n) {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/* The whole rep scheme, printed as written: "4 × 8-10". Not split
-   into sets any more — the app shows what to do and gets out of the
-   way rather than counting your sets for you. */
+/* The whole prescription in words — "4 sets" over "8–10 reps" —
+   rather than the "4 × 8–10" the library writes it in. Not split
+   into sets any more either: the app shows what to do and gets out
+   of the way rather than counting your sets for you. */
 function planOf(exercise) {
-  return { target: String(exercise.s || '').trim(), held: parseDuration(exercise.s) };
+  const words = setsReps(exercise && exercise.s);
+  return {
+    sets: words.sets,
+    work: words.work,
+    target: words.line,
+    held: parseDuration(exercise && exercise.s),
+  };
 }
 
 /* ---------------------------------------------------------------
@@ -289,9 +296,19 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
       {/* The name is already across the top bar. Printing it again
           three inches lower said nothing and cost a line. */}
       <View style={styles.panel}>
-        <Text style={styles.clock}>
-          {gettingReady ? plan.target : plan.held ? mmss(hold) : plan.target}
-        </Text>
+        {/* A hold counts down; everything else stands still and says
+            how many of what. Two lines rather than one, because the
+            sets and the reps are two different questions and running
+            them together across a phone is what made the old
+            "4 × 8–10" read as arithmetic. */}
+        {plan.held && !gettingReady ? (
+          <Text style={styles.clock}>{mmss(hold)}</Text>
+        ) : (
+          <>
+            <Text style={styles.clock}>{plan.sets || plan.target}</Text>
+            {plan.sets ? <Text style={styles.reps}>{plan.work}</Text> : null}
+          </>
+        )}
         <Text style={styles.panelHint}>
           {ex.m}
         </Text>
@@ -392,8 +409,12 @@ const makeStyles = (C, T) => StyleSheet.create({
     paddingHorizontal: S.lg, alignItems: 'center', justifyContent: 'center',
   },
   clock: {
-    fontFamily: 'WorkSans_600SemiBold', fontSize: 52, lineHeight: 60, color: '#fff',
+    fontFamily: 'WorkSans_600SemiBold', fontSize: 46, lineHeight: 54, color: '#fff',
     marginTop: 2,
+  },
+  reps: {
+    fontFamily: 'WorkSans_500Medium', fontSize: 24, lineHeight: 30,
+    color: 'rgba(255,255,255,0.9)',
   },
   panelHint: { fontFamily: 'WorkSans_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.5)' },
 

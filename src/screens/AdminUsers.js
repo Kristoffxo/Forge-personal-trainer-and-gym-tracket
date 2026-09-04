@@ -23,6 +23,7 @@ import { useSheet } from '../ui/sheet';
 import { Avatar } from '../ui/avatar';
 import { journeyFrom } from '../journey';
 import { ago } from '../social';
+import { SwipeBack } from '../ui/swipeBack';
 import {
   overview, listUsers, userDetail, userPosts, setAdmin, deleteUser,
 } from '../admin';
@@ -225,76 +226,78 @@ function Person({ userId, onBack, onGone }) {
   const me = journeyFrom(d.days_trained || 0);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
-      <Press onPress={onBack} hitSlop={16} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-        <Text style={[T.small, { color: C.violet }]}>{'←'} All accounts</Text>
-      </Press>
+    <SwipeBack onBack={onBack}>
+      <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
+        <Press onPress={onBack} hitSlop={16} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
+          <Text style={[T.small, { color: C.violet }]}>{'←'} All accounts</Text>
+        </Press>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: S.lg, gap: 14 }}>
-        <Avatar name={d.name} size={64} colour={d.is_admin ? C.gold : C.line} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.big}>{d.name}</Text>
-          <Text style={T.tiny}>{d.email}</Text>
-          <Text style={[T.tiny, { color: me.rank ? me.rank.colour : C.dim }]}>
-            {me.rank ? me.rank.name : 'Bronze 3'}
-          </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: S.lg, gap: 14 }}>
+          <Avatar name={d.name} size={64} colour={d.is_admin ? C.gold : C.line} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.big}>{d.name}</Text>
+            <Text style={T.tiny}>{d.email}</Text>
+            <Text style={[T.tiny, { color: me.rank ? me.rank.colour : C.dim }]}>
+              {me.rank ? me.rank.name : 'Bronze 3'}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>Account</Label>
-      <Row k="Joined" v={d.created_at ? ago(d.created_at) + ' ago' : '—'} C={C} T={T} />
-      <Row k="Last signed in" v={d.last_sign_in ? ago(d.last_sign_in) + ' ago' : 'never'} C={C} T={T} />
-      <Row k="Admin" v={d.is_admin ? 'yes' : 'no'} C={C} T={T} />
-      <Row k="Daily reminder" v={d.reminders_on ? 'on' : 'off'} C={C} T={T} />
+        <Label style={{ marginTop: S.xl, marginBottom: S.sm }}>Account</Label>
+        <Row k="Joined" v={d.created_at ? ago(d.created_at) + ' ago' : '—'} C={C} T={T} />
+        <Row k="Last signed in" v={d.last_sign_in ? ago(d.last_sign_in) + ' ago' : 'never'} C={C} T={T} />
+        <Row k="Admin" v={d.is_admin ? 'yes' : 'no'} C={C} T={T} />
+        <Row k="Daily reminder" v={d.reminders_on ? 'on' : 'off'} C={C} T={T} />
 
-      <Label style={{ marginTop: S.lg, marginBottom: S.sm }}>Training</Label>
-      <Row k="Days trained" v={d.days_trained || 0} C={C} T={T} />
-      <Row k="First workout" v={d.first_trained || '—'} C={C} T={T} />
-      <Row k="Last workout" v={d.last_trained || '—'} C={C} T={T} />
-      <Row k="Days with food logged" v={d.food_days || 0} C={C} T={T} />
-      <Row k="Journey notes" v={d.journey_notes || 0} C={C} T={T} />
+        <Label style={{ marginTop: S.lg, marginBottom: S.sm }}>Training</Label>
+        <Row k="Days trained" v={d.days_trained || 0} C={C} T={T} />
+        <Row k="First workout" v={d.first_trained || '—'} C={C} T={T} />
+        <Row k="Last workout" v={d.last_trained || '—'} C={C} T={T} />
+        <Row k="Days with food logged" v={d.food_days || 0} C={C} T={T} />
+        <Row k="Journey notes" v={d.journey_notes || 0} C={C} T={T} />
 
-      <Label style={{ marginTop: S.lg, marginBottom: S.sm }}>Discover</Label>
-      <Row k="Posts" v={d.posts || 0} C={C} T={T} />
-      <Row k="Comments" v={d.comments || 0} C={C} T={T} />
-      <Row k="Likes given" v={d.likes_given || 0} C={C} T={T} />
-      <Row k="Reports against them" v={d.reports_against || 0}
-        colour={d.reports_against ? C.danger : null} C={C} T={T} />
+        <Label style={{ marginTop: S.lg, marginBottom: S.sm }}>Discover</Label>
+        <Row k="Posts" v={d.posts || 0} C={C} T={T} />
+        <Row k="Comments" v={d.comments || 0} C={C} T={T} />
+        <Row k="Likes given" v={d.likes_given || 0} C={C} T={T} />
+        <Row k="Reports against them" v={d.reports_against || 0}
+          colour={d.reports_against ? C.danger : null} C={C} T={T} />
 
-      {posts.length ? (
-        <>
-          <Label style={{ marginTop: S.lg, marginBottom: S.sm }}>
-            Their posts ({posts.length})
-          </Label>
-          {posts.map((p) => (
-            <View key={p.id} style={styles.postRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[T.small, { color: C.text }]} numberOfLines={2}>
-                  {p.caption || 'no caption'}
-                </Text>
-                <Text style={T.tiny}>{ago(p.created_at)} ago</Text>
+        {posts.length ? (
+          <>
+            <Label style={{ marginTop: S.lg, marginBottom: S.sm }}>
+              Their posts ({posts.length})
+            </Label>
+            {posts.map((p) => (
+              <View key={p.id} style={styles.postRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[T.small, { color: C.text }]} numberOfLines={2}>
+                    {p.caption || 'no caption'}
+                  </Text>
+                  <Text style={T.tiny}>{ago(p.created_at)} ago</Text>
+                </View>
+                {p.reports ? (
+                  <Text style={[styles.tag, { color: C.danger }]}>{p.reports} REPORTED</Text>
+                ) : null}
               </View>
-              {p.reports ? (
-                <Text style={[styles.tag, { color: C.danger }]}>{p.reports} REPORTED</Text>
-              ) : null}
-            </View>
-          ))}
-          <Text style={[T.tiny, { marginTop: 6 }]}>
-            Remove individual posts from the Moderation tab.
-          </Text>
-        </>
-      ) : null}
+            ))}
+            <Text style={[T.tiny, { marginTop: 6 }]}>
+              Remove individual posts from the Moderation tab.
+            </Text>
+          </>
+        ) : null}
 
-      <Btn label={d.is_admin ? 'Remove admin' : 'Make admin'} dark color={C.dim}
-        busy={busy} onPress={toggleAdmin} style={{ marginTop: S.xl }} />
+        <Btn label={d.is_admin ? 'Remove admin' : 'Make admin'} dark color={C.dim}
+          busy={busy} onPress={toggleAdmin} style={{ marginTop: S.xl }} />
 
-      <Btn label="Delete this account" color={C.danger}
-        busy={busy} onPress={remove} style={{ marginTop: S.sm }} />
+        <Btn label="Delete this account" color={C.danger}
+          busy={busy} onPress={remove} style={{ marginTop: S.sm }} />
 
-      <Text style={[T.tiny, { marginTop: S.sm, textAlign: 'center' }]}>
-        Deleting takes their workouts, diary, posts and photographs with it.
-      </Text>
-    </ScrollView>
+        <Text style={[T.tiny, { marginTop: S.sm, textAlign: 'center' }]}>
+          Deleting takes their workouts, diary, posts and photographs with it.
+        </Text>
+      </ScrollView>
+    </SwipeBack>
   );
 }
 
