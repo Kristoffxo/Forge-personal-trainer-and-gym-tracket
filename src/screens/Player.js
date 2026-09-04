@@ -8,14 +8,22 @@
    starts on its own, every time, which is the whole point of the
    thing. You put the phone down and it drives.
 
-   Where it differs from the reference, and why: that app is a timed
-   circuit where every move is thirty seconds. Ours is sets and reps
-   — four sets of eight is not a duration. So the work period is a
-   set rather than a countdown, and the countdown is the rest after
-   it, which is the part people actually get wrong. Holds like a
-   plank still count down, because those genuinely are a duration.
+   One block per exercise, exactly like the reference. It stepped
+   through every set for a while — four sets of seven exercises is
+   twenty-eight taps of Done, and every other screen was the same
+   movement again, which reads as the app being stuck rather than as
+   progress. The rep scheme is still printed on the screen; it just
+   is not something the app walks you through one set at a time.
 
-   Same exercises, same sets, same library. Only the driving is new.
+   Where it still differs from the reference: that app counts down
+   every move because every move is thirty seconds. Ours are sets and
+   reps, and "4 × 8" is not a duration — so a lifting block ends when
+   you say it does, and the countdown is the rest after it. Holds
+   like a plank count themselves down, because those genuinely are a
+   duration.
+
+   Same exercises, same rep schemes, same library. Only the driving
+   is new.
    --------------------------------------------------------------- */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -44,14 +52,11 @@ function mmss(n) {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/* How many sets, and what the target is, out of "4 × 8–10". */
+/* The whole rep scheme, printed as written: "4 × 8-10". Not split
+   into sets any more — the app shows what to do and gets out of the
+   way rather than counting your sets for you. */
 function planOf(exercise) {
-  const held = parseDuration(exercise.s);
-  const raw = String(exercise.s || '');
-  const m = raw.match(/(\d+)\s*[×x]/);
-  const sets = held ? (held.sets || 1) : (m ? parseInt(m[1], 10) : 3);
-  const target = raw.replace(/^\s*\d+\s*[×x]\s*/, '').trim() || raw;
-  return { sets: Math.max(1, sets), target, held };
+  return { target: String(exercise.s || '').trim(), held: parseDuration(exercise.s) };
 }
 
 /* ---------------------------------------------------------------
@@ -126,45 +131,45 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
      route all give it back without each needing to remember. */
   useClaimFullscreen();
 
-  /* The movement fills everything between the header and the black
-     panel. Sizing it off the window rather than letting it sit
-     centred in a flex box is what stops the letterboxing — the
-     reference has the picture running edge to edge. */
-  const stageH = Math.max(200, height - 70 - 224);
+  /* The photographs are landscape, roughly four to three. Given the
+     whole gap between the header and the panel they sit in the
+     middle of it with a band of black above and below; sized to
+     their own shape they fill the width and the band goes. Capped
+     by what is actually free so a short screen does not push the
+     controls off the bottom. */
+  const stageH = Math.min(Math.round(width * 0.78), Math.max(200, height - 70 - 200));
 
-  /* where we are: which exercise, which set, and what is happening */
+  /* where we are: which exercise, and what is happening */
   const [i, setI] = useState(0);
-  const [set, setSet] = useState(1);
   const [phase, setPhase] = useState('ready');   // ready | work | rest | done
   const [paused, setPaused] = useState(false);
 
   const total = exercises.length;
   const ex = exercises[i];
-  const plan = ex ? planOf(ex) : { sets: 1, target: '', held: null };
+  const plan = ex ? planOf(ex) : { target: '', held: null };
   const tint = ex ? (MUSCLE_C[ex.m] || C.ember) : C.ember;
 
-  /* the last set of the last exercise is the end of the workout */
-  const lastSet = set >= plan.sets;
   const lastEx = i >= total - 1;
 
+  /* Rest ends, or Skip is pressed: on to the next movement. Never
+     back to the one just finished. */
   const advance = useCallback(() => {
-    if (lastSet && lastEx) { setPhase('done'); onFinish(); return; }
-    if (lastSet) { setI(i + 1); setSet(1); } else { setSet(set + 1); }
+    if (lastEx) { setPhase('done'); onFinish(); return; }
+    setI(i + 1);
     setPhase('work');
-  }, [lastSet, lastEx, i, set, onFinish]);
+  }, [lastEx, i, onFinish]);
 
-  /* ---- the three clocks. The key is what makes each set, each
-     hold and each rest a fresh countdown rather than the last one
-     carried over. ---- */
+  /* ---- the three clocks. The key is what makes each hold and each
+     rest a fresh countdown rather than the last one carried over. */
   const [ready] = useCountdown(READY, phase === 'ready' && !paused,
     () => setPhase('work'), 'ready');
 
   const [hold] = useCountdown(plan.held ? plan.held.seconds : 0,
     phase === 'work' && !!plan.held && !paused,
-    () => setPhase('rest'), `hold-${i}-${set}`);
+    () => setPhase('rest'), `hold-${i}`);
 
   const [restLeft, addRest] = useCountdown(REST, phase === 'rest' && !paused,
-    advance, `rest-${i}-${set}`);
+    advance, `rest-${i}`);
 
   async function quit() {
     const yes = await sheet.confirm({
@@ -180,8 +185,7 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
 
   /* ---------- the blue rest screen ---------- */
   if (phase === 'rest') {
-    const nextIsNewMove = lastSet;
-    const upcoming = nextIsNewMove ? exercises[Math.min(i + 1, total - 1)] : ex;
+    const upcoming = exercises[Math.min(i + 1, total - 1)];
 
     return (
       <View style={[styles.screen, { backgroundColor: BLUE }]}>
@@ -209,14 +213,19 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
 
         <View style={styles.restNext}>
           <Text style={styles.restNextLabel}>
-            {t('NEXT')} {nextIsNewMove ? `${Math.min(i + 2, total)}/${total}` : `${t('Set')} ${set + 1}/${plan.sets}`}
+            {lastEx ? t('LAST ONE DONE') : `${t('NEXT')} ${i + 2}/${total}`}
           </Text>
           <View style={styles.restNextRow}>
-            <Text style={styles.restNextName} numberOfLines={1}>{upcoming.n}</Text>
-            <Text style={styles.restNextMeta}>{plan.target}</Text>
+            <Text style={styles.restNextName} numberOfLines={1}>
+              {lastEx ? t('Finishing up') : upcoming.n}
+            </Text>
+            <Text style={styles.restNextMeta}>{lastEx ? '' : planOf(upcoming).target}</Text>
           </View>
           <View style={styles.restPreview}>
-            <Demo exercise={upcoming} height={116} playing style={{ borderRadius: R.md }} />
+            {/* A glance, not the movement itself — filling the strip
+                reads better here than showing every last pixel. */}
+            <Demo exercise={upcoming} height={116} playing fit="cover"
+              style={{ borderRadius: R.md }} />
           </View>
         </View>
       </View>
@@ -236,16 +245,15 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
         </Press>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={styles.topName} numberOfLines={1}>{ex.n}</Text>
-          <Text style={styles.topMeta}>
-            {i + 1}/{total} · {t('Set')} {set}/{plan.sets}
-          </Text>
+          <Text style={styles.topMeta}>{i + 1} {t('of')} {total}</Text>
         </View>
         <View style={{ width: 26 }} />
       </View>
 
       {/* the movement, filling the screen */}
-      <View style={styles.stage}>
-        <Demo exercise={ex} height={stageH} playing={!paused} style={{ borderRadius: 0 }} />
+      <View style={[styles.stage, { height: stageH }]}>
+        <Demo exercise={ex} height={stageH} playing={!paused} fit="cover"
+          style={{ borderRadius: 0 }} />
 
         {gettingReady ? (
           <View style={styles.readyVeil}>
@@ -277,18 +285,15 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
 
         <View style={styles.controls}>
           <Press
-            onPress={() => {
-              if (set > 1) { setSet(set - 1); setPhase('work'); }
-              else if (i > 0) { setI(i - 1); setSet(1); setPhase('work'); }
-            }}
+            onPress={() => { if (i > 0) { setI(i - 1); setPhase('work'); } }}
             hitSlop={10} scaleTo={0.9} style={styles.side}
           >
             <Text style={styles.sideTxt}>{'⏮'}</Text>
           </Press>
 
-          {/* The one big button. A hold pauses; a set of reps is
-              finished by hand, because nothing on a phone can tell
-              when somebody racked the bar. */}
+          {/* The one big button. A hold pauses itself down; a
+              lifting block is finished by hand, because nothing on a
+              phone can tell when somebody racked the bar. */}
           {plan.held || gettingReady ? (
             <Press onPress={() => setPaused(!paused)} scaleTo={0.96}
               style={[styles.main, { backgroundColor: tint }]}>
@@ -297,7 +302,9 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           ) : (
             <Press onPress={() => setPhase('rest')} scaleTo={0.96}
               style={[styles.main, { backgroundColor: tint }]}>
-              <Text style={styles.mainDone}>{t('Done set')}</Text>
+              <Text style={styles.mainDone}>
+                {lastEx ? t('Finish') : t('Done \u2014 next')}
+              </Text>
             </Press>
           )}
 
@@ -333,7 +340,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   topName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14, color: C.text },
   topMeta: { fontFamily: 'WorkSans_400Regular', fontSize: 11.5, color: C.dim, marginTop: 1 },
 
-  stage: { flex: 1, overflow: 'hidden', justifyContent: 'center' },
+  stage: { overflow: 'hidden', justifyContent: 'center' },
 
   readyVeil: {
     ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(6,7,11,0.86)',
@@ -352,8 +359,8 @@ const makeStyles = (C, T) => StyleSheet.create({
   readyBtnTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: '#0B0B0E' },
 
   panel: {
-    backgroundColor: '#08090D', paddingTop: S.md, paddingBottom: S.lg,
-    paddingHorizontal: S.lg, alignItems: 'center',
+    flex: 1, backgroundColor: '#08090D', paddingTop: S.lg, paddingBottom: S.lg,
+    paddingHorizontal: S.lg, alignItems: 'center', justifyContent: 'center',
     borderTopLeftRadius: R.lg, borderTopRightRadius: R.lg,
   },
   panelName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: '#fff' },

@@ -16,7 +16,13 @@ import { useTheme, R } from '../theme';
 import { framesFor } from '../exercisePhotos';
 import { photoForMuscle } from '../photos';
 
-export function Demo({ exercise, playing = true, height = 240, style }) {
+/* `fit` is 'cover' on cards, where the box is small and a filled
+   frame looks right, and 'contain' anywhere the movement itself is
+   the point. A gym photograph is landscape; covering a tall
+   portrait box with one crops it to a vertical strip through the
+   middle and cuts off the head and the feet, which is no use at all
+   when the whole question is what the movement looks like. */
+export function Demo({ exercise, playing = true, height = 240, fit = 'cover', style }) {
   const { C } = useTheme();
   const frames = framesFor(exercise);
   const fade = useRef(new Animated.Value(0)).current;
@@ -51,17 +57,17 @@ export function Demo({ exercise, playing = true, height = 240, style }) {
     return (
       <View style={box}>
         <Image source={photoForMuscle(exercise && exercise.m)}
-          style={styles.fill} resizeMode="cover" />
+          style={styles.fill} resizeMode={fit} />
       </View>
     );
   }
 
   return (
     <View style={box}>
-      <Image source={frames[0]} style={styles.fill} resizeMode="cover" />
+      <Image source={frames[0]} style={styles.fill} resizeMode={fit} />
       {frames[1] ? (
         <Animated.Image source={frames[1]} style={[styles.fill, { opacity: fade }]}
-          resizeMode="cover" />
+          resizeMode={fit} />
       ) : null}
     </View>
   );
