@@ -131,13 +131,21 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
      route all give it back without each needing to remember. */
   useClaimFullscreen();
 
-  /* The photographs are landscape, roughly four to three. Given the
-     whole gap between the header and the panel they sit in the
-     middle of it with a band of black above and below; sized to
-     their own shape they fill the width and the band goes. Capped
-     by what is actually free so a short screen does not push the
-     controls off the bottom. */
-  const stageH = Math.min(Math.round(width * 0.8), Math.max(180, height - 70 - 250));
+  /* Everything the panel does not need.
+
+     The photographs are three to two, so at full width the picture
+     is 250pt tall and no arrangement of boxes can make it bigger
+     without cutting the barbell off the end of it. What was going
+     wrong was where the leftover height went: a snug picture at the
+     top and a panel stretched under it put a hand's width of black
+     between the photograph and the words.
+
+     So the stage takes the whole gap and holds the picture in the
+     middle of it, uncropped, with the panel snug at the bottom. The
+     screen is full, nothing floats, and nothing is lost off the
+     sides. 215 is what the panel needs: name, clock, muscle and the
+     row of controls. */
+  const stageH = Math.max(220, height - 70 - 215);
 
   /* where we are: which exercise, and what is happening */
   const [i, setI] = useState(0);
@@ -215,17 +223,20 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           <Text style={styles.restNextLabel}>
             {lastEx ? t('LAST ONE DONE') : `${t('NEXT')} ${i + 2}/${total}`}
           </Text>
+          {/* Small, square, and whole. Stretched across the width it
+              was a letterbox slit showing a torso — the one thing a
+              preview must do is let you recognise the movement. */}
           <View style={styles.restNextRow}>
-            <Text style={styles.restNextName} numberOfLines={1}>
-              {lastEx ? t('Finishing up') : upcoming.n}
-            </Text>
-            <Text style={styles.restNextMeta}>{lastEx ? '' : planOf(upcoming).target}</Text>
-          </View>
-          <View style={styles.restPreview}>
-            {/* A glance, not the movement itself — filling the strip
-                reads better here than showing every last pixel. */}
-            <Demo exercise={upcoming} height={116} playing fit="cover"
-              style={{ borderRadius: R.md }} />
+            <View style={styles.restThumb}>
+              <Demo exercise={upcoming} height={80} playing fit="contain"
+                style={{ borderRadius: R.md }} />
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.restNextName} numberOfLines={2}>
+                {lastEx ? t('Finishing up') : upcoming.n}
+              </Text>
+              <Text style={styles.restNextMeta}>{lastEx ? '' : planOf(upcoming).target}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -236,7 +247,7 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
   const gettingReady = phase === 'ready';
 
   return (
-    <View style={[styles.screen, { backgroundColor: C.bg }]}>
+    <View style={styles.screen}>
       <Segments total={total} at={i} />
 
       <View style={styles.top}>
@@ -256,8 +267,16 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
           width of black between them. */}
       <View style={styles.middle}>
       <View style={[styles.stage, { height: stageH }]}>
-        <Demo exercise={ex} height={stageH} playing={!paused} fit="cover"
-          style={{ borderRadius: 0 }} />
+        {/* The same photograph twice: once blown up to fill the
+            frame and turned right down, once whole on top of it.
+            Three-to-two inside a tall phone leaves bands above and
+            below no matter what, and a band carrying the colour of
+            the room reads as the room. Flat black reads as a
+            letterbox. */}
+        <Demo exercise={ex} height={stageH} playing={false} fit="cover"
+          style={{ ...StyleSheet.absoluteFillObject, borderRadius: 0, opacity: 0.22 }} />
+        <Demo exercise={ex} height={stageH} playing={!paused} fit="contain"
+          style={{ borderRadius: 0, backgroundColor: 'transparent' }} />
 
         {gettingReady ? (
           <View style={styles.readyVeil}>
@@ -342,14 +361,17 @@ function Segments({ total, at }) {
 }
 
 const makeStyles = (C, T) => StyleSheet.create({
-  screen: { flex: 1 },
+  screen: { flex: 1, backgroundColor: '#08090D' },
 
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.lg, paddingTop: S.sm },
   x: { fontFamily: 'WorkSans_400Regular', fontSize: 26, color: C.dim, width: 26 },
   topName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 14, color: C.text },
   topMeta: { fontFamily: 'WorkSans_400Regular', fontSize: 11.5, color: C.dim, marginTop: 1 },
 
-  middle: { flex: 1, justifyContent: 'center' },
+  /* The panel takes whatever the picture leaves and runs to the
+     bottom edge, so the session is one unbroken surface rather than
+     a card floating with black under it. */
+  middle: { flex: 1 },
   stage: { overflow: 'hidden', justifyContent: 'center' },
 
   readyVeil: {
@@ -369,7 +391,7 @@ const makeStyles = (C, T) => StyleSheet.create({
   readyBtnTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 15, color: '#0B0B0E' },
 
   panel: {
-    backgroundColor: '#08090D', paddingTop: S.lg, paddingBottom: S.lg,
+    backgroundColor: '#08090D', paddingTop: S.sm, paddingBottom: S.lg,
     paddingHorizontal: S.lg, alignItems: 'center',
   },
   panelName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: '#fff' },
@@ -417,11 +439,16 @@ const makeStyles = (C, T) => StyleSheet.create({
     fontFamily: 'WorkSans_600SemiBold', fontSize: 11, letterSpacing: 1.6,
     color: 'rgba(255,255,255,0.75)',
   },
-  restNextRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
-  restNextName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: '#fff', flex: 1 },
-  restNextMeta: { fontFamily: 'WorkSans_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.85)' },
-  restPreview: {
-    marginTop: S.sm, borderRadius: R.md, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.12)',
+  restNextRow: { flexDirection: 'row', alignItems: 'center', marginTop: S.sm },
+  /* 120 × 80 is the photograph's own three to two, so it is neither
+     cropped nor letterboxed — just small. */
+  restThumb: {
+    width: 120, height: 80, borderRadius: R.md, overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  restNextName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: '#fff' },
+  restNextMeta: {
+    fontFamily: 'WorkSans_500Medium', fontSize: 14,
+    color: 'rgba(255,255,255,0.85)', marginTop: 2,
   },
 });

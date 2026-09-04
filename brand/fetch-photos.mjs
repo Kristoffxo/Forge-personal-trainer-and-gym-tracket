@@ -15,11 +15,17 @@ fs.mkdirSync(OUT, { recursive: true });
 
 let total = 0;
 for (const [name, [id, aspect, note, crop, tune]] of Object.entries(PHOTOS)) {
-  const w = aspect > 1.5 ? 900 : 560;
+  /* Sized for the screen these land on, not for the file size. A
+     phone is three device pixels to the point, so a photograph shown
+     full width needs about 1100px before it stops looking soft; the
+     terrain panels on the journey map are the full width of a tall
+     phone and need more. Unsplash serves the original, so asking for
+     more costs nothing but bytes. */
+  const w = aspect > 1.5 ? 1800 : 1120;
   const h = Math.round(w / aspect);
   /* A tall crop of a landscape photograph defaults to the middle,
      which on a hillside shot is all sky. `crop` biases it. */
-  const url = `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=68`
+  const url = `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=82`
     + (crop ? `&crop=${crop}` : '')
     /* The place badges are shown at about 60pt across. A moody wide
        shot that is lovely full-bleed is a dark smudge that small, so
@@ -32,7 +38,7 @@ for (const [name, [id, aspect, note, crop, tune]] of Object.entries(PHOTOS)) {
   if (size < 6000) throw new Error(`${name} came back too small (${size}B) — is the id still right?`);
 
   // strip metadata and re-compress; these ship inside the bundle
-  execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '62', file, '--out', file],
+  execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '80', file, '--out', file],
     { stdio: 'ignore' });
 
   const kb = Math.round(fs.statSync(file).size / 1024);

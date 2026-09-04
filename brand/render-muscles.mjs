@@ -21,14 +21,14 @@ fs.mkdirSync(OUT, { recursive: true });
 for (const key of MUSCLE_KEYS) {
   const html = path.join(TMP, key + '.html');
   fs.writeFileSync(html, `<!doctype html><meta charset="utf-8"><style>
-    html,body{margin:0;width:256px;height:256px;background:transparent}
-    svg{display:block}</style>${muscleSvg(key, '#FFFFFF', 256)}`);
+    html,body{margin:0;width:512px;height:512px;background:transparent}
+    svg{display:block}</style>${muscleSvg(key, '#FFFFFF', 512)}`);
   const out = path.join(OUT, key + '.png');
   execFileSync(CHROME, [
     '--headless=new', '--disable-gpu', '--hide-scrollbars',
     '--default-background-color=00000000',
     '--force-device-scale-factor=1',
-    '--window-size=256,256', `--screenshot=${out}`, 'file://' + html,
+    '--window-size=512,512', `--screenshot=${out}`, 'file://' + html,
   ], { stdio: ['ignore', 'ignore', 'pipe'] });
   console.log('  assets/muscles/' + key + '.png');
 }

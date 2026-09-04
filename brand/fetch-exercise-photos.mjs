@@ -10,8 +10,15 @@
    mistake: the demonstration is shown full-width, so on a 1080px
    phone every one of them was being blown up three times over and
    looked it. They now ship exactly as the database has them —
-   850px, untouched, no second JPEG generation. It costs about 15 MB
-   across three hundred files, which the app loads one at a time. */
+   800 × 533, untouched, no second JPEG generation. It costs about
+   17 MB across three hundred files, which the app loads one at a
+   time.
+
+   800px is the ceiling, not a choice: it is what free-exercise-db
+   serves, verified against the raw URLs. Nothing here can make
+   them sharper, and upscaling would only make them bigger. Real
+   HD demonstrations mean a different source — licensed stock, or
+   filming them. */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

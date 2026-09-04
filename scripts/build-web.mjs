@@ -67,16 +67,17 @@ const fonts = assets
    which stores each one the first time it is looked at. The cost is
    that an exercise you have never opened is not available offline.
    That is a fair trade for not spending fifteen megabytes on a
-   library most people will see a tenth of. */
+   library most people will see a tenth of.
+   assets/photos goes the same way. Those are the wide scene shots and
+   the four terrain panels behind the journey map, and they were sized
+   up to stop looking soft on a 3x screen — which took them from one
+   and a half megabytes to five and a half. Worth it on screen, not
+   worth it before the app has started. */
 const isImage = (p) => /\.(webp|png|jpg|jpeg|gif|svg)$/i.test(p);
-const images = assets
-  .filter(isImage)
-  .filter((p) => !p.includes(`${path.sep}exercises${path.sep}`))
-  .map(rel);
-const lazyImages = assets
-  .filter(isImage)
-  .filter((p) => p.includes(`${path.sep}exercises${path.sep}`))
-  .map(rel);
+const LATER = ['exercises', 'photos'];
+const later = (p) => LATER.some((d) => p.includes(`${path.sep}${d}${path.sep}`));
+const images = assets.filter(isImage).filter((p) => !later(p)).map(rel);
+const lazyImages = assets.filter(isImage).filter(later).map(rel);
 
 const precache = [
   ...new Set([
@@ -144,5 +145,5 @@ const lazyBytes = lazyImages.reduce((n2, u) => {
 }, 0);
 
 console.log(`  precaching ${precache.length} files, ${(bytes / 1024 / 1024).toFixed(1)} MB`);
-console.log(`  on demand  ${lazyImages.length} exercise photos, ${(lazyBytes / 1024 / 1024).toFixed(1)} MB`);
+console.log(`  on demand  ${lazyImages.length} photographs, ${(lazyBytes / 1024 / 1024).toFixed(1)} MB`);
 console.log(`\n  deploy:  ${path.relative(process.cwd(), OUT) || 'web-build'}\n`);
