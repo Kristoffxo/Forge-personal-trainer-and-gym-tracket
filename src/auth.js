@@ -49,6 +49,35 @@ export async function getSession() {
   return data.session || null;
 }
 
+/* Where a reset link should land. On the web that is wherever the
+   app is being served from; on a phone there is nothing to open but
+   the web app, which is the right place to set a password anyway. */
+function backTo() {
+  if (typeof window !== 'undefined' && window.location) return window.location.origin;
+  return 'https://nemea.thearyanbasantani.workers.dev';
+}
+
+export async function sendReset(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    String(email || '').trim(), { redirectTo: backTo() },
+  );
+  return error ? { error: friendly(error.message) } : { ok: true };
+}
+
+export async function setPassword(password) {
+  const { error } = await supabase.auth.updateUser({ password });
+  return error ? { error: friendly(error.message) } : { ok: true };
+}
+
+/* Fires when somebody arrives on a reset link, so App can show the
+   set-a-new-password screen instead of the app. */
+export function onRecovery(fn) {
+  const { data } = supabase.auth.onAuthStateChange((e) => {
+    if (e === 'PASSWORD_RECOVERY') fn();
+  });
+  return () => data.subscription.unsubscribe();
+}
+
 export function onAuthChange(fn) {
   const { data } = supabase.auth.onAuthStateChange((_e, session) => fn(session));
   return () => data.subscription.unsubscribe();

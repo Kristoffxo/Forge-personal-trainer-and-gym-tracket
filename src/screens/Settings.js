@@ -19,7 +19,7 @@ import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { supabase } from '../supabase';
 import { api } from '../api';
-import { saveProfile, signOut } from '../auth';
+import { saveProfile, signOut, sendReset } from '../auth';
 import { trainedDays } from '../challenge';
 import { setAvatar, removeAvatar } from '../social';
 import { pickPhoto, CAN_TAKE_PHOTOS } from '../photo';
@@ -139,10 +139,10 @@ export default function Settings({ user, profile, onProfile, onAdmin }) {
       confirmLabel: t('Send it'),
     });
     if (!yes) return;
-    const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+    const r = await sendReset(user.email);
     await sheet.tell({
-      title: error ? t('Could not send') : t('Check your email'),
-      message: error ? error.message : t('The link lets you set a new password. This app never sees it.'),
+      title: r.error ? t('Could not send') : t('Check your email'),
+      message: r.error || t('The link lets you set a new password. This app never sees it.'),
     });
   }
 

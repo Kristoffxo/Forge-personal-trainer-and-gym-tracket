@@ -19,7 +19,7 @@ import { View, Text, TextInput, StyleSheet, ScrollView, Pressable,
 import { S, R, useTheme, REPPO_ORANGE } from '../theme';
 import { FadeIn, useKeyboardHeight } from '../ui/kit';
 import { Lockup } from '../ui/logo';
-import { signIn, signUp } from '../auth';
+import { signIn, signUp, sendReset } from '../auth';
 import { useLang } from '../lang';
 
 /* The screen is always the dark one, whatever the app is set to: it
@@ -57,6 +57,16 @@ export default function Auth({ onDone }) {
       return;
     }
     onDone();
+  }
+
+  async function forgot() {
+    const to = email.trim();
+    if (to.length < 4) { setErr(t('Type your email above first.')); return; }
+    setErr(''); setNote(''); setBusy(true);
+    const r = await sendReset(to);
+    setBusy(false);
+    if (r.error) { setErr(r.error); return; }
+    setNote(t('Sent. Open the link in that email to set a new password.'));
   }
 
   function swap() {
@@ -127,6 +137,14 @@ export default function Auth({ onDone }) {
                   </Text>
                 )}
             </Pressable>
+
+            {/* Only on the sign-in side. Somebody creating an account
+                has no password to have forgotten. */}
+            {isUp ? null : (
+              <Pressable onPress={forgot} hitSlop={10} style={styles.swap}>
+                <Text style={[styles.swapTxt, { color: DIM }]}>{t('Forgot your password?')}</Text>
+              </Pressable>
+            )}
 
             <Pressable onPress={swap} hitSlop={10} style={styles.swap}>
               <Text style={styles.swapTxt}>

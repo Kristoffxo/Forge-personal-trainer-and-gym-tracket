@@ -18,7 +18,7 @@ import { FullscreenProvider, useFullscreen } from './src/fullscreen';
 import { Mark } from './src/ui/logo';
 import { TabIcon } from './src/ui/tabIcons';
 import { ActivityBanner } from './src/ui/activity';
-import { getSession, onAuthChange, getProfile } from './src/auth';
+import { getSession, onAuthChange, onRecovery, getProfile } from './src/auth';
 import { useWebChrome } from './src/webChrome';
 import * as push from './src/push';
 import { trainedDays } from './src/challenge';
@@ -34,6 +34,7 @@ import AdminPortal from './src/screens/AdminPortal';
 import Journey  from './src/screens/Journey';
 
 import Onboarding from './src/screens/Onboarding';
+import NewPassword from './src/screens/NewPassword';
 import { TAB_NOTES, seenTabs, markSeen } from './src/tabNotes';
 
 /* Five tabs, in the order they are used. Train is first because it
@@ -91,6 +92,9 @@ function Root() {
   const [fontsLoaded] = useFonts({ WorkSans_600SemiBold, WorkSans_400Regular, WorkSans_500Medium,
                                    Caveat_600SemiBold, Caveat_700Bold });
   const [session, setSession] = useState(undefined);   // undefined = still checking
+  /* Opening a reset link signs you in. Without this you would land
+     inside the app holding a password you still do not know. */
+  const [recovering, setRecovering] = useState(false);
   const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState('train');
   const [adding, setAdding] = useState(null);      // meal name, for the food search
@@ -108,6 +112,8 @@ function Root() {
 
   const { width } = useWindowDimensions();
   const slide = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => onRecovery(() => setRecovering(true)), []);
 
   useEffect(() => {
     getSession().then(setSession);
@@ -208,6 +214,15 @@ function Root() {
      which is the flash people saw after pressing Create. */
   if (!fontsLoaded || session === undefined || (session && !profile)) {
     return <View style={styles.boot}><ActivityIndicator color={C.gold} /></View>;
+  }
+
+  if (recovering) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <NewPassword onDone={() => setRecovering(false)} />
+      </>
+    );
   }
 
   if (!session) {
