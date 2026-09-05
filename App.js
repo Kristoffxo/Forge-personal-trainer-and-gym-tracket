@@ -12,7 +12,7 @@ import { Caveat_600SemiBold, Caveat_700Bold } from '@expo-google-fonts/caveat';
 import { useTheme, ThemeProvider, SIDE_BLUE, SIDE_PINK } from './src/theme';
 import { SideProvider, useSide, MEN, WOMEN } from './src/side';
 import { LangProvider, useLang } from './src/lang';
-import { Press } from './src/ui/kit';
+import { Btn, Press } from './src/ui/kit';
 import { SheetProvider, useSheet } from './src/ui/sheet';
 import { FullscreenProvider, useFullscreen } from './src/fullscreen';
 import { Mark } from './src/ui/logo';
@@ -220,6 +220,29 @@ function Root() {
   }
 
   const user = session.user;
+
+  /* Signed in, but the profile could not be read and has never been
+     seen on this phone. Onboarding is the wrong answer — it asks
+     somebody who may have been using the app for months to fill it
+     all in again, and then writes those answers over the real ones.
+     A retry is the honest answer. */
+  if (profile && profile.unknown) {
+    return (
+      <>
+        <StatusBar style={mode === 'light' ? 'dark' : 'light'} />
+        <SafeAreaView style={styles.wrap} edges={EDGES_TOP}>
+          <View style={[styles.boot, { paddingHorizontal: 32 }]}>
+            <Text style={[T.h2, { textAlign: 'center' }]}>{tr('Cannot reach Reppo')}</Text>
+            <Text style={[T.small, { textAlign: 'center', marginTop: 8 }]}>
+              {tr('Your workouts are safe. This needs a connection to load them.')}
+            </Text>
+            <Btn label={tr('Try again')} color={C.ember} style={{ marginTop: 24 }}
+              onPress={() => getProfile().then(setProfile)} />
+          </View>
+        </SafeAreaView>
+      </>
+    );
+  }
 
   if (profile && !profile.onboarded) {
     return (

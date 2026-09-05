@@ -26,7 +26,6 @@ import { Btn, Press, FadeIn, Label } from '../ui/kit';
 import { kitLabel } from '../exercises';
 import { useLang } from '../lang';
 import { Demo } from '../ui/demo';
-import { Timer } from '../ui/timer';
 import { useClaimFullscreen } from '../fullscreen';
 import { parseDuration, setsReps } from '../duration';
 import { STEP_NOTE } from '../seniorPlan';
@@ -116,8 +115,10 @@ export default function Exercise({ exercise, index, total, list, onGo, onDone, o
           C={C} T={T} styles={styles} t={t} />
 
         <FadeIn delay={60} style={{ paddingHorizontal: S.lg, paddingBottom: S.lg }}>
-          {held ? <Timer seconds={held.seconds} eachSide={held.eachSide} tint={tint} /> : null}
-
+          {/* No timer here. This screen is what you read before you
+              start; the card below already says how long the hold is,
+              and the player runs the clock once you have begun. Two
+              timers for one hold is one timer too many. */}
           {/* The seniors side writes its movements out. Everywhere else
               an exercise is a name and a rep scheme, because everyone
               else already knows what a squat is. */}

@@ -128,6 +128,14 @@ export default function Library({ place, user, profile, onBack }) {
         </ImageBackground>
 
         <View style={{ paddingHorizontal: S.lg, marginTop: S.md }}>
+          {/* The button goes above the list, the same as every other
+              workout. It was under eight stretches, which meant
+              scrolling past the whole flow to begin it. */}
+          {picked.exercises.length ? (
+            <Btn label={t('Start this workout')} color={accent}
+              onPress={() => setRunning(true)} style={{ marginBottom: S.md }} />
+          ) : null}
+
           {picked.exercises.map((x, i) => (
             <FadeIn key={x.n + i} delay={i * 12} from={6}>
               <Press onPress={() => setPeek(i)} scaleTo={0.99} style={styles.exRow}>
@@ -155,8 +163,6 @@ export default function Library({ place, user, profile, onBack }) {
 
           {picked.exercises.length ? (
             <>
-              <Btn label={t('Start this workout')} color={accent}
-                onPress={() => setRunning(true)} style={{ marginTop: S.lg }} />
               <Press onPress={shuffle} scaleTo={0.97} style={styles.shuffle}>
                 <Text style={[styles.shuffleTxt, { color: accent }]}>
                   {'\u21BB'}  {t('Shuffle the exercises')}

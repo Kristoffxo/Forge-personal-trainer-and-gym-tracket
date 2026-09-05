@@ -23,7 +23,7 @@ import { Btn, Bar, Press, FadeIn, Label, useTabPad } from '../ui/kit';
 import { useSheet } from '../ui/sheet';
 import { useLang } from '../lang';
 import { myJourney, journeyEntries, saveJourneyEntry } from '../challenge';
-import { RANKS, LEAGUES, TERRAIN, terrainOf, TOP, journeyFrom } from '../journey';
+import { LEAGUES, terrainOf } from '../journey';
 import { PER_WORKOUT, PER_POST, PER_WIN } from '../score';
 import { bmiFrom, bandOf, healthyRange, scalePos } from '../bmi';
 import { JourneyMap, MAP_HEIGHT, LEAGUE_ICON, TERRAIN_PHOTO } from '../ui/journeyMap';
@@ -47,7 +47,6 @@ export default function Journey({ user, profile }) {
   const [me, setMe] = useState(null);
   const [entries, setEntries] = useState({});
   const [open, setOpen] = useState(null);      // a milestone being read
-  const [list, setList] = useState(false);
   /* Three things live in this tab and they want different screens:
      the number, the climb it drives, and the record of what you
      actually did. Score opens first — it is the one that changes
@@ -181,7 +180,7 @@ export default function Journey({ user, profile }) {
             <Stat label={t('BMI')} value={start && start.bmi} unit="" C={C} T={T} />
             <Press
               onPress={() => setOpen({ n: 0, at: 0, name: 'Your Starting Point',
-                league: 'bronze', colour: LEAGUES[0].colour, terrain: 'meadow' })}
+                league: 'bronze', colour: LEAGUES[0].colour, terrain: 'valley' })}
               scaleTo={0.97}>
               <Text style={[styles.startLink, { color: C.ember }]}>
                 {start ? t('Change it') : t('Set it')}
@@ -191,15 +190,9 @@ export default function Journey({ user, profile }) {
 
           <BmiCard profile={profile} entries={entries} C={C} T={T} t={t} styles={styles} />
 
-          <Press onPress={() => setList(true)} scaleTo={0.98} style={styles.rowBtn}>
-            <Text style={[T.bodyOn, { flex: 1, fontSize: 15 }]}>{t('List view')}</Text>
-            <Text style={{ color: C.dim }}>{'›'}</Text>
-          </Press>
         </View>
       </ScrollView>
 
-      {list ? <ListView days={me.days} entries={entries}
-        onPick={(m) => { setList(false); setOpen(m); }} onBack={() => setList(false)} /> : null}
     </View>
   );
 }
@@ -470,62 +463,6 @@ function ReadOut({ label, value, band, hint, C, T }) {
 /* ---------------------------------------------------------------
    The same thirteen places, as a list, grouped by level.
    --------------------------------------------------------------- */
-function ListView({ days, entries, onPick, onBack }) {
-  const { C, T, mode } = useTheme();
-  const light = mode === 'light';
-  const { t } = useLang();
-  const styles = makeStyles(C, T);
-  const tabPad = useTabPad();
-
-  return (
-    <SwipeBack onBack={onBack}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: C.bg }]}>
-        <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
-          <Press onPress={onBack} hitSlop={16} scaleTo={0.94} style={{ alignSelf: 'flex-start' }}>
-            <Text style={[T.small, { color: C.ember }]}>{'\u2190'} {t('Map')}</Text>
-          </Press>
-          <Text style={styles.listTitle}>{t('Leagues')}</Text>
-          <Text style={[T.small, { marginBottom: S.lg }]}>
-            {t('Every 50 Reppo Score is a promotion.')}
-          </Text>
-
-          {/* One row per league. There used to be a heading and three
-              numbered rows under it; with the tiers gone the heading
-              and its single row said the same thing twice. */}
-          {RANKS.map((r) => {
-            const reached = days >= r.at;
-            const e = entries[r.n];
-            return (
-              <Press key={r.n} onPress={() => onPick(r)} scaleTo={0.985} style={styles.listRow}>
-                <View style={[styles.listMedal, {
-                  borderColor: r.colour,
-                  backgroundColor: reached ? r.colour : 'transparent',
-                }]}>
-                  <Image source={LEAGUE_ICON[r.league]}
-                    style={{ width: 20, height: 20,
-                             tintColor: reached ? '#0B0B0E' : r.colour }}
-                    resizeMode="contain" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.listName, { color: reached ? C.text : C.dim }]}>
-                    {t(r.name)}
-                  </Text>
-                  {e && e.weight_kg != null ? (
-                    <Text style={T.tiny}>{e.weight_kg} kg</Text>
-                  ) : null}
-                </View>
-                <Text style={T.tiny}>{r.at} {t('RS')}</Text>
-                <Text style={{ color: C.faint, marginLeft: 8 }}>{'\u203A'}</Text>
-              </Press>
-            );
-          })}
-
-        </ScrollView>
-      </View>
-    </SwipeBack>
-  );
-}
-
 const PAGES = [
   { key: 'score', label: 'Score' },
   { key: 'map', label: 'Journey' },

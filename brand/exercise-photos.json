@@ -115,6 +115,10 @@
   "Hammer_Curls/0.jpg",
   "Hammer_Curls/1.jpg"
  ],
+ "Concentration Curl": [
+  "Concentration_Curls/0.jpg",
+  "Concentration_Curls/1.jpg"
+ ],
  "Incline Dumbbell Curl": [
   "Incline_Dumbbell_Curl/0.jpg",
   "Incline_Dumbbell_Curl/1.jpg"
@@ -287,6 +291,10 @@
   "Superman/0.jpg",
   "Superman/1.jpg"
  ],
+ "Bent Over Dumbbell Row": [
+  "Bent_Over_Two-Dumbbell_Row/0.jpg",
+  "Bent_Over_Two-Dumbbell_Row/1.jpg"
+ ],
  "Wide-Grip Pull-up": [
   "Wide-Grip_Rear_Pull-Up/0.jpg",
   "Wide-Grip_Rear_Pull-Up/1.jpg"
@@ -330,6 +338,10 @@
  "Front Leg Raise": [
   "Front_Leg_Raises/0.jpg",
   "Front_Leg_Raises/1.jpg"
+ ],
+ "Calf Raise": [
+  "Barbell_Seated_Calf_Raise/0.jpg",
+  "Barbell_Seated_Calf_Raise/1.jpg"
  ],
  "Air Bike": [
   "Air_Bike/0.jpg",
@@ -510,117 +522,5 @@
  "Monster Walk": [
   "Monster_Walk/0.jpg",
   "Monster_Walk/1.jpg"
- ],
- "Child’s Pose": [
-  "Childs_Pose/0.jpg",
-  "Childs_Pose/1.jpg"
- ],
- "Cat Cow": [
-  "Cat_Stretch/0.jpg",
-  "Cat_Stretch/1.jpg"
- ],
- "One Knee To Chest": [
-  "One_Knee_To_Chest/0.jpg",
-  "One_Knee_To_Chest/1.jpg"
- ],
- "Reclined Butterfly": [
-  "Lying_Bent_Leg_Groin/0.jpg",
-  "Lying_Bent_Leg_Groin/1.jpg"
- ],
- "Supine Spinal Twist": [
-  "Dancers_Stretch/0.jpg",
-  "Dancers_Stretch/1.jpg"
- ],
- "Pelvic Tilt Into Bridge": [
-  "Pelvic_Tilt_Into_Bridge/0.jpg",
-  "Pelvic_Tilt_Into_Bridge/1.jpg"
- ],
- "Standing Pelvic Tilt": [
-  "Standing_Pelvic_Tilt/0.jpg",
-  "Standing_Pelvic_Tilt/1.jpg"
- ],
- "Kneeling Hip Flexor Stretch": [
-  "Kneeling_Hip_Flexor/0.jpg",
-  "Kneeling_Hip_Flexor/1.jpg"
- ],
- "Seated Glute Stretch": [
-  "Seated_Glute/0.jpg",
-  "Seated_Glute/1.jpg"
- ],
- "Groin and Back Stretch": [
-  "Groin_and_Back_Stretch/0.jpg",
-  "Groin_and_Back_Stretch/1.jpg"
- ],
- "Side Lying Groin Stretch": [
-  "Side_Lying_Groin_Stretch/0.jpg",
-  "Side_Lying_Groin_Stretch/1.jpg"
- ],
- "Lying Glute Stretch": [
-  "Lying_Glute/0.jpg",
-  "Lying_Glute/1.jpg"
- ],
- "Overhead Stretch": [
-  "Overhead_Stretch/0.jpg",
-  "Overhead_Stretch/1.jpg"
- ],
- "Standing Side Stretch": [
-  "Standing_Lateral_Stretch/0.jpg",
-  "Standing_Lateral_Stretch/1.jpg"
- ],
- "Seated Hamstring Stretch": [
-  "Seated_Floor_Hamstring_Stretch/0.jpg",
-  "Seated_Floor_Hamstring_Stretch/1.jpg"
- ],
- "Lower Back Curl": [
-  "Lower_Back_Curl/0.jpg",
-  "Lower_Back_Curl/1.jpg"
- ],
- "Upper Back Stretch": [
-  "Upper_Back_Stretch/0.jpg",
-  "Upper_Back_Stretch/1.jpg"
- ],
- "Middle Back Stretch": [
-  "Middle_Back_Stretch/0.jpg",
-  "Middle_Back_Stretch/1.jpg"
- ],
- "Chair Lower Back Stretch": [
-  "Chair_Lower_Back_Stretch/0.jpg",
-  "Chair_Lower_Back_Stretch/1.jpg"
- ],
- "Ankle Circles": [
-  "Ankle_Circles/0.jpg",
-  "Ankle_Circles/1.jpg"
- ],
- "Side Leg Raises": [
-  "Side_Leg_Raises/0.jpg",
-  "Side_Leg_Raises/1.jpg"
- ],
- "Calf Stretch at the Wall": [
-  "Calf_Stretch_Hands_Against_Wall/0.jpg",
-  "Calf_Stretch_Hands_Against_Wall/1.jpg"
- ],
- "Knee Circles": [
-  "Knee_Circles/0.jpg",
-  "Knee_Circles/1.jpg"
- ],
- "Arm Circles": [
-  "Arm_Circles/0.jpg",
-  "Arm_Circles/1.jpg"
- ],
- "Side Neck Stretch": [
-  "Side_Neck_Stretch/0.jpg",
-  "Side_Neck_Stretch/1.jpg"
- ],
- "Chair Upper Body Stretch": [
-  "Chair_Upper_Body_Stretch/0.jpg",
-  "Chair_Upper_Body_Stretch/1.jpg"
- ],
- "Hug Knees To Chest": [
-  "Hug_Knees_To_Chest/0.jpg",
-  "Hug_Knees_To_Chest/1.jpg"
- ],
- "Split Squat": [
-  "Split_Squats/0.jpg",
-  "Split_Squats/1.jpg"
  ]
 }

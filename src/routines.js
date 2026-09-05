@@ -144,21 +144,25 @@ export function sizeFor(level) {
 /* ---------------------------------------------------------------
    What you can actually do, where you are.
 
-     HOME_KIT     the floor, the furniture already in the room, a
-                  band, and one dumbbell — which can be a water can
+     HOME_KIT     the floor, the furniture already in the room, and
+                  one dumbbell — which can be a water can
      FLOOR_ONLY   the floor and nothing else, for a hotel room
 
    A bar, an ab wheel and a partner to hold your ankles are none of
    those, however bodyweight the movement is. That distinction is the
    whole of this file's contribution to "home workouts are home
    workouts".
-   --------------------------------------------------------------- */
-export const HOME_KIT = ['None', 'Chair', 'Band', 'Dumbbell'];
+
+   Resistance bands are out. A chair is in the room already and a
+   water can stands in for a dumbbell, but a band is a thing you have
+   to have gone out and bought — and a home workout that opens with
+   kit you do not own is not a home workout. */
+export const HOME_KIT = ['None', 'Chair', 'Dumbbell'];
 export const FLOOR_ONLY = ['None'];
 
 /* Least kit first, so a home session opens with something you can
    start right now and only reaches for the dumbbell further down. */
-const KIT_ORDER = { None: 0, Chair: 1, Band: 2, Dumbbell: 3 };
+const KIT_ORDER = { None: 0, Chair: 1, Dumbbell: 2 };
 
 export function poolFor(muscle, place, side) {
   let all = EX.filter((x) => x.m === muscle);

@@ -66,6 +66,9 @@ export const EX = [
   { n:'Barbell Curl',               m:'Biceps', t:'i', e:'Barbell',  s:'4 × 8–10' },
   { n:'Dumbbell Curl',              m:'Biceps', t:'i', e:'Dumbbell', s:'3 × 10–12' },
   { n:'Hammer Curl',                m:'Biceps', t:'i', e:'Dumbbell', s:'3 × 10–12', w:1 },
+  /* And one more curl, for the same reason: an advanced pull day at
+     home is seven movements and the band ones are gone. */
+  { n:'Concentration Curl',         m:'Biceps', t:'i', e:'Dumbbell', s:'3 × 10–12', w:1 },
   { n:'Incline Dumbbell Curl',      m:'Biceps', t:'i', e:'Dumbbell', s:'3 × 12' },
   { n:'Cable Curl',                 m:'Biceps', t:'i', e:'Cable',    s:'3 × 12–15', w:1 },
   { n:'Chin-up',                    m:'Biceps', t:'c', e:'Bar',     s:'3 × 6–10' },
@@ -127,6 +130,12 @@ export const EX = [
   { n:'Plyo Push-up',               m:'Chest', t:'c', e:'None',     s:'3 × 6–8', x:1 },
 
   { n:'Superman',                   m:'Back', t:'i', e:'None',      s:'3 × 12–15', w:1 },
+  /* Home back, without a band. Dropping resistance bands from the
+     home kit left three usable back movements, which is not enough
+     to fill a pull session. A two-dumbbell row is the same horizontal
+     pull the gym already has, so it fills the gap at home without
+     changing what a pull day looks like anywhere else. */
+  { n:'Bent Over Dumbbell Row',     m:'Back', t:'c', e:'Dumbbell',  s:'3 × 10–12', w:1 },
   { n:'Wide-Grip Pull-up',          m:'Back', t:'c', e:'Bar',      s:'4 × 6–10', x:1 },
 
   { n:'Handstand Push-up',          m:'Shoulders', t:'c', e:'None', s:'3 × 5–8', x:1 },

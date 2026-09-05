@@ -35,6 +35,8 @@ export const NO_PHOTO = [
 
 const ALIAS = {
   'Split Squat': 'Split Squats',
+  'Bent Over Dumbbell Row': 'Bent Over Two-Dumbbell Row',
+  'Concentration Curl': 'Concentration Curls',
   /* ---- the seniors side ---- */
   'Ankle Circles': 'Ankle Circles',
   'Side Leg Raises': 'Side Leg Raises',

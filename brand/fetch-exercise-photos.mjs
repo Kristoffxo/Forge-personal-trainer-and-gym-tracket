@@ -60,9 +60,17 @@ if (got !== want) {
   throw new Error(`only ${got} of ${want} files arrived — the old photographs are untouched, run it again`);
 }
 
-/* everything is here: swap it in */
-fs.rmSync(OUT, { recursive: true, force: true });
-fs.renameSync(STAGE, OUT);
+/* Everything is here: copy it over.
+
+   This used to delete the folder and rename the staging one into its
+   place, which also deleted every photograph this script does not
+   fetch — the seniors and yoga stretches, sixty-odd files that come
+   from elsewhere. Twice. Copying over the top updates what was
+   re-fetched and leaves the rest alone. */
+for (const f of fs.readdirSync(STAGE)) {
+  fs.copyFileSync(path.join(STAGE, f), path.join(OUT, f));
+}
+fs.rmSync(STAGE, { recursive: true, force: true });
 
 fs.writeFileSync(path.join(ROOT, 'brand', 'exercise-index.json'), JSON.stringify(index, null, 1));
 console.log(`${Object.keys(index).length} exercises, ${got} files, ${Math.round(bytes / 1024 / 1024)} MB total`);

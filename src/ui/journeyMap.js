@@ -263,8 +263,6 @@ function Node({ spot, width, days, onPress, isNext }) {
    feel like a place rather than a slot machine.
    --------------------------------------------------------------- */
 const ALONG = [
-  'the first week is the hardest',
-  'nobody starts strong',
   'rest days are part of it',
   'you have come further than you think',
   'a gap costs you nothing here',
