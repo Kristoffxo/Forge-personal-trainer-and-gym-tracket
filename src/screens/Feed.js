@@ -530,7 +530,12 @@ function PostView({ post, user, profile, onBack }) {
           <Press onPress={onBack} hitSlop={12} scaleTo={0.94}>
             <Text style={[T.small, { color: C.gold }]}>{'←'} {t('Feed')}</Text>
           </Press>
-          <Label style={{ color: C.text }}>{firstNameOf(post.name)}</Label>
+          {/* Spaced off the back link. Label is letter-spaced caps,
+              and butted straight against "← Feed" the two ran into
+              each other and read as one word. */}
+          <Label style={{ color: C.text, marginLeft: S.md }}>
+            {firstNameOf(post.name)}
+          </Label>
           <View style={{ flex: 1 }} />
           {mine ? (
             <Press onPress={showLikers} hitSlop={12} scaleTo={0.94}>
@@ -553,7 +558,11 @@ function PostView({ post, user, profile, onBack }) {
               </View>
               <ScrollView style={{ maxHeight: 380 }}>
                 {likers.map((who, i) => {
-                  const rank = journeyFrom(who.days_trained || 0).rank;
+                  /* Only from a published score. days_trained is a
+                     count of days, not points, and reading it as one
+                     put everybody in Bronze. */
+                  const rank = typeof who.reppo_score === 'number'
+                    ? journeyFrom(who.reppo_score).rank : null;
                   return (
                     <View key={i} style={styles.likerRow}>
                       <Avatar name={who.name} path={who.avatar_path} at={who.avatar_at}
@@ -561,7 +570,7 @@ function PostView({ post, user, profile, onBack }) {
                       <View style={{ flex: 1, marginLeft: 12 }}>
                         <Text style={styles.commentWho}>{who.name}</Text>
                         <Text style={[T.tiny, rank ? { color: rank.colour } : null]}>
-                          {rank ? rank.name : t('Bronze 3')}
+                          {rank ? `${rank.name} · ${who.reppo_score} RS` : ''}
                         </Text>
                       </View>
                     </View>

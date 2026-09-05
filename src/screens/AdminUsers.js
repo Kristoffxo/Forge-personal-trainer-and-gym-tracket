@@ -114,7 +114,8 @@ export default function AdminUsers() {
       </Label>
 
       {users.map((u) => {
-        const rank = journeyFrom(u.days_trained || 0).rank;
+        const rank = typeof u.reppo_score === 'number'
+          ? journeyFrom(u.reppo_score).rank : null;
         return (
           <Press key={u.id} onPress={() => setOpen(u.id)} scaleTo={0.985} style={styles.row}>
             <Avatar name={u.name} path={u.avatar_path} at={u.avatar_at}
@@ -127,7 +128,7 @@ export default function AdminUsers() {
               </View>
               <Text style={T.tiny} numberOfLines={1}>{u.email}</Text>
               <Text style={T.tiny}>
-                {rank ? rank.name : 'Bronze 3'} · {u.days_trained || 0} days · {u.posts || 0} posts
+                {rank ? `${rank.name} · ` : ''}{u.days_trained || 0} days · {u.posts || 0} posts
               </Text>
             </View>
             <Text style={{ color: C.faint, marginLeft: 8 }}>{'›'}</Text>
@@ -223,7 +224,7 @@ function Person({ userId, onBack, onGone }) {
 
   if (!d) return <View style={styles.boot}><ActivityIndicator color={C.violet} /></View>;
 
-  const me = journeyFrom(d.days_trained || 0);
+  const me = journeyFrom(typeof d.reppo_score === 'number' ? d.reppo_score : 0);
 
   return (
     <SwipeBack onBack={onBack}>

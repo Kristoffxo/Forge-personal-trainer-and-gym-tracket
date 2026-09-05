@@ -157,14 +157,41 @@ export function sizeFor(level) {
    water can stands in for a dumbbell, but a band is a thing you have
    to have gone out and bought — and a home workout that opens with
    kit you do not own is not a home workout. */
-export const HOME_KIT = ['None', 'Chair', 'Dumbbell'];
 export const FLOOR_ONLY = ['None'];
 
-/* Least kit first, so a home session opens with something you can
-   start right now and only reaches for the dumbbell further down. */
-const KIT_ORDER = { None: 0, Chair: 1, Dumbbell: 2 };
+/* Three ways into a home session, not one.
 
-export function poolFor(muscle, place, side) {
+   Home Workouts used to be one bucket — bodyweight, a chair and a
+   dumbbell all mixed together — which meant somebody with nothing
+   but the floor still saw dumbbell rows in their list. These are
+   the three tiers it now picks from, chosen up front:
+
+     'none'      the floor and the furniture already in the room
+     'dumbbell'  the above, plus one dumbbell — a water can counts
+     'band'      the above, plus a resistance band, instead of one
+
+   A chair is furniture, not equipment, so it stays in every tier.
+   HOME_KIT is the dumbbell tier and the default: it is what every
+   caller that does not know about tiers — the seniors' side, the
+   test scripts, `usable` with no fourth argument — has always meant
+   by "home kit". */
+export const KIT_TIERS = {
+  none: ['None', 'Chair'],
+  dumbbell: ['None', 'Chair', 'Dumbbell'],
+  band: ['None', 'Chair', 'Band'],
+};
+export const HOME_KIT = KIT_TIERS.dumbbell;
+
+/* Least kit first, so a home session opens with something you can
+   start right now and only reaches for the extra piece further
+   down. */
+const KIT_ORDER = { None: 0, Chair: 1, Dumbbell: 2, Band: 2 };
+
+function kitOf(kit) {
+  return KIT_TIERS[kit] || HOME_KIT;
+}
+
+export function poolFor(muscle, place, side, kit) {
   let all = EX.filter((x) => x.m === muscle);
 
   if (isWomen(side)) {
@@ -183,18 +210,19 @@ export function poolFor(muscle, place, side) {
   if (place === 'instant') return all.filter((x) => FLOOR_ONLY.includes(x.e));
   if (place !== 'home' && !isSenior(side)) return all;
 
+  const allowed = isSenior(side) ? HOME_KIT : kitOf(kit);
   return all
-    .filter((x) => HOME_KIT.includes(x.e))
+    .filter((x) => allowed.includes(x.e))
     .sort((a, b) => KIT_ORDER[a.e] - KIT_ORDER[b.e]);
 }
 
-function usable(x, place, side) {
+function usable(x, place, side, kit) {
   if (isSenior(side)) {
     return HOME_KIT.includes(x.e) && !TOO_MUCH.test(x.n) && !x.x;
   }
   if (place === 'instant') return FLOOR_ONLY.includes(x.e);
   if (place !== 'home') return true;
-  return HOME_KIT.includes(x.e);
+  return kitOf(kit).includes(x.e);
 }
 
 /* ---------------------------------------------------------------
@@ -462,11 +490,13 @@ function pickFor(pool, n, seed, place, sessionPatterns) {
   return chosen.slice().sort((a, b) => (a.t === 'c' ? 0 : 1) - (b.t === 'c' ? 0 : 1));
 }
 
-export function buildRoutine({ target, place = 'gym', level = 'intermediate', side = 'men', seed = 0 }) {
+export function buildRoutine({
+  target, place = 'gym', level = 'intermediate', side = 'men', seed = 0, kit,
+}) {
   const t = typeof target === 'string' ? targetByKey(target) : target;
   const want = sizeFor(level);
 
-  const live = t.muscles.filter((m) => EX.some((x) => x.m === m && usable(x, place, side)));
+  const live = t.muscles.filter((m) => EX.some((x) => x.m === m && usable(x, place, side, kit)));
   if (!live.length) return { ...t, exercises: [] };
 
   const per = share(live, want, side);
@@ -476,7 +506,7 @@ export function buildRoutine({ target, place = 'gym', level = 'intermediate', si
   live.forEach((m, mi) => {
     /* the muscle index goes into the seed so shuffling a session
        moves every muscle, not the first one only */
-    out.push(...pickFor(poolFor(m, place, side), per[m], seed * 31 + mi, place, sessionPatterns));
+    out.push(...pickFor(poolFor(m, place, side, kit), per[m], seed * 31 + mi, place, sessionPatterns));
   });
 
   return { ...t, exercises: out };

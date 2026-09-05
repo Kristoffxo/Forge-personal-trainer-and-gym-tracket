@@ -29,6 +29,15 @@ import Exercise from './Exercise';
 import { setsReps } from '../duration';
 import { SwipeBack } from '../ui/swipeBack';
 
+/* The three home tiers, in the order somebody has them: nothing at
+   all is the common case and goes first. A chair is furniture rather
+   than equipment, so it is in all three. */
+const KITS = [
+  { key: 'none', name: 'No equipment', sub: 'Just you, the floor and a chair' },
+  { key: 'dumbbell', name: 'With a dumbbell', sub: 'One dumbbell — a water can counts' },
+  { key: 'band', name: 'With a resistance band', sub: 'One band, and the floor' },
+];
+
 export default function Library({ place, user, profile, onBack }) {
   const { C, T, MUSCLE_C } = useTheme();
   const { t } = useLang();
@@ -43,6 +52,11 @@ export default function Library({ place, user, profile, onBack }) {
      so backing out and opening it again does not silently reroll
      the session somebody was about to start. */
   const [seeds, setSeeds] = useState({});
+  /* What you have to train with today. Home Workouts used to be one
+     bucket with a dumbbell already in it, so somebody with nothing
+     but the floor still got dumbbell rows. Nothing is the default,
+     because that is what "no gym needed" has to mean. */
+  const [kit, setKit] = useState('none');
 
   const level = (profile && profile.experience) || 'intermediate';
   const accent = place === 'relief' ? C.gold
@@ -52,7 +66,7 @@ export default function Library({ place, user, profile, onBack }) {
 
   const open = (target) => {
     const key = typeof target === 'string' ? target : target.key;
-    setPicked(buildRoutine({ target, place, level, side, seed: seeds[key] || 0 }));
+    setPicked(buildRoutine({ target, place, level, side, kit, seed: seeds[key] || 0 }));
   };
 
   /* A different set of moves for the same muscles: same count, same
@@ -62,7 +76,7 @@ export default function Library({ place, user, profile, onBack }) {
     const key = picked.key;
     const next = (seeds[key] || 0) + 1;
     setSeeds({ ...seeds, [key]: next });
-    setPicked(buildRoutine({ target: picked, place, level, side, seed: next }));
+    setPicked(buildRoutine({ target: picked, place, level, side, kit, seed: next }));
   };
 
   const SPLITS = splitTargetsFor(side);
@@ -382,10 +396,33 @@ export default function Library({ place, user, profile, onBack }) {
           </Text>
           <Text style={[T.small, { marginTop: 2 }]}>
             {place === 'home'
-              ? t('No gym needed. A chair, the floor, one dumbbell.')
+              ? t('No gym needed. Pick what you have.')
               : t('Everything the gym has.')}
           </Text>
         </View>
+
+        {/* What you have, before what you train. Everything below is
+            built from whichever of these is lit, so a session never
+            asks for a thing you have not got. */}
+        {place === 'home' ? (
+          <FadeIn delay={20} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
+            <Text style={styles.section}>{t('WHAT HAVE YOU GOT?')}</Text>
+            {KITS.map((k) => {
+              const on = kit === k.key;
+              return (
+                <Press key={k.key} onPress={() => setKit(k.key)} scaleTo={0.985}
+                  style={[styles.kitRow, on && { borderColor: accent, backgroundColor: C.raised }]}>
+                  <View style={[styles.kitDot, { borderColor: on ? accent : C.line },
+                    on && { backgroundColor: accent }]} />
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={[styles.planName, on && { color: accent }]}>{t(k.name)}</Text>
+                    <Text style={T.tiny}>{t(k.sub)}</Text>
+                  </View>
+                </Press>
+              );
+            })}
+          </FadeIn>
+        ) : null}
 
         <FadeIn delay={30} style={{ paddingHorizontal: S.lg, marginTop: S.lg }}>
           <Text style={styles.section}>{t('WORKOUT PLANS')}</Text>
@@ -468,6 +505,14 @@ const makeStyles = (C, T) => StyleSheet.create({
     borderRadius: R.md, padding: 12, marginBottom: 10,
   },
   chip: { width: 46, height: 46, borderRadius: R.sm, backgroundColor: C.raised },
+  kitRow: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: R.md, borderWidth: 1.5, borderColor: C.line,
+    padding: S.md, marginBottom: S.sm,
+  },
+  kitDot: {
+    width: 20, height: 20, borderRadius: 10, borderWidth: 2,
+  },
   planName: { fontFamily: 'WorkSans_600SemiBold', fontSize: 17, color: C.text, letterSpacing: -0.2 },
   go: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   goTxt: { color: '#0B0B0E', fontSize: 15, fontFamily: 'WorkSans_600SemiBold' },

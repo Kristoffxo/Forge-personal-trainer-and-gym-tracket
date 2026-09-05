@@ -33,22 +33,38 @@ export { dayKey, progress, message } from './challengeRules';
 export async function publishStats(userId) {
   const days = await allTrainedDays(userId);
   const a = analyse(days);
+
+  /* The score is published, not recomputed by anyone else. It is
+     made of workout_days, posts and rounds, and row-level security
+     keeps all three private to their owner — so nobody but you is
+     able to work out your score. Writing the finished number here
+     is the only way it can appear on your profile card. */
+  const mine = await myScore(userId);
+
   const row = {
     level: a.level,
     medals: a.medals,
     best_streak: a.longest,
     days_trained: a.trained,
     current_streak: a.current,
+    reppo_score: mine.score,
     stats_at: new Date().toISOString(),
   };
 
   const { error } = await supabase.from('profiles').update(row).eq('id', userId);
 
-  /* days_trained arrives with supabase-v8.sql. Until that has been
-     run the whole update is rejected for the one unknown column,
-     which would quietly stop publishing anything at all — so drop
-     it and write the rest rather than losing the lot. */
-  if (error && /days_trained/.test(error.message || '')) {
+  /* Each of these columns arrived in a later migration, and one
+     unknown column rejects the whole update — which would quietly
+     stop publishing anything at all. Drop whichever is missing and
+     write the rest rather than losing the lot. */
+  if (error && /reppo_score/.test(error.message || '')) {
+    const { reppo_score, ...older } = row;
+    const retry = await supabase.from('profiles').update(older).eq('id', userId);
+    if (retry.error && /days_trained/.test(retry.error.message || '')) {
+      const { days_trained, ...oldest } = older;
+      await supabase.from('profiles').update(oldest).eq('id', userId);
+    }
+  } else if (error && /days_trained/.test(error.message || '')) {
     const { days_trained, ...older } = row;
     await supabase.from('profiles').update(older).eq('id', userId);
   }

@@ -58,11 +58,26 @@ export default function PersonSheet({ userId, name, onClose }) {
               <Text style={styles.who}>{who.name || name}</Text>
             </View>
 
-            <StandingCard days={who.days_trained || 0} />
-
-            <View style={styles.medals}>
-              <BadgeRow days={who.days_trained || 0} size={42} />
-            </View>
+            {/* The published score, never a stand-in for it. This
+                card was being handed days_trained, which the ladder
+                now reads as a Reppo Score — so somebody with five
+                days trained and a score of thirty-four was shown as
+                "5 RS, Bronze". Until reppo_score is published there
+                is no honest score to show, so it shows what it does
+                know instead. */}
+            {typeof who.reppo_score === 'number' ? (
+              <>
+                <StandingCard days={who.reppo_score} />
+                <View style={styles.medals}>
+                  <BadgeRow days={who.reppo_score} size={42} />
+                </View>
+              </>
+            ) : (
+              <Text style={[T.small, { textAlign: 'center', marginTop: S.md }]}>
+                {who.days_trained || 0}{' '}
+                {(who.days_trained || 0) === 1 ? t('day trained') : t('days trained')}
+              </Text>
+            )}
           </>
         )}
 

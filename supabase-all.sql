@@ -1830,3 +1830,72 @@ end $$;
 --    select id, is_admin from public.profiles where is_admin;
 --    select public.purge_old_posts();
 -- ============================================================
+-- ============================================================
+--  Reppo Score on other people's profiles.
+--
+--  The score is worked out on the device from workout_days, posts
+--  and rounds — three tables that row-level security keeps private
+--  to their owner. That is correct, and it is also why nobody else
+--  can compute your score: the numbers it is made of are not theirs
+--  to read.
+--
+--  So the finished number is published to the profile row, the same
+--  way days_trained already is, and the two public functions hand it
+--  out. Until this runs, the app shows days trained instead of a
+--  score rather than showing a wrong one.
+-- ============================================================
+
+alter table public.profiles
+  add column if not exists reppo_score integer not null default 0;
+
+drop function if exists public.leaderboard(integer);
+
+create or replace function public.leaderboard(top integer default 20)
+returns table (
+  id             uuid,
+  name           text,
+  level          integer,
+  medals         jsonb,
+  best_streak    integer,
+  current_streak integer,
+  days_trained   integer,
+  reppo_score    integer
+)
+language sql security definer stable set search_path = public as $$
+  select p.id,
+         split_part(coalesce(nullif(trim(p.full_name), ''), 'Someone'), ' ', 1),
+         p.level, p.medals, p.best_streak, p.current_streak, p.days_trained,
+         p.reppo_score
+    from public.profiles p
+   where auth.uid() is not null
+     and p.days_trained > 0
+   order by p.reppo_score desc, p.days_trained desc, p.created_at asc
+   limit greatest(1, least(coalesce(top, 20), 100))
+$$;
+
+grant execute on function public.leaderboard(integer) to authenticated;
+
+drop function if exists public.public_profile(uuid);
+
+create or replace function public.public_profile(uid uuid)
+returns table (
+  id             uuid,
+  name           text,
+  level          integer,
+  medals         jsonb,
+  best_streak    integer,
+  current_streak integer,
+  days_trained   integer,
+  reppo_score    integer
+)
+language sql security definer stable set search_path = public as $$
+  select p.id,
+         split_part(coalesce(nullif(trim(p.full_name), ''), 'Someone'), ' ', 1),
+         p.level, p.medals, p.best_streak, p.current_streak, p.days_trained,
+         p.reppo_score
+    from public.profiles p
+   where auth.uid() is not null
+     and p.id = uid
+$$;
+
+grant execute on function public.public_profile(uuid) to authenticated;

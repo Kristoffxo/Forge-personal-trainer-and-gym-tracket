@@ -8,13 +8,14 @@ export const privacy = () => page('Privacy Policy', `
 and what you can do about it. It is short because the app does little.</p>
 
 <h2>Who runs it</h2>
-<p>Reppo is run by an individual developer, Aryan Basantani, in India.
+<p>Reppo is run by an individual developer, based in India.
 Contact: <a href="mailto:${CONTACT}">${CONTACT}</a>.</p>
 
 <h2>What is collected</h2>
 <ul>
-  <li><strong>Your email address and password.</strong> Handled by Supabase Auth.
-      The password is hashed by them; this app never sees or stores it.</li>
+  <li><strong>Your email address and password.</strong> Handled by our
+      authentication provider. Your password is hashed there; this app never
+      sees or stores it in readable form.</li>
   <li><strong>Your name.</strong> Only the first word of it is ever shown to
       other people.</li>
   <li><strong>What you told the app about your body</strong> — height, weight,
@@ -53,12 +54,12 @@ push-ups and squats — that video is processed on your own device, frame by
 frame, and never leaves it. No video is recorded, stored or uploaded by either.</p>
 
 <h2>Where it goes</h2>
-<p>Everything is stored with <a href="https://supabase.com/privacy">Supabase</a>,
-which hosts the database and the photograph storage. The app is served through
-<a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>. Push
-notifications, on the website, go through the browser maker's push service —
-Google, Apple or Mozilla depending on your browser — and carry no content: the
-message is chosen on your own device after the notification arrives.</p>
+<p>Everything is stored with established cloud infrastructure providers, who
+host the database, the photograph storage and the app itself under their own
+privacy and security terms. Push notifications, on the website, go through the
+browser maker's push service — Google, Apple or Mozilla depending on your
+browser — and carry no content: the message is chosen on your own device after
+the notification arrives.</p>
 
 <h2>Who can see what</h2>
 <ul>
