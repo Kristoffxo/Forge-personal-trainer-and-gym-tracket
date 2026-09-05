@@ -151,6 +151,33 @@ export async function competeWins(userId) {
   }).length;
 }
 
+/* ---------------------------------------------------------------
+   Put the score where other people can see it.
+
+   publishStats does this too, but only when a workout is finished.
+   That left everybody reading zero from the moment the column was
+   created until their next session — a real score of thirty-two
+   shown to the feed as nought. Opening the app is the other moment
+   the number is known, so it is written then as well.
+
+   Cheap: one update of one integer, and only when it has actually
+   moved. Failures are ignored on purpose — if the column is not
+   there yet, the card falls back to days trained and nothing about
+   this is worth interrupting somebody for.
+   --------------------------------------------------------------- */
+export async function publishScore(userId) {
+  if (!userId) return null;
+  try {
+    const mine = await myScore(userId);
+    await supabase.from('profiles')
+      .update({ reppo_score: mine.score })
+      .eq('id', userId);
+    return mine.score;
+  } catch {
+    return null;
+  }
+}
+
 export async function myScore(userId) {
   const [trained, posts, wins] = await Promise.all([
     allTrainedDays(userId),

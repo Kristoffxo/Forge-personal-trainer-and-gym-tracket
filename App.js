@@ -21,7 +21,7 @@ import { ActivityBanner } from './src/ui/activity';
 import { getSession, onAuthChange, onRecovery, getProfile } from './src/auth';
 import { useWebChrome } from './src/webChrome';
 import * as push from './src/push';
-import { trainedDays } from './src/challenge';
+import { trainedDays, publishScore } from './src/challenge';
 
 import Auth     from './src/screens/Auth';
 import Food     from './src/screens/Food';
@@ -172,6 +172,17 @@ function Root() {
     if (!session || !session.user) return;
     trainedDays(session.user.id).then((d) => push.refreshNudge(d)).catch(() => {});
   }, [session, refreshKey]);
+
+  /* Your score, where other people can see it. It is worked out on
+     this device from three tables nobody else may read, so unless it
+     is written to the profile row the feed has nothing to show but
+     the column's default — which is how a real score of thirty-two
+     appeared to everybody as nought. Publishing on open, as well as
+     after a workout, closes that gap. */
+  useEffect(() => {
+    if (!session || !session.user || !profile || !profile.onboarded) return;
+    publishScore(session.user.id);
+  }, [session, profile, refreshKey]);
 
   useEffect(() => {
     const i = Math.max(0, TABS.findIndex((t) => t.key === tab));
