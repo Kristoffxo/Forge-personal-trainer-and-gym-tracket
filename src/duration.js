@@ -66,8 +66,11 @@ export function setsReps(text) {
   const n = parseInt(m[1], 10);
   const sets = `${n} ${n === 1 ? 'set' : 'sets'}`;
 
-  /* "each" is always each side. Said in full it stops reading as an
-     abbreviation of something the reader has to work out. */
+  /* "each" is always each side, and the photograph can only ever
+     show one of them — the database has a start frame and an end
+     frame, not a left and a right. "each side" next to a picture of
+     a man working his left leg reads as a contradiction; "then swap
+     sides" reads as an instruction. */
   let rest = m[2].trim();
   const eachSide = /\beach\b/i.test(rest);
   rest = rest.replace(/\s*\beach\b\s*/i, ' ').trim();
@@ -89,6 +92,6 @@ export function setsReps(text) {
     work = rest;
   }
 
-  if (eachSide) work += ' each side';
+  if (eachSide) work += ', then swap sides';
   return { sets, work, line: `${sets} · ${work}` };
 }

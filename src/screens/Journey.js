@@ -37,7 +37,7 @@ import { SwipeBack } from '../ui/swipeBack';
 const NO_RING = Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : null;
 
 export default function Journey({ user, profile }) {
-  const { C, T } = useTheme();
+  const { C, T, mode } = useTheme();
   const { t } = useLang();
   const styles = makeStyles(C, T);
   const sheet = useSheet();
@@ -91,6 +91,12 @@ export default function Journey({ user, profile }) {
     );
   }
 
+  /* The league colours are chosen to sit on a dark photograph — that
+     is what the map is, whatever the theme says. Off the map they
+     have to answer to the theme instead: Silver is #D5DDE8, which on
+     a white card is a blank space where a number should be. */
+  const tint = mode === 'light' ? C.ember : (me.rank ? me.rank.colour : C.ember);
+
   /* The map page is its own dark world whatever the theme is doing,
      so the switcher has to be told which ground it is standing on. */
   const switcher = (onDark) => (
@@ -117,7 +123,7 @@ export default function Journey({ user, profile }) {
       <View style={{ flex: 1, backgroundColor: C.bg }}>
         {switcher(false)}
         <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: tabPad }}>
-          <ScoreCard me={me} C={C} T={T} t={t} styles={styles} />
+          <ScoreCard me={me} C={C} T={T} t={t} styles={styles} colour={tint} />
         </ScrollView>
       </View>
     );
@@ -132,7 +138,7 @@ export default function Journey({ user, profile }) {
           <Text style={[T.small, { marginTop: 2 }]}>
             {t('Every day you have trained. Tap a filled day to see what you did.')}
           </Text>
-          <WorkoutCalendar user={user} colour={me.rank ? me.rank.colour : C.ember} />
+          <WorkoutCalendar user={user} colour={tint} />
         </ScrollView>
       </View>
     );
@@ -465,7 +471,8 @@ function ReadOut({ label, value, band, hint, C, T }) {
    The same thirteen places, as a list, grouped by level.
    --------------------------------------------------------------- */
 function ListView({ days, entries, onPick, onBack }) {
-  const { C, T } = useTheme();
+  const { C, T, mode } = useTheme();
+  const light = mode === 'light';
   const { t } = useLang();
   const styles = makeStyles(C, T);
   const tabPad = useTabPad();
@@ -536,8 +543,7 @@ const PAGES = [
    a score you cannot argue with, and the whole thing is arithmetic
    over three tables anybody can see in their own app.
    --------------------------------------------------------------- */
-function ScoreCard({ me, C, T, t, styles }) {
-  const colour = me.rank ? me.rank.colour : C.ember;
+function ScoreCard({ me, C, T, t, styles, colour }) {
   const rows = [
     { label: t('Workouts'), n: me.workouts, each: PER_WORKOUT, got: me.fromWorkouts },
     { label: t('Photos on Discover'), n: me.posts, each: PER_POST, got: me.fromPosts },

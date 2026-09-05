@@ -54,15 +54,21 @@ export async function postedToday(userId) {
 }
 
 export async function loadFeed({ before } = {}) {
-  let q = supabase
-    .from('posts')
-    .select('id, user_id, name, image_path, caption, created_at, avatar_path, avatar_at')
-    .order('created_at', { ascending: false })
-    .limit(PAGE);
+  const ask = (cols) => {
+    let q = supabase
+      .from('posts')
+      .select(cols)
+      .order('created_at', { ascending: false })
+      .limit(PAGE);
+    if (before) q = q.lt('created_at', before);
+    return q;
+  };
 
-  if (before) q = q.lt('created_at', before);
-
-  const { data, error } = await q;
+  const BASE = 'id, user_id, name, image_path, caption, created_at, avatar_path, avatar_at';
+  let { data, error } = await ask(`${BASE}, workout`);
+  /* Same reason as the insert: a database that missed the migration
+     should show a feed without the labels, not no feed. */
+  if (error) ({ data, error } = await ask(BASE));
   if (error) return { posts: [], counts: {}, error: friendly(error.message) };
 
   const posts = data || [];
@@ -86,7 +92,7 @@ async function commentCounts(ids) {
    image is removed again, so a failed post cannot leave an orphan
    file sitting in the bucket forever.
    --------------------------------------------------------------- */
-export async function createPost({ userId, name, blob, caption, avatarPath, avatarAt }) {
+export async function createPost({ userId, name, blob, caption, workout, avatarPath, avatarAt }) {
   const clean = String(caption || '').trim().slice(0, 300);
   const who = firstNameOf(name);
 
@@ -98,14 +104,25 @@ export async function createPost({ userId, name, blob, caption, avatarPath, avat
   });
   if (up.error) return { error: friendly(up.error.message) };
 
-  const { data, error } = await supabase
-    .from('posts')
-        /* The picture is copied onto the post the same way the name
-       already is, so the feed renders in one query. */
-    .insert({ user_id: userId, name: who, image_path: path, caption: clean,
-              avatar_path: avatarPath || null, avatar_at: avatarAt || null })
-    .select()
-    .single();
+  /* The picture is copied onto the post the same way the name
+     already is, so the feed renders in one query. */
+  const row = {
+    user_id: userId, name: who, image_path: path, caption: clean,
+    avatar_path: avatarPath || null, avatar_at: avatarAt || null,
+  };
+  const job = (r) => supabase.from('posts').insert(r).select().single();
+
+  let { data, error } = await job(
+    workout ? { ...row, workout: String(workout).slice(0, 40) } : row,
+  );
+
+  /* `workout` arrived after the table did. On a database that has not
+     run the migration the insert fails on the unknown column, and
+     losing the whole post over a label would be the wrong trade —
+     post it without. */
+  if (error && workout && /workout/i.test(error.message || '')) {
+    ({ data, error } = await job(row));
+  }
 
   if (error) {
     await supabase.storage.from(BUCKET).remove([path]).catch(() => {});

@@ -228,7 +228,8 @@ function Finished({ title, count, user, profile, onExit }) {
 
   async function share() {
     setBusy(true);
-    const r = await createPost({ userId: user.id, name: who, blob: photo.blob, caption });
+    const r = await createPost({ userId: user.id, name: who, blob: photo.blob, caption,
+                                workout: title });
     setBusy(false);
     if (r.error) { await sheet.tell({ title: t('Could not post'), message: r.error }); return; }
     onExit();

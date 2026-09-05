@@ -206,7 +206,14 @@ function PostCard({ post, index, user, face, comments, likes, liked, onLike, onO
           style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
           <Avatar name={post.name} path={face && face.avatar_path} at={face && face.avatar_at}
             size={34} colour={C.line} />
-          <Text style={styles.who}>{firstNameOf(post.name)}</Text>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.who}>{firstNameOf(post.name)}</Text>
+            {/* What the photo is of. A picture of somebody in a gym
+                says nothing about what they did; two words do. */}
+            {post.workout ? (
+              <Text style={styles.after}>{t('after')} {t(post.workout)}</Text>
+            ) : null}
+          </View>
         </Press>
         <Text style={T.tiny}>{ago(post.created_at)}</Text>
         <Press
@@ -657,7 +664,8 @@ const makeStyles = (C, T) => StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.gold,
   },
   avatarTxt: { fontFamily: 'WorkSans_600SemiBold', fontSize: 16, color: C.gold },
-  who: { flex: 1, fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.text, marginLeft: 10 },
+  who: { fontFamily: 'WorkSans_500Medium', fontSize: 15, color: C.text },
+  after: { fontFamily: 'WorkSans_400Regular', fontSize: 12, color: C.dim, marginTop: 1 },
   dots: { paddingHorizontal: 8, paddingVertical: 4, marginLeft: 4 },
   dotsTxt: { color: C.faint, fontSize: 15, letterSpacing: 1 },
 

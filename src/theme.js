@@ -34,14 +34,30 @@ export const DARK = {
   heroVeil:'rgba(14,13,12,0.55)',
 };
 
+/* Light is quiet, dark is lit.
+
+   The dark palette has five accents because it is a dark room and a
+   colour is how you find anything in it. On white the same five read
+   as a highlighter set. So light mode has exactly one accent — the
+   mark's orange — and everything that was amber, teal, violet or
+   gold is that same orange. What is left is ink and grey.
+
+   Three colours survive that rule, because they are not decoration:
+   green means done, red means gone, and the three macros have to be
+   told apart from each other on a ring. All muted, none of them
+   bright. */
+const ACCENT_LIGHT = '#D8420E';
+
 export const LIGHT = {
   mode:'light',
-  bg:'#F6F6F8', surface:'#FFFFFF', raised:'#EFEFF3', line:'#E1E1E8',
-  text:'#0B0B0E', dim:'#5B6270', faint:'#8A90A0', onAccent:'#FFFFFF',
-  ember:'#D93F00', amber:'#C98A0A', teal:'#0E9BB5', violet:'#6D40E0', lime:'#2FA45C',
-  gold:'#C4500A', taupe:'#A8664A',
-  protein:'#D32F2F', carbs:'#C98A0A', fat:'#0E9BB5',
-  danger:'#D32F2F', white:'#FFFFFF',
+  bg:'#FAFAFB', surface:'#FFFFFF', raised:'#F1F1F5', line:'#E6E6EC',
+  text:'#101014', dim:'#5F6673', faint:'#9096A3', onAccent:'#FFFFFF',
+  ember:ACCENT_LIGHT, amber:ACCENT_LIGHT, teal:ACCENT_LIGHT,
+  violet:ACCENT_LIGHT, gold:ACCENT_LIGHT,
+  lime:'#2E7D4F',
+  taupe:'#8A8F99',
+  protein:'#B23A2E', carbs:'#A87615', fat:'#2C6B87',
+  danger:'#B23A2E', white:'#FFFFFF',
   veil:'rgba(14,13,12,0.44)',
   heroVeil:'rgba(14,13,12,0.46)',
 };
@@ -62,13 +78,11 @@ export const MUSCLE_DARK = {
   'Lower back':'#F9A8D4', Hips:'#F472B6', 'Inner thigh':'#FB7185',
   'Upper back':'#93C5FD', Ribs:'#FCD34D',
 };
-export const MUSCLE_LIGHT = {
-  Chest:'#C7481A', Back:'#12867C', Shoulders:'#B9761A', Biceps:'#6244D8',
-  Triceps:'#C63D2C', Quads:'#4E7C1F', Hamstrings:'#0F7A70', Glutes:'#C2557A',
-  Thighs:'#C0455E', Calves:'#2F6FBF', Core:'#A8862A',
-  'Lower back':'#BE4A80', Hips:'#C2557A', 'Inner thigh':'#C0455E',
-  'Upper back':'#2F6FBF', Ribs:'#A8862A',
-};
+/* One colour, on purpose. Fifteen muscle hues is the same
+   highlighter problem as five accents, and a chest day is not more
+   itself for being a different orange from a back day. */
+export const MUSCLE_LIGHT = Object.keys(MUSCLE_DARK)
+  .reduce((out, k) => { out[k] = ACCENT_LIGHT; return out; }, {});
 
 export const F = {
   display:'WorkSans_600SemiBold',

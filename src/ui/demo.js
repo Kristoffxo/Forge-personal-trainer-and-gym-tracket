@@ -15,6 +15,7 @@ import { View, Image, Animated, Easing, StyleSheet } from 'react-native';
 import { useTheme, R } from '../theme';
 import { framesFor } from '../exercisePhotos';
 import { photoForMuscle } from '../photos';
+import { parseDuration } from '../duration';
 
 /* `fit` is 'cover' on cards, where the box is small and a filled
    frame looks right, and 'contain' anywhere the movement itself is
@@ -24,8 +25,19 @@ import { photoForMuscle } from '../photos';
    when the whole question is what the movement looks like. */
 export function Demo({ exercise, playing = true, height = 240, fit = 'cover', style }) {
   const { C } = useTheme();
-  const frames = framesFor(exercise);
+  const all = framesFor(exercise);
   const fade = useRef(new Animated.Value(0)).current;
+
+  /* A hold has nothing to flip between.
+
+     The database gives two photographs per movement, the start and
+     the end. For a plank the start is the man kneeling down to get
+     into it, so cross-fading the pair showed him climbing into a
+     plank and back out of it, over and over, for forty-five seconds
+     — which is not what a plank is. A held position gets the end
+     frame on its own and stays still. */
+  const held = !!parseDuration(exercise && exercise.s);
+  const frames = held && all && all.length ? [all[all.length - 1]] : all;
 
   useEffect(() => {
     if (!frames || frames.length < 2 || !playing) {

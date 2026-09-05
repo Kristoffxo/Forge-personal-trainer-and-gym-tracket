@@ -211,6 +211,12 @@ create table if not exists public.posts (
 );
 create index if not exists posts_recent_idx on public.posts (created_at desc);
 
+--  What the photo followed, so the feed can say "after Core" under
+--  the name. Added after the table, so it needs its own alter — a
+--  `create table if not exists` does nothing to a table that is
+--  already there.
+alter table public.posts add column if not exists workout text;
+
 --  One photo a day, each. The feed is meant to be a record you can look
 --  back on rather than a stream, and a unique index is the only place
 --  this can be enforced honestly — a check in the app is a suggestion.
