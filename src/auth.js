@@ -161,13 +161,41 @@ export async function getProfile() {
   return { id: u.user.id, role: 'client' };
 }
 
+/* ---------------------------------------------------------------
+   Saving your answers, and the bug that made this ugly.
+
+   This was an `update`. It was changed to an `upsert` to survive the
+   second after signing up, when the trigger that creates the profile
+   row has not run yet and an update matches nothing. That change
+   broke every save instead.
+
+   PostgREST sends an upsert as INSERT ... ON CONFLICT DO UPDATE, and
+   Postgres checks the INSERT policy for that statement whether or not
+   the row is already there. `profiles` has policies for select and
+   update and none for insert — so every upsert was refused, the error
+   was thrown away, and onboarding asked the same questions on every
+   launch because the answers never reached the table.
+
+   So: update first, which is what the existing policy allows and what
+   works in every case except the one-second race. Only if that
+   matches nothing do we try to insert the row, and only then does the
+   missing policy matter. The error comes back either way now; the
+   caller is not allowed to carry on as if it worked.
+   --------------------------------------------------------------- */
 export async function saveProfile(patch) {
   const { data: u } = await supabase.auth.getUser();
-  if (!u.user) return null;
-  /* Upsert, not update: if the trigger has not run yet an update
-     matches nothing and the answers are lost without an error. */
-  const { data } = await supabase.from('profiles')
-    .upsert({ id: u.user.id, ...patch }, { onConflict: 'id' })
-    .select().single();
-  return data ? cacheProfile(data) : data;
+  if (!u.user) return { error: 'Not signed in.' };
+  const id = u.user.id;
+
+  const up = await supabase.from('profiles')
+    .update(patch).eq('id', id).select().maybeSingle();
+  if (up.data) return { data: await cacheProfile(up.data) };
+  if (up.error) return { error: friendly(up.error.message) };
+
+  /* No row yet — the trigger has not caught up. */
+  const ins = await supabase.from('profiles')
+    .upsert({ id, ...patch }, { onConflict: 'id' }).select().single();
+  if (ins.data) return { data: await cacheProfile(ins.data) };
+  return { error: friendly(ins.error && ins.error.message) };
 }
+

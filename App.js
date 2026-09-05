@@ -264,7 +264,12 @@ function Root() {
       <>
         <StatusBar style={mode === 'light' ? 'dark' : 'light'} />
         <SafeAreaView style={styles.wrap} edges={EDGES_TOP}>
-          <Onboarding profile={profile} onDone={(p) => setProfile(p || { ...profile, onboarded: true })} />
+          {/* No `|| { ...profile, onboarded: true }` here any more. That
+              fallback marked onboarding done in memory when the save
+              had failed, so the session looked fine and the next
+              launch asked everything again. Onboarding does not call
+              this unless the row really was written. */}
+          <Onboarding profile={profile} onDone={setProfile} />
         </SafeAreaView>
       </>
     );

@@ -97,7 +97,7 @@ export default function Settings({ user, profile, onProfile, onAdmin }) {
     setSaving(true);
     const p = await saveProfile({ full_name: name.trim() });
     setSaving(false);
-    if (p) onProfile(p);
+    if (p.data) onProfile(p.data);
   }
 
   async function toggleNotif() {

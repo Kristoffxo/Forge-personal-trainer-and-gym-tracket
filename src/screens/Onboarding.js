@@ -56,9 +56,17 @@ export default function Onboarding({ profile, onDone }) {
   ];
   const here = STEPS[step];
 
+  const [failed, setFailed] = useState('');
+
+  /* This used to call onDone whatever came back. When the save
+     failed the app carried on as though it had worked, and asked
+     every one of these questions again on the next launch — for
+     ever, because the answers never reached the table. Now a failed
+     save stays on this screen and says so. */
   async function finish() {
     setBusy(true);
-    const saved = await saveProfile({
+    setFailed('');
+    const r = await saveProfile({
       sex,
       birth_year: THIS_YEAR - ageN,
       height_cm: cmN,
@@ -69,7 +77,11 @@ export default function Onboarding({ profile, onDone }) {
       onboarded: true,
     });
     setBusy(false);
-    onDone(saved);
+    if (r.error || !r.data) {
+      setFailed(r.error || 'Could not save your answers. Try again.');
+      return;
+    }
+    onDone(r.data);
   }
 
   return (
@@ -164,6 +176,13 @@ export default function Onboarding({ profile, onDone }) {
                 </Text>
               </View>
             </FadeIn>
+          ) : null}
+
+          {failed ? (
+            <Text style={{ fontFamily: 'WorkSans_500Medium', fontSize: 13.5,
+                           color: C.danger, marginTop: S.md, textAlign: 'center' }}>
+              {failed}
+            </Text>
           ) : null}
 
           <Btn

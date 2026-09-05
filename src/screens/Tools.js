@@ -41,7 +41,7 @@ export default function Tools({ user, profile, onProfile }) {
       weight_kg: num(kg) || null,
       goal_kcal: int(goal, 2200),
     });
-    if (p) { onProfile(p); setSaved(true); setTimeout(() => setSaved(false), 2000); }
+    if (p.data) { onProfile(p.data); setSaved(true); setTimeout(() => setSaved(false), 2000); }
   }
 
   return (
