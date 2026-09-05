@@ -382,7 +382,7 @@ export default function Library({ place, user, profile, onBack }) {
           </Text>
           <Text style={[T.small, { marginTop: 2 }]}>
             {place === 'home'
-              ? t('No gym needed. A chair, a band, one dumbbell.')
+              ? t('No gym needed. A chair, the floor, one dumbbell.')
               : t('Everything the gym has.')}
           </Text>
         </View>

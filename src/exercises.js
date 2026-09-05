@@ -219,9 +219,10 @@ export const EX = [
 
      Once pull-ups, dips and hanging raises stopped pretending to
      need nothing, whole muscles had almost nothing left to train on
-     a floor — home back was one exercise. These fill it: a band,
-     which costs less than a month of the gym, and a handful of
-     things that need only the ground.
+     a floor — home back was one exercise. These fill it: a dumbbell,
+     which a water can stands in for, and a handful of things that
+     need only the ground. Bands were here too and are gone; a band
+     is kit you have to have gone out and bought.
      ------------------------------------------------------------ */
   { n:'Floor Back Extension',       m:'Back', t:'c', e:'None',      s:'3 × 15', w:1 },
   { n:'Band Pull Apart',            m:'Back', t:'i', e:'Band',      s:'3 × 20', w:1 },

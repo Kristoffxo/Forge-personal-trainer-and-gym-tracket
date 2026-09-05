@@ -73,7 +73,7 @@ function boxesFor(women, senior) {
     {
       key: 'home', photo: 'kit', colorKey: 'teal',
       name: 'Home Workouts',
-      sub: 'The floor, a chair, a band',
+      sub: 'The floor, a chair, one dumbbell',
     },
     {
       key: 'instant', photo: 'home', colorKey: 'lime',
