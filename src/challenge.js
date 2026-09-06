@@ -178,13 +178,45 @@ export async function publishScore(userId) {
   }
 }
 
-export async function myScore(userId) {
-  const [trained, posts, wins] = await Promise.all([
-    allTrainedDays(userId),
+/* Points that were earned once, counted once.
+
+   These used to be a count of the rows still lying about: posts,
+   and rounds you had won. Both are cleaned up on a timer —
+   photographs after seven days, rounds after one — so the points
+   went with them, and a score of 34 became 32 overnight because a
+   photograph aged out. That is not the rest-day penalty and there
+   is no way to explain it on the screen.
+
+   The durable counters live on the profile row and are kept by
+   database triggers, so nothing purges them and no client can award
+   itself a league. Counting the surviving rows is the fallback for
+   a database that has not run supabase-score-counters.sql yet: too
+   low once things start expiring, but never a number nobody can
+   account for. */
+async function earnedCounts(userId) {
+  const { data } = await supabase
+    .from('profiles').select('photos_posted, rounds_won').eq('id', userId).maybeSingle();
+
+  if (data && typeof data.photos_posted === 'number' && typeof data.rounds_won === 'number') {
+    return { posts: data.photos_posted, wins: data.rounds_won };
+  }
+
+  const [posts, wins] = await Promise.all([
     countRows('posts', (q) => q.eq('user_id', userId)),
     competeWins(userId),
   ]);
-  return { ...scoreFrom({ trained, posts, wins, today: dayKey() }), trained };
+  return { posts, wins };
+}
+
+export async function myScore(userId) {
+  const [trained, earned] = await Promise.all([
+    allTrainedDays(userId),
+    earnedCounts(userId),
+  ]);
+  return {
+    ...scoreFrom({ trained, posts: earned.posts, wins: earned.wins, today: dayKey() }),
+    trained,
+  };
 }
 
 export async function myJourney(userId) {

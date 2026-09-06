@@ -179,7 +179,7 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
 
   const [hold] = useCountdown(plan.held ? plan.held.seconds : 0,
     phase === 'work' && !!plan.held && !paused,
-    () => setPhase('rest'), `hold-${i}`);
+    () => (lastEx ? advance() : setPhase('rest')), `hold-${i}`);
 
   const [restLeft, addRest] = useCountdown(REST, phase === 'rest' && !paused,
     advance, `rest-${i}`);
@@ -335,7 +335,13 @@ export default function Player({ title, exercises, onQuit, onFinish }) {
               <Text style={styles.mainTxt}>{paused ? '▶' : '⏸'}</Text>
             </Press>
           ) : (
-            <Press onPress={() => setPhase('rest')} scaleTo={0.96}
+            /* The last one finishes; it does not rest. Pressing
+               "Finish" and being shown a thirty-second countdown is
+               confusing on its own, but the workout is not written
+               down until that countdown ends — so anybody who
+               pressed Finish and put the phone in their pocket lost
+               the session and the points with it. */
+            <Press onPress={() => (lastEx ? advance() : setPhase('rest'))} scaleTo={0.96}
               style={[styles.main, { backgroundColor: tint }]}>
               <Text style={styles.mainDone}>{lastEx ? t('Finish') : t('Done')}</Text>
             </Press>
