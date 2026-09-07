@@ -176,7 +176,7 @@ function Field({ value, onChange, placeholder, secure, keyboard, autoCap, last }
   const [shown, setShown] = useState(false);
 
   return (
-    <View style={[styles.fieldWrap, !last && { marginBottom: 12 }]}>
+    <View style={!last && { marginBottom: 12 }}>
       <TextInput
         value={value}
         onChangeText={onChange}
@@ -188,17 +188,16 @@ function Field({ value, onChange, placeholder, secure, keyboard, autoCap, last }
         keyboardType={keyboard || 'default'}
         autoCapitalize={autoCap || 'none'}
         autoCorrect={false}
-        style={[
-          styles.input,
-          secure && { paddingRight: 56 },
-          on && { borderColor: REPPO_ORANGE },
-        ]}
+        style={[styles.input, on && { borderColor: REPPO_ORANGE }]}
       />
       {secure ? (
-        <Pressable onPress={() => setShown(!shown)} hitSlop={12} style={styles.eye}
-          accessibilityRole="button"
-          accessibilityLabel={shown ? 'Hide password' : 'Show password'}>
-          <Text style={styles.eyeTxt}>{shown ? '🙈' : '👁'}</Text>
+        <Pressable onPress={() => setShown(!shown)} hitSlop={8} style={styles.showRow}
+          accessibilityRole="checkbox" accessibilityState={{ checked: shown }}>
+          <View style={[styles.box, shown && { backgroundColor: REPPO_ORANGE,
+                                               borderColor: REPPO_ORANGE }]}>
+            {shown ? <Text style={styles.tick}>{'✓'}</Text> : null}
+          </View>
+          <Text style={styles.showTxt}>Show password</Text>
         </Pressable>
       ) : null}
     </View>
@@ -219,18 +218,21 @@ const styles = StyleSheet.create({
     color: DIM, marginTop: 22, textAlign: 'center',
   },
 
-  fieldWrap: { width: '100%', justifyContent: 'center' },
   input: {
     backgroundColor: FIELD, borderRadius: R.md,
     paddingHorizontal: 18, paddingVertical: 17,
     fontFamily: 'WorkSans_400Regular', fontSize: 16, color: '#FFFFFF',
     borderWidth: 1.5, borderColor: LINE,
   },
-  eye: {
-    position: 'absolute', right: 6, top: 0, bottom: 0,
-    width: 46, alignItems: 'center', justifyContent: 'center',
+  showRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingVertical: 2 },
+  box: {
+    width: 20, height: 20, borderRadius: 4, borderWidth: 1.5, borderColor: DIM,
+    alignItems: 'center', justifyContent: 'center',
   },
-  eyeTxt: { fontSize: 17 },
+  tick: { color: '#FFFFFF', fontSize: 13, fontFamily: 'WorkSans_600SemiBold' },
+  showTxt: {
+    marginLeft: 10, color: DIM, fontSize: 14, fontFamily: 'WorkSans_500Medium',
+  },
 
   go: {
     marginTop: 20, borderRadius: R.md, paddingVertical: 18,

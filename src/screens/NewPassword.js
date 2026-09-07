@@ -62,24 +62,28 @@ export default function NewPassword({ onDone }) {
         {/* One eye for both boxes. They are the same password typed
             twice, so revealing one and not the other would be a way
             to mismatch them without being able to see it. */}
-        <View style={styles.fieldWrap}>
-          <TextInput
-            value={pw} onChangeText={setPw}
-            placeholder={t('New password')} placeholderTextColor={FAINT}
-            secureTextEntry={!shown} autoCapitalize="none"
-            style={[styles.field, { paddingRight: 56 }]}
-          />
-          <Pressable onPress={() => setShown(!shown)} hitSlop={12} style={styles.eye}
-            accessibilityRole="button"
-            accessibilityLabel={shown ? 'Hide password' : 'Show password'}>
-            <Text style={styles.eyeTxt}>{shown ? '🙈' : '👁'}</Text>
-          </Pressable>
-        </View>
+        <TextInput
+          value={pw} onChangeText={setPw}
+          placeholder={t('New password')} placeholderTextColor={FAINT}
+          secureTextEntry={!shown} autoCapitalize="none" style={styles.field}
+        />
         <TextInput
           value={again} onChangeText={setAgain}
           placeholder={t('Type it again')} placeholderTextColor={FAINT}
           secureTextEntry={!shown} autoCapitalize="none" style={styles.field}
         />
+
+        {/* One box for both. They are the same password typed twice,
+            so showing one and not the other is a way to mismatch
+            them without being able to see it. */}
+        <Pressable onPress={() => setShown(!shown)} hitSlop={8} style={styles.showRow}
+          accessibilityRole="checkbox" accessibilityState={{ checked: shown }}>
+          <View style={[styles.box, shown && { backgroundColor: REPPO_ORANGE,
+                                               borderColor: REPPO_ORANGE }]}>
+            {shown ? <Text style={styles.tick}>{'✓'}</Text> : null}
+          </View>
+          <Text style={styles.showTxt}>{t('Show password')}</Text>
+        </Pressable>
 
         {/* Said as it is typed, not after pressing a button that
             refuses to do anything and does not say why. */}
@@ -113,12 +117,15 @@ const makeStyles = () => StyleSheet.create({
     fontFamily: 'WorkSans_600SemiBold', fontSize: 26, color: '#FFFFFF', marginTop: 26,
   },
   sub: { fontFamily: 'WorkSans_400Regular', fontSize: 14, color: DIM, marginTop: 6 },
-  fieldWrap: { justifyContent: 'center' },
-  eye: {
-    position: 'absolute', right: 6, top: S.md, bottom: 0,
-    width: 46, alignItems: 'center', justifyContent: 'center',
+  showRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingVertical: 2 },
+  box: {
+    width: 20, height: 20, borderRadius: 4, borderWidth: 1.5, borderColor: DIM,
+    alignItems: 'center', justifyContent: 'center',
   },
-  eyeTxt: { fontSize: 17 },
+  tick: { color: '#FFFFFF', fontSize: 13, fontFamily: 'WorkSans_600SemiBold' },
+  showTxt: {
+    marginLeft: 10, color: DIM, fontSize: 14, fontFamily: 'WorkSans_500Medium',
+  },
   field: {
     backgroundColor: FIELD, borderRadius: R.md, borderWidth: 1.5, borderColor: LINE,
     color: '#FFFFFF', fontFamily: 'WorkSans_400Regular', fontSize: 16,
