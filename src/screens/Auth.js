@@ -169,24 +169,39 @@ export default function Auth({ onDone }) {
    two, and nothing shouting in capitals above an empty box. */
 function Field({ value, onChange, placeholder, secure, keyboard, autoCap, last }) {
   const [on, setOn] = useState(false);
+  /* Typing a password you cannot see, on a phone keyboard, is how
+     people end up locked out of an account they just made. The eye
+     is off by default — shoulders exist — and it never appears on a
+     field that was not a password to begin with. */
+  const [shown, setShown] = useState(false);
+
   return (
-    <TextInput
-      value={value}
-      onChangeText={onChange}
-      onFocus={() => setOn(true)}
-      onBlur={() => setOn(false)}
-      placeholder={placeholder}
-      placeholderTextColor={FAINT}
-      secureTextEntry={secure}
-      keyboardType={keyboard || 'default'}
-      autoCapitalize={autoCap || 'none'}
-      autoCorrect={false}
-      style={[
-        styles.input,
-        !last && { marginBottom: 12 },
-        on && { borderColor: REPPO_ORANGE },
-      ]}
-    />
+    <View style={[styles.fieldWrap, !last && { marginBottom: 12 }]}>
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        onFocus={() => setOn(true)}
+        onBlur={() => setOn(false)}
+        placeholder={placeholder}
+        placeholderTextColor={FAINT}
+        secureTextEntry={secure && !shown}
+        keyboardType={keyboard || 'default'}
+        autoCapitalize={autoCap || 'none'}
+        autoCorrect={false}
+        style={[
+          styles.input,
+          secure && { paddingRight: 56 },
+          on && { borderColor: REPPO_ORANGE },
+        ]}
+      />
+      {secure ? (
+        <Pressable onPress={() => setShown(!shown)} hitSlop={12} style={styles.eye}
+          accessibilityRole="button"
+          accessibilityLabel={shown ? 'Hide password' : 'Show password'}>
+          <Text style={styles.eyeTxt}>{shown ? '🙈' : '👁'}</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -204,12 +219,18 @@ const styles = StyleSheet.create({
     color: DIM, marginTop: 22, textAlign: 'center',
   },
 
+  fieldWrap: { width: '100%', justifyContent: 'center' },
   input: {
     backgroundColor: FIELD, borderRadius: R.md,
     paddingHorizontal: 18, paddingVertical: 17,
     fontFamily: 'WorkSans_400Regular', fontSize: 16, color: '#FFFFFF',
     borderWidth: 1.5, borderColor: LINE,
   },
+  eye: {
+    position: 'absolute', right: 6, top: 0, bottom: 0,
+    width: 46, alignItems: 'center', justifyContent: 'center',
+  },
+  eyeTxt: { fontSize: 17 },
 
   go: {
     marginTop: 20, borderRadius: R.md, paddingVertical: 18,

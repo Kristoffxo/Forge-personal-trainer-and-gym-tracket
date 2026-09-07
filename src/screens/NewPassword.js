@@ -34,6 +34,7 @@ export default function NewPassword({ onDone }) {
   const [pw, setPw] = useState('');
   const [again, setAgain] = useState('');
   const [err, setErr] = useState('');
+  const [shown, setShown] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const long = pw.length >= 6;
@@ -58,15 +59,26 @@ export default function NewPassword({ onDone }) {
         <Text style={styles.title}>{t('Set a new password')}</Text>
         <Text style={styles.sub}>{t('You are signed in. Choose one you will remember.')}</Text>
 
-        <TextInput
-          value={pw} onChangeText={setPw}
-          placeholder={t('New password')} placeholderTextColor={FAINT}
-          secureTextEntry autoCapitalize="none" style={styles.field}
-        />
+        {/* One eye for both boxes. They are the same password typed
+            twice, so revealing one and not the other would be a way
+            to mismatch them without being able to see it. */}
+        <View style={styles.fieldWrap}>
+          <TextInput
+            value={pw} onChangeText={setPw}
+            placeholder={t('New password')} placeholderTextColor={FAINT}
+            secureTextEntry={!shown} autoCapitalize="none"
+            style={[styles.field, { paddingRight: 56 }]}
+          />
+          <Pressable onPress={() => setShown(!shown)} hitSlop={12} style={styles.eye}
+            accessibilityRole="button"
+            accessibilityLabel={shown ? 'Hide password' : 'Show password'}>
+            <Text style={styles.eyeTxt}>{shown ? '🙈' : '👁'}</Text>
+          </Pressable>
+        </View>
         <TextInput
           value={again} onChangeText={setAgain}
           placeholder={t('Type it again')} placeholderTextColor={FAINT}
-          secureTextEntry autoCapitalize="none" style={styles.field}
+          secureTextEntry={!shown} autoCapitalize="none" style={styles.field}
         />
 
         {/* Said as it is typed, not after pressing a button that
@@ -101,6 +113,12 @@ const makeStyles = () => StyleSheet.create({
     fontFamily: 'WorkSans_600SemiBold', fontSize: 26, color: '#FFFFFF', marginTop: 26,
   },
   sub: { fontFamily: 'WorkSans_400Regular', fontSize: 14, color: DIM, marginTop: 6 },
+  fieldWrap: { justifyContent: 'center' },
+  eye: {
+    position: 'absolute', right: 6, top: S.md, bottom: 0,
+    width: 46, alignItems: 'center', justifyContent: 'center',
+  },
+  eyeTxt: { fontSize: 17 },
   field: {
     backgroundColor: FIELD, borderRadius: R.md, borderWidth: 1.5, borderColor: LINE,
     color: '#FFFFFF', fontFamily: 'WorkSans_400Regular', fontSize: 16,
